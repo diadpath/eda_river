@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<diagram version="1" name="dbeel_rivers.erd">
+	<entities>
+		<data-source id="postgres-jdbc-161945da597-4c06b64296e77a6f">
+			<entity id="1" name="rn" fq-name="dbeel_rivers.rn" order="0" x="453" y="37">
+				<path name="dbeel_rivers"/>
+				<path name="eda2.3"/>
+			</entity>
+			<entity id="2" name="rn" fq-name="france.rn" order="1" x="365" y="429">
+				<path name="france"/>
+				<path name="eda2.3"/>
+			</entity>
+			<entity id="3" name="rn" fq-name="spain.rn" order="2" x="483" y="429">
+				<path name="spain"/>
+				<path name="eda2.3"/>
+			</entity>
+			<entity id="4" name="rn" fq-name="portugal.rn" order="3" border-width="3" x="600" y="431">
+				<path name="portugal"/>
+				<path name="eda2.3"/>
+			</entity>
+		</data-source>
+	</entities>
+	<relations>
+		<relation name="france.rn-&gt;dbeel_rivers.rn" fq-name="france.rn.&quot;france.rn-&gt;dbeel_rivers.rn&quot;" type="inheritance" pk-ref="1" fk-ref="2"/>
+		<relation name="spain.rn-&gt;dbeel_rivers.rn" fq-name="spain.rn.&quot;spain.rn-&gt;dbeel_rivers.rn&quot;" type="inheritance" pk-ref="1" fk-ref="3"/>
+		<relation name="portugal.rn-&gt;dbeel_rivers.rn" fq-name="portugal.rn.&quot;portugal.rn-&gt;dbeel_rivers.rn&quot;" type="inheritance" pk-ref="1" fk-ref="4"/>
+	</relations>
+</diagram>

@@ -1,0 +1,110 @@
+# ---
+title: "slope analysis"
+author: "Cedric and Maria and Mathilde"
+date: "03/03/2020"
+output: 
+  html_document:
+    number_sections: true
+---
+
+
+
+```{r launch, echo=FALSE, include=FALSE}
+
+# NOTE
+# TODO update sudoang.view_obstruction;
+
+
+require(knitr)
+opts_knit$set(eval.after = 'fig.cap')
+# this will set figure caption to cap inside R chunk
+obj <- ls(all=TRUE)
+obj <- obj[!obj%in%c("passworddistant","passwordlocal")]
+getUsername <- function(){
+	name <- Sys.info()[["user"]]
+	return(name)
+}
+#memory.limit(size =4000)
+if(getUsername() == 'cedric.briand'|getUsername() == 'mmateo') setwd("C:/workspace/EDA/")
+rivernetwork <- "RIOS"
+source("EDACCM/init.r")
+#citation("sqldf")
+#citation("RPostgreSQL")
+#citation("RColorBrewer")
+#citation("plyr")
+#citation("ggplot2")
+#citation("stargazer")
+#citation("visreg")
+#citation("mgcv")
+#citation("PresenceAbsence")
+graphics.off() 
+
+#options(warn =  -1)
+options(sqldf.RPostgreSQL.user = "postgres", 
+		sqldf.RPostgreSQL.password = passwordlocal,
+		sqldf.RPostgreSQL.dbname = "eda2.3",
+		sqldf.RPostgreSQL.host = "localhost",#  1.100.1.6
+		sqldf.RPostgreSQL.port = 5432)
+#t <- tryCatch(sqldf("select gid from rht.rhtvs2 limit 1"),error =  function(e) e)
+#is_simple_error <- function(x) inherits(x, "simpleError")
+#if (is_simple_error(t)) stop("distant call using w3.eptb-vilaine.fr failed, check connection to the database")
+
+
+#baseODBCccm[1] <- "eda2"
+#baseODBC[1] <- "ouvragelb"
+#baseODBCdbeel[1] <- "dbeel"
+#baseODBCrht[1] <- "eda2rht"
+
+# Attention il faut crï¿½er les rï¿½pertoires
+options(warn =  0)
+#setwd("C:/workspace/EDA/report2.3")
+#datawd <- "C:/workspace/EDAdata/"
+ddatawd <- paste0(datawd,"/report2.3/data/")
+#imgwd <- "C:/workspace/EDAdata/reportt2.3/images/"
+#edawd =  "C:/workspace/EDA/"
+
+
+# la fonction sn utilise maintenant le package siunitx
+# ajouter \usepackage{siunitx}
+#\sisetup{
+#round-mode = places, % nombre de decimales apres la virgule
+#round-precision = 3
+#}%
+# Dans le preambule
+num <- function(x,round_precision =  NULL)
+{
+	if (is.null(round_precision)) {
+		return(sprintf("\\num{%s}", x))
+	} else {
+		return(sprintf("\\num[round-precision=%s]{%s}",round_precision+1, x))
+	}
+}
+wd <- getwd()
+# choix de la version a charger
+rapport <- "2020" #"2012" "2015" "2009" 
+sector <- "spain"
+open_in_excel <- function(some_df){
+	tFile <- paste("C:/temp/",gsub("\\\\","",tempfile(fileext =  paste0(substitute(some_df), ".csv"),tmpdir =  "")),sep =  "")
+	write.table(some_df, tFile, row.names = F, sep = ";", quote = F)
+	system(paste('open -a \"/ProgramData/Microsoft/Windows/Start Menu/Programs/Microsoft Office/Microsoft Excel 2010\"', tFile))
+}
+library(readxl)
+library(sf)
+library(scam)
+# vvv <- list()
+# save(vvv, file=paste0(ddatawd,"vvv.Rdata"))
+```
+
+```{r test, echo=TRUE, include=TRUE}
+
+slope <- sqldf("SELECT slope, country from dbeel_rivers.rn_rna")
+# this slope is indicated as per mille by Pella et al (2012)
+ggplot(slope)+ geom_density(aes(x=slope, fill=country), alpha=0.5)+ scale_x_continuous(limits=c(0,1))
+
+tapply(slope$slope,slope$country,summary)
+summary(slope_france)
+
+
+
+
+```

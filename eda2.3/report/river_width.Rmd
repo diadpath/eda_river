@@ -1,0 +1,743 @@
+---
+title: "ANALYSIS OF RIVER WIDTH"
+author: "Cedric and Maria"
+date: "12 november 2019"
+output: html_document
+bibliography: river_width.bib
+---
+
+
+```{r launch, echo=FALSE, include=FALSE}
+require(knitr)
+opts_knit$set(eval.after = 'fig.cap')
+# this will set figure caption to cap inside R chunk
+obj <- ls(all=TRUE)
+obj <- obj[!obj%in%c("passworddistant","passwordlocal")]
+getUsername <- function(){
+	name <- Sys.info()[["user"]]
+	return(name)
+}
+#memory.limit(size =4000)
+if(getUsername() == 'cedric.briand'|getUsername() == 'mmateo') setwd("C:/workspace/EDA/")
+rivernetwork <- "RIOS"
+source("EDACCM/init.r")
+#citation("sqldf")
+#citation("RPostgreSQL")
+#citation("RColorBrewer")
+#citation("plyr")
+#citation("ggplot2")
+#citation("stargazer")
+#citation("visreg")
+#citation("mgcv")
+#citation("PresenceAbsence")
+graphics.off() 
+
+#options(warn =  -1)
+options(sqldf.RPostgreSQL.user = "postgres", 
+		sqldf.RPostgreSQL.password = passwordlocal,
+		sqldf.RPostgreSQL.dbname = "eda2.3",
+		sqldf.RPostgreSQL.host = "localhost",#  1.100.1.6
+		sqldf.RPostgreSQL.port = 5432)
+#t <- tryCatch(sqldf("select gid from rht.rhtvs2 limit 1"),error =  function(e) e)
+#is_simple_error <- function(x) inherits(x, "simpleError")
+#if (is_simple_error(t)) stop("distant call using w3.eptb-vilaine.fr failed, check connection to the database")
+
+
+#baseODBCccm[1] <- "eda2"
+#baseODBC[1] <- "ouvragelb"
+#baseODBCdbeel[1] <- "dbeel"
+#baseODBCrht[1] <- "eda2rht"
+
+# Attention il faut cr�er les r�pertoires
+options(warn =  0)
+#setwd("C:/workspace/EDA/report2.3")
+#datawd <- "C:/workspace/EDAdata/"
+ddatawd <- paste0(datawd,"/report2.3/data/")
+#imgwd <- "C:/workspace/EDAdata/reportt2.3/images/"
+#edawd =  "C:/workspace/EDA/"
+
+sanitizeLatexS <- function(str) {
+	gsub('([#$%&~_\\^\\\\{}])', '\\\\\\\\\\1', str, perl = TRUE);
+}
+# la fonction sn utilise maintenant le package siunitx
+# ajouter \usepackage{siunitx}
+#\sisetup{
+#round-mode = places, % nombre de d�cimales apr�s la virgule
+#round-precision = 3
+#}%
+# Dans le pr�ambule
+num <- function(x,round_precision =  NULL)
+{
+	if (is.null(round_precision)) {
+		return(sprintf("\\num{%s}", x))
+	} else {
+		return(sprintf("\\num[round-precision=%s]{%s}",round_precision+1, x))
+	}
+}
+wd <- getwd()
+# choix de la version � charger
+rapport <- "2020" #"2012" "2015" "2009" donn�es c�line 
+sector <- "spain"
+open_in_excel <- function(some_df){
+	tFile <- paste("C:/temp/",gsub("\\\\","",tempfile(fileext =  paste0(substitute(some_df), ".csv"),tmpdir =  "")),sep =  "")
+	write.table(some_df, tFile, row.names = F, sep = ";", quote = F)
+	system(paste('open -a \"/ProgramData/Microsoft/Windows/Start Menu/Programs/Microsoft Office/Microsoft Excel 2010\"', tFile))
+}
+library(readxl)
+library(sf)
+library(scam)
+# vvv <- list()
+# save(vvv, file=paste0(ddatawd,"vvv.Rdata"))
+```
+# Modelling of upstream catchment area, shreeve and strahler in Spain and Portugal
+
+The rn layer is based on the rht in France, and the wise layers http://www.mapama.gob.es/es/cartografia-y-sig/ide/directorio_datos_servicios/caracteristicas_wms.aspx in Spain and Portugal https://sniambgeoportal.apambiente.pt/geoportal/catalog/search/resource/details.page?uuid={F199A8DA-ECE8-44FF-B753-37DDD9A70240}.
+Those have been chained, and the algorythm routing the river from the downstream part has been run.
+
+But to get the surface of the basin upstream, the maximum distance to the source, the shreeve or strahler ranks it has to be routed from the source.
+
+This is done using the [BaseEdaRiosRiversegments](http://w3.eptb-vilaine.fr:8080/traceda/browser/eda/EDA_Rios/BaseEdaRiosRiversegments.R) class which has a method stream_order to run the rivers from the upstream part.
+
+The following code shows examples on how to run the method in Spain :
+
+```{r, eval=FALSE}
+require("RPostgreSQL")
+require("sqldf")
+library("sp")
+library("rgdal")
+library("sf")
+source("EDACCM/init.r")
+# Creates a class for all rivers in Spain (no basins selected- no emu selected)
+rios_surf <- new('BaseEdaRiosRiversegments',
+		baseODBC = "baseODBCrios",
+		schema = "dbeel_rivers", 		
+		table = "rn",
+		prkey = "idsegment", 
+		zonegeo = 'Spain',
+		basin=as.character(NULL),
+		emu=as.character(NULL))
+# Loads all the riversegments from spain including attributes
+rios_surf  <- loaddb_all(rios_surf)#2.3 min
+#  run the stream order method
+rios_surf<-stream_order(rios_surf,silent=TRUE)
+# extract a dataset with the columns idsegment, shreeve, strahler, surfacebvm2 (the cumulated surface upstream), and maximum distance source
+export <- rios_surf@data[,c("idsegment","shreeve","strahler","surfacebvm2","distancesourcem")]
+# save in a temporary table and update the database
+sqldf("drop table if exists spain.c_temp")
+sqldf("create table spain.c_temp as select * from export")
+sqldf("update spain.rna set (shreeve,strahler, surfacebvm2,distancesourcem)= (c_temp.shreeve,c_temp.strahler,c_temp.surfacebvm2,c_temp.distancesourcem) from spain.c_temp
+				where c_temp.idsegment=rna.idsegment")
+#sqldf("update spain.rna set (shreeve,strahler, surfacebvm2)= (NULL,NULL,NULL)")
+
+```
+The method selects all riversegments and starts from the source. It will stop at a segment untill all ancestors have been found and calculate strahler and shreeve accordingly.
+
+[![Stahler, shreeve, and distance source](C:/workspace/EDAdata/report2.3/images/strahler.png)](https://youtu.be/Y48o9V6opGw "Computing river metrics from the source - Click to Watch!")
+
+# Collection of actual river width data
+
+```{r loaddata, echo=FALSE, eval=FALSE}
+
+load(file = paste(ddatawd,"rios_spain.RData",sep = ""))		 	# rios
+rios_sp <- rios@data 											# 325607 obs. of  54 variables
+load(file = paste(ddatawd,"rios_portugal.RData",sep = ""))
+rios_pt<-rios@data
+riosw<-rbind(rios_sp[,c("idsegment","shreeve")],
+		rios_pt[,c("idsegment","shreeve")])
+
+
+#------------------------------------------------------------------
+# Loading width of electrofishing,  google sampling and Andalucia
+#-------------------------------------------------------------------
+# Selecting the width in electrofishing operations (without 10, 20, 30, 40 and 50m)
+width_electro <- new('BaseEdaRios',
+		baseODBC = "baseODBCrios", 
+		schema = c('dbeel_rivers','sudoang'), 
+		table = c('dbeel_station', 'dbeel_electrofishing', 'rn', 'rna'), 
+		prkey = 'idsegment',
+		zonegeo = c('Spain','Portugal'))
+
+width_electro  <- loaddb_width(width_electro)
+datawidth <- width_electro@data
+#save(width_electro,file=str_c(ddatawd,"width_electro.Rdata"))
+#load(file=str_c(ddatawd,"width_electro.Rdata"))
+
+#str(datawidth) # 12307 obs. of  24 variables: uuid and geometry as characters!
+#summary(datawidth$ef_fished_width) # 0, 2775: outliers
+datawidth <- datawidth[,-match("geom",colnames(datawidth))]
+datawidth[datawidth$ef_fished_width>=500,]
+datawidth <- subset(datawidth, ef_fished_width > 0 & ef_fished_width < 500)
+#str(datawidth) # 10820 obs. of  24 variables
+datawidth$W <- datawidth$ef_fished_width
+datawidth$lW <- log(datawidth$ef_fished_width)
+datawidth$lS <- log(datawidth$surfacebvm2)
+datawidth$S <- datawidth$surfacebvm2
+datawidth$source <- "electrofishing_width"
+
+# Width calculated in google maps after sampling points in the hydrographic network (in analyseRios.R)
+# data sent to Maria 30/09
+path <- "C://workspace//EDAdata//sudoang//river_width_sample.xlsx"
+file.exists(path)
+river_width_s1 <- read_excel(path, sheet=1, skip=0) 
+river_width_s1$width<-as.numeric(river_width_s1$width)
+river_width_s1 <- river_width_s1[!is.na(river_width_s1$width),]
+nrow(river_width_s1) # 58
+river_width_s1$S <- river_width_s1$surfacebvm2
+river_width_s1$lS <- log(river_width_s1$surfacebvm2)
+river_width_s1$lW <-log(river_width_s1$width)
+river_width_s1$W <-river_width_s1$width
+river_width_s1$source <- "random_samples"
+# getting shreeve back
+river_width_s1<-dplyr::inner_join(river_width_s1,riosw)
+rm(riosw,rios_sp,rios_pt)
+sf_river_width_s1 <- st_as_sf(river_width_s1, coords = c("x", "y"), crs = 4326)
+#con <- str_c("PG:dbname='eda2.3' host='localhost' port='5432' user='postgres' password='",passwordlocal,"'")
+#st_write(sf_river_width_s1, dsn = con, layer = "river_width_s1")
+# Width collected by systematic sampling along the largest stream in the South
+
+# je lis le fichier excel je le mets sur postgis
+con <- str_c("PG:dbname='eda2.3' host='localhost' port='5432' user='postgres' password='",passwordlocal,"'")
+river_width <- read_excel("C:/workspace/EDAdata/sudoang/river_width.xlsx", sheet=1, skip=0) 
+#str(river_width)
+river_width <- st_as_sf(river_width, coords = c("long", "lat"), crs = 4326)
+#st_write(river_width, dsn = con, layer = "river_width")
+# je vais le rechercher apr�s une jointure
+rm(river_width)
+river_width_systematic <- sqldf("with river_width2 as (select ogc_fid as id,
+				river_name,
+				width,
+				comment,
+				st_transform(wkb_geometry, 3035) as geom
+				from river_width),
+				--select * from river_width,--105
+				joining_all as(
+				select 
+				river_width2.*,
+				rn.gid,
+				rn.idsegment,
+				rn.geom,
+				rn.country,
+				rna.distanceseam, 
+				rna.surfacebvm2, 
+				rna.name, 
+				rna.basin, 
+				rna.shreeve,
+				rna.riverwidthm, 
+				rna.emu,
+				st_distance(river_width2.geom,rn.geom) as distance
+				from river_width2
+				join dbeel_rivers.rn on st_dwithin(river_width2.geom,rn.geom,500)
+				join dbeel_rivers.rna on rn.idsegment = rna.idsegment order by distance asc, surfacebvm2 desc
+				) select distinct on (id) river_name, 
+				width, comment, idsegment,surfacebvm2,basin,shreeve, joining_all.riverwidthm,emu,distance from joining_all --105")
+
+river_width_systematic$S <- river_width_systematic$surfacebvm2 # NA in portugal
+river_width_systematic$lS <- log(river_width_systematic$S)
+river_width_systematic$lW <-log(river_width_systematic$width)
+river_width_systematic$W <-river_width_systematic$width
+river_width_systematic$source <- "systematic sample"
+
+# Data from Andalucia: query has been done in analyseRios.R (line 349)
+river_width_andalucia <- sqldf("
+				with river_width2 as (	select sta_id as id,
+				watercourse as river_name,
+				width, 
+				geom
+				from spain.width_andalucia),
+				joining_all as(	select 
+				river_width2.*,
+				rn.gid,
+				rn.idsegment,
+				rn.geom,
+				rn.country,
+				rna.distanceseam, 
+				rna.surfacebvm2, 
+				rna.name, 
+				rna.basin, 
+				rna.shreeve,
+				rna.riverwidthm, 
+				rna.emu,
+				st_distance(river_width2.geom, rn.geom) as distance
+				from river_width2
+				join dbeel_rivers.rn on st_dwithin(river_width2.geom, rn.geom, 500)
+				join dbeel_rivers.rna on rn.idsegment = rna.idsegment 
+				order by distance asc, surfacebvm2 desc
+				) 
+				select distinct on (id) river_name, width, idsegment, surfacebvm2, basin, shreeve, 
+				joining_all.riverwidthm, emu, distance from joining_all")
+
+river_width_andalucia$S <- river_width_andalucia$surfacebvm2 # NA in portugal
+river_width_andalucia$lS <- log(river_width_andalucia$S)
+river_width_andalucia$lW <-log(river_width_andalucia$width)
+river_width_andalucia$W <-river_width_andalucia$width
+river_width_andalucia$source <- "Andalucian field samples"
+
+river_width_andalucia$id <- paste0("anda",1:nrow(river_width_andalucia))
+river_width_s1$id <- paste0("random",1:nrow(river_width_s1))
+river_width_systematic$id <- paste0("system",1:nrow(river_width_systematic))
+datawidth$id <- paste0("electro",1:nrow(datawidth))
+
+WW<- rbind(datawidth[,c("W","lW","lS","S","shreeve","source","basin","id")],
+		river_width_s1[,c("W","lW","lS","S","shreeve","source","basin","id")],
+		river_width_systematic[,c("W","lW","lS","S","shreeve","source","basin","id")],
+		river_width_andalucia[,c("W","lW","lS","S","shreeve","source","basin","id")]
+)
+save(WW, file=str_c(ddatawd,"WW.Rdata"))
+
+```
+
+The data have been collected from electofishing data, a first trial of random sampling using google. Even thought this was designated to concentrate on large water bodies, this sampling very often ended on completely dy lang, in a field, or a dry stream. We have thus chosen a different method with systematic sampling using google and going up the river and trying to measure distance in places where there was no (or the least) influence of downstream dams.
+
+
+
+The initial plot shows that a lot of data are missing in some basins, this becomes apparent in a map, a lot of the data for river widht in electrofishing are missing in the central part of Spain and  Portugal.
+We have checked in the source of data, this is not a problem with data integration, we have the surface but not the river width...
+
+![Available data][avalaible_data]
+
+# River width for large streams and reservoirs
+
+Finally, we have used the MERIT Hydro wordwide river width computation to add with to the largest part of the rivers http://hydro.iis.u-tokyo.ac.jp/~yamadai/MERIT_Hydro/index.html (Yamazaki et al., 2019). We have projected the raster on the current layer using 10 point interpolation along the riversegment.
+
+```{sql postgis, eval=FALSE}
+CREATE TABLE raster_width.rnsubset as (
+WITH dumprn as (
+SELECT idsegment,ST_GeometryN(geom,1) as geom FROM spain.rn WHERE ST_NumGeometries(geom) = 1
+--and seaidsegment='SP322526'
+ -- four multi geometries ignored there
+),
+ point0 AS (
+  SELECT idsegment, 
+         ST_value(raster.rast, ST_StartPoint(st_transform(geom,4326)), TRUE) AS pointvalue
+  FROM dumprn LEFT JOIN 
+       raster_width.merit_width15x15 AS raster 
+       ON (ST_Intersects(ST_StartPoint(st_transform(geom,4326)), raster.rast))
+), point1 AS (
+  SELECT idsegment, 
+         ST_value(raster.rast, ST_EndPoint(st_transform(geom,4326)), TRUE) AS pointvalue
+  FROM dumprn LEFT JOIN 
+       raster_width.merit_width15x15 AS raster 
+       ON (ST_Intersects(ST_EndPoint(st_transform(geom,4326)), raster.rast))
+), point01 AS (
+	SELECT idsegment, 
+         ST_value(raster.rast, ST_LineInterpolatePoint(st_transform(geom,4326), 0.1), TRUE) AS pointvalue
+	FROM dumprn LEFT JOIN 
+       raster_width.merit_width15x15 AS raster 
+       ON (ST_Intersects(ST_LineInterpolatePoint(st_transform(geom,4326), 0.1), raster.rast))
+), point02 AS (
+	SELECT idsegment, 
+         ST_value(raster.rast, ST_LineInterpolatePoint(st_transform(geom,4326), 0.2), TRUE) AS pointvalue
+	FROM dumprn LEFT JOIN 
+       raster_width.merit_width15x15 AS raster 
+       ON (ST_Intersects(ST_LineInterpolatePoint(st_transform(geom,4326), 0.2), raster.rast))
+), point03 AS (
+	SELECT idsegment, 
+         ST_value(raster.rast, ST_LineInterpolatePoint(st_transform(geom,4326), 0.3), TRUE) AS pointvalue
+	FROM dumprn LEFT JOIN 
+       raster_width.merit_width15x15 AS raster 
+       ON (ST_Intersects(ST_LineInterpolatePoint(st_transform(geom,4326), 0.3), raster.rast)))
+, point04 AS (
+	SELECT idsegment, 
+         ST_value(raster.rast, ST_LineInterpolatePoint(st_transform(geom,4326), 0.4), TRUE) AS pointvalue
+	FROM dumprn LEFT JOIN 
+       raster_width.merit_width15x15 AS raster 
+       ON (ST_Intersects(ST_LineInterpolatePoint(st_transform(geom,4326), 0.4), raster.rast)))
+, point05 AS (
+	SELECT idsegment, 
+         ST_value(raster.rast, ST_LineInterpolatePoint(st_transform(geom,4326), 0.5), TRUE) AS pointvalue
+	FROM dumprn LEFT JOIN 
+       raster_width.merit_width15x15 AS raster 
+       ON (ST_Intersects(ST_LineInterpolatePoint(st_transform(geom,4326), 0.5), raster.rast)))
+, point06 AS (
+	SELECT idsegment, 
+         ST_value(raster.rast, ST_LineInterpolatePoint(st_transform(geom,4326), 0.6), TRUE) AS pointvalue
+	FROM dumprn LEFT JOIN 
+       raster_width.merit_width15x15 AS raster 
+       ON (ST_Intersects(ST_LineInterpolatePoint(st_transform(geom,4326), 0.6), raster.rast)))
+, point07 AS (
+	SELECT idsegment, 
+         ST_value(raster.rast, ST_LineInterpolatePoint(st_transform(geom,4326), 0.7), TRUE) AS pointvalue
+	FROM dumprn LEFT JOIN 
+       raster_width.merit_width15x15 AS raster 
+       ON (ST_Intersects(ST_LineInterpolatePoint(st_transform(geom,4326), 0.7), raster.rast)))
+, point08 AS (
+	SELECT idsegment, 
+         ST_value(raster.rast, ST_LineInterpolatePoint(st_transform(geom,4326), 0.8), TRUE) AS pointvalue
+	FROM dumprn LEFT JOIN 
+       raster_width.merit_width15x15 AS raster 
+       ON (ST_Intersects(ST_LineInterpolatePoint(st_transform(geom,4326), 0.8), raster.rast)))
+, point09 AS (
+	SELECT idsegment, 
+         ST_value(raster.rast, ST_LineInterpolatePoint(st_transform(geom,4326), 0.9), TRUE) AS pointvalue
+         FROM dumprn LEFT JOIN 
+       raster_width.merit_width15x15 AS raster 
+       ON (ST_Intersects(ST_LineInterpolatePoint(st_transform(geom,4326), 0.9), raster.rast))
+       ),
+union_tous as(
+  SELECT * FROM point0
+	UNION
+	 SELECT * FROM point01
+	UNION
+	 SELECT * FROM point02
+	 UNION
+	 SELECT * FROM point03
+	 UNION
+	 SELECT * FROM point04
+	 UNION
+	 SELECT * FROM point05
+	 UNION
+	 SELECT * FROM point06
+	 UNION
+	 SELECT * FROM point07
+	 UNION
+	SELECT * FROM  point08
+	 UNION
+	 SELECT * FROM point09
+	 UNION	
+	 SELECT * FROM point1),
+ grouped as (
+  SELECT idsegment, avg(pointvalue) as width FROM union_tous where pointvalue>0 group by idsegment)
+ SELECT * FROM grouped where width>11.25
+  
+);
+```
+
+Unlike vector based gis queries, we didn't use buffer arround lines. For most of large rivers, the main segment went trough the raster part and the calculation of with as the average of the raster part was correct. Some checks with electrofishing data or data collected from google showed that the fit was pretty good except where an Island was present in the channel in which case the total width of the river is underestimated : the projected segment takes the path of one or the other branch and the other is ignored. There was a problem that the width computed for the main stream 
+so a decision was taken to remove the width. The rule was a bit different for portugal and Spain as the river networks do not have the same level of details (we decided to remove a different strahler order, up to three for Spain and one for Portugal). 
+
+
+```{r out.width="250px", echo=FALSE, fig.cap = cap}
+knitr::include_graphics("C:/workspace/EDAdata/report2.3/images/width_on_a_river.PNG")
+cap <- "Width computed in a river, removing low strahler rank (i.e. not applying width to tributaries) makes sense. "
+```
+
+
+The MERIT method correctly calculates the width of the river by adjusting the flow  direction  source @YamazakiMERITHydrohigh2019 but there is no way the segment passing trough a reservoir can adjust to the path chosen in the merit file which was calculated as centerline pixels by searching convex points in bank distance field. 
+
+[//]: # (Comment : Way to insert an image using html tag, and a markdown table but this will only work in html)
+
+| <img src="C:/workspace/EDAdata/report2.3/images/merit_method.PNG" width="300" height="300" /> | <img src="C:/workspace/EDAdata/report2.3/images/merit_method2.PNG" width="300" height="300" /> |
+|-----------------------------------------------|--------------------------------------------|
+|Calculation of stream width (perpendicular to the flow direction) @YamazakiImprovingcomputationalefficiency2013 | Calculation of flow direction @YamazakiImprovingcomputationalefficiency2013 |
+
+In some of the reservoirs, the raster will not follow the same path as the river, and some width will be lost, also the removal of low strahler ranks may make less sense, but in our project it is more important to have a correct river width for the downstream parts of rivers, as the reservoirs should be added later as a layer.
+
+
+```{r out.width="250px", echo=FALSE, fig.cap = cap}
+knitr::include_graphics("C:/workspace/EDAdata/report2.3/images/width_in_a_reservoir.PNG")
+cap <- "Width in reservoir, removing low strahler rank is not always best, but those reservoirs will be added as surface water later in the project."
+```
+
+```{sql postgis2, eval=FALSE}
+UPDATE spain.rna SET riverwidthm=NULL where strahler<=3; -- remove tributaries
+UPDATE portugal.rna SET riverwidthm=NULL where strahler=1; -- remove tributaries
+```
+
+# Modelling river width
+
+A quick analysis of the data shows the necessity of a log transformation to normalize the distributions. The inital plot without grouping shows some basins with very few information.
+
+
+```{r plotdataset, echo=FALSE}
+load(file=str_c(ddatawd,"WW.Rdata"))
+#------------------------
+# Estimating width
+#-----------------------------
+#plot(log(datawidth$ef_fished_width),log(datawidth$surfacebvm2))
+
+
+WW<-WW[WW$W>0&!is.na(WW$W),]
+hist(WW$W,300)
+hist(WW$lW,100)
+hist(WW$lS)
+hist(WW$shreeve)
+hist(log(WW$shreeve))
+
+# some points have apparently a very low surface of bv while a large width (up to 20 m)
+# this might happen if the electrofishing point is not projected on the main course but on a tributary
+# to avoid this we remove lW>2 & lS<15
+#install.packages("scam")
+
+
+WW$lshreeve <- log(WW$shreeve)
+WW2 <- subset(WW,!(lW>1.5 & lS<15 | W==0)&lS>10)
+WW2[WW2$basin%in%c("JUCAR","SEGURA"),"basin"] <- "JUCAR-SEGURA"
+WW2[WW2$basin%in%c("CUENCAS MEDITERRANEAS DE ANDALUCIA"),"basin"] <- "GUADALQUIVIR - ANDALUCIA - GUADIANA - TAJO"
+WW2[WW2$basin%in%c("CUENCAS ATLANTICAS DE ANDALUCIA"),"basin"] <- "GUADALQUIVIR - ANDALUCIA - GUADIANA - TAJO"
+WW2[WW2$basin%in%c("Guadiana"),"basin"] <- "GUADALQUIVIR - ANDALUCIA - GUADIANA - TAJO"
+WW2[WW2$basin%in%c("GUADIANA"),"basin"] <- "GUADALQUIVIR - ANDALUCIA - GUADIANA - TAJO"
+WW2[WW2$basin%in%c("Tejo"),"basin"] <- "GUADALQUIVIR - ANDALUCIA - GUADIANA - TAJO"
+WW2[WW2$basin%in%c("GUADALQUIVIR"),"basin"] <- "GUADALQUIVIR - ANDALUCIA - GUADIANA - TAJO"
+WW2[WW2$basin%in%c("TAJO"),"basin"] <- "GUADALQUIVIR - ANDALUCIA - GUADIANA - TAJO"
+WW2[WW2$basin%in%c("Minho"),"basin"] <- "MIAO-LIMIA-MINHO"
+WW2[WW2$basin%in%c("Lima"),"basin"] <- "MIAO-LIMIA-MINHO"
+WW2[WW2$basin%in%c("MIAO-LIMIA"),"basin"] <- "MIAO-LIMIA-MINHO"
+WW2[WW2$basin%in%c("Vouga e Ribeiras Costeiras","Mondego"),"basin"] <- "VOUGA - MONDEGO"
+WW2[WW2$basin%in%c("MIAO-LIMIA-MINHO"),"basin"] <- "MIAO-LIMIA-MINHO-VOUGA-MONDEGO"
+WW2[WW2$basin%in%c("VOUGA - MONDEGO"),"basin"] <- "MIAO-LIMIA-MINHO-VOUGA-MONDEGO"
+WW2[grep("Bidasoa",WW2$basin),"basin"] <- "CUENCAS INTERNAS PAIS VASCO"
+
+# removing some of the width which cannot be the width of the rivers
+WW2 <- WW2[!(WW2$basin=="EBRO"&WW2$lS>22.5&WW2$lW<2.7),] # exp(2.7) corresponds to 15 m
+WW2 <- WW2[!(WW2$basin=="MIAO-LIMIA-MINHO-VOUGA-MONDEGO"&WW2$lS>22.5&WW2$lW<2.7),] # exp(2.7) corresponds to 15 m
+WW2$basin_rn <- as.factor(WW2$basin)
+WW2$basin_rn <- factor(WW2$basin_rn,levels(WW2$basin_rn)[c(2,9,5,4,3,6,8,7,1)])
+table(WW2$basin_rn)
+
+options(warn=-1)
+ggplot(WW,aes(x=lS,y=lW))+geom_point(alpha=0.5,aes(color=source))+geom_density_2d(col="pink")+
+		geom_smooth(method = lm)+ geom_smooth(method = "gam", formula = y ~ s(x, bs = "cs"),color="purple")+
+		facet_wrap(~basin)
+options(warn=0)
+
+WW3 <-expand_grid(data.frame(W=0.01,
+				lW=log(0.0001),
+				lS=log(1),
+				S=1,
+				shreeve=1,
+				source="added points"),
+		data.frame(
+				basin_rn=rep(unique(WW2$basin_rn),100)))
+WW3$basin <- NA
+WW3$id  <- NA
+WW3$lshreeve <- log(WW3$shreeve)
+WW4 <-rbind(WW2,WW3)
+
+save(WW2, file=str_c(ddatawd,"WW2.Rdata"))
+save(WW4, file=str_c(ddatawd,"WW4.Rdata"))
+
+# generate points to force the model
+
+
+
+     
+```
+
+
+To choose the grouping of basins, the availability of data has been considered as well as the precipitation level. The runoff is avalaible in the swicca EU project. However as this data is not downloadable as a raster is has been downloaded as an image to help build off diagnostic. [SWICCA project](http://swicca.eu/climate-impacts-maps/)
+
+[//]: # (In Qgis the image has been adjusted using the freehand raster georeferencer)
+
+![Basins according to runoff (swicca project)][basins_and_runoff]
+
+ 
+| grouped basins         | comments                |
+| ---------------------- | ---------------------------------- |
+| MIAO-LIMIA-MINHO-VOUGA-MONDEGO | Those basins are in the indermediate part of Portugal where there is an intermeditate water runoff. It would have been preferable to split some of those e.g "MIAO-LIMIA-MINHO" on one hand "VOUGA - MONDEGO" on the other hand but we didn't have enough data to get a correct fit. |
+| GUADALQUIVIR - ANDALUCIA - GUADIANA - TAJO |  correspond to the driest part, thanks to the work of University of Cordoba we have plenty of data available. |
+| DUERO |  It was possible to combine Spanish and Portugese data  |
+|  <- JUCAR-SEGURA | Few electrofishing data there, but a rather similar river
+width so these are grouped | | EBRO | It's quite obvious that some of the
+largest surface correspond to small river width, in that case the width is the
+width of the electrofished area and not the width of the stream. These points
+have been removed from the dataset |
+
+As gam may tend to impose local variations due to incomplete data, or data grouped from several basins, the scam package has been used. Here it imposes a monotone increasing and convex P-splines. The river width recorded using google tend to be larger than those recorded during electrofishing, perhaps because the electrofishing width was to the width of the whole stream in the downstream part. The use of raster calculated width for the largest parts will partly solve this problem. But also imposing a convex and increasing trend is probably better adapted in most cases.
+
+ 
+
+```{r plots  , echo=FALSE,fig.dim=c(7,5)}
+load(file=str_c(ddatawd,"WW2.Rdata"))
+options(warn=-1)
+ggplot(WW2,aes(x=lS,y=lW))+geom_point(alpha=0.5,aes(color=source))+geom_density_2d(col="pink")+
+		geom_smooth(method = lm)+ geom_smooth(method = "gam", formula = y ~ s(x, bs = "cs",k=3),color="purple")+
+		facet_wrap(~basin_rn)+  ggtitle("Unconstrained gam model")
+# using scam to impose monotone increasing trend
+ggplot(WW2,aes(x=lS,y=lW))+geom_point(alpha=0.5,aes(color=source))+geom_density_2d(col="pink")+
+		geom_smooth(method = lm,col="black",lty=2)+ geom_smooth(method = "scam", formula = y ~ s(x,k=4,bs="micx",m=2),color="purple")+
+		facet_wrap(~basin_rn)+
+   ggtitle("Shape of the gam constrained with the scam package")
+# setting a point near (0,0) to force the shape of the curve
+ggplot(WW4,aes(x=lS,y=lW))+geom_point(alpha=0.5,aes(color=source))+geom_density_2d(col="pink")+
+		geom_smooth(method = lm,col="black",lty=2)+ geom_smooth(method = "scam", formula = y ~ s(x,k=4,bs="micx",m=2),color="purple")+
+		facet_wrap(~basin_rn)+
+		ggtitle("Shape of the gam constrained with the scam package")
+options(warn=0)
+
+```
+The model selected does not use the shreeve index as the latter is largerly correlated by surface upstream.
+
+```{r model, echo=TRUE, eval=TRUE}
+load(file=str_c(ddatawd,"WW2.Rdata"))
+load(file=str_c(ddatawd,"WW4.Rdata"))
+# the best model is obtained without a common intecept
+
+g0 <- glm(lW~lS,data=WW2); AIC(g0) 
+g1 <- glm(lW~lS*basin_rn,data=WW2); AIC(g1)# 17579
+g2 <- glm(lW~lS*basin_rn+shreeve,data=WW2);AIC(g2) # 17641
+gm0<-mgcv::gam(lW~basin_rn+s(lS,by=basin_rn,k=4),data=WW2) ; AIC(gm0) # 16765
+
+gm1<-mgcv::gam(lW~basin_rn+ti(lS,lshreeve,by=basin_rn,k=c(3,3)),data=WW2); AIC(gm1)
+# much worse
+vis.gam(gm1,view=c("lS","lshreeve"),color="heat",theta=-35,phi=40);title("log(width)~log(S)+log(shreeve)")
+vis.gam(gm0,theta=-50,phi=40);title("log(width)~log(S) by basin")
+# there is a problem as shreeve does not mean the same in Portugal and Spain and we have had
+# to mix up the two countries
+cor(WW2$lshreeve,WW2$lS) # 0.97
+#plot(g1,id.n = 5, labels.id = WW2$id) # much better with new basins
+#summary(g0)
+# does not fit takes ages, the ggplot works by adding a split strategy
+t1<-Sys.time()  
+
+# this model better at first glance poses a problem for small stream (never goes to low values)
+
+scam0<-scam(lW~s(lS,k=4,bs="micx",m=1,by=basin_rn),data=WW2);  
+paste("time for model (mins)",round(difftime(Sys.time(),t1,units="mins"),2))
+summary(scam0)
+save(scam0,file=str_c(ddatawd,"scam0.Rdata"))
+
+h0 <- glm(lW~lS,data=WW4); AIC(h0) #27492
+h1 <- glm(lW~lS*basin_rn,data=WW4); AIC(h1)# 25736
+h2 <- glm(lW~lS*basin_rn+shreeve,data=WW4);AIC(h2) # 25468
+gmh0<-mgcv::gam(lW~basin_rn+s(lS,by=basin_rn,k=4),data=WW4) ;AIC(gmh0)#17862
+save(gmh0,file=str_c(ddatawd,"gmh0.Rdata"))
+E<-resid(gmh0)
+
+
+boxplot(E~WW4$basin_rn,main="Residuals per basin")
+# model predictions (without the log scale)
+newdata <- expand.grid("basin_rn"=levels(WW2$basin_rn),
+                       lS=seq(12.5,20,by=0.1))
+newdata$S=exp(newdata$lS)/10^6
+newdata$p <- predict(gmh0,newdata=newdata)
+newdata$pW <-exp(newdata$p)
+WW4$S <- WW4$S/10^6
+
+ggplot(WW4)+
+  geom_point(aes(x=S,y=W,color=source),alpha=0.5) +
+  geom_density_2d(col="pink", aes(x=S,y=W)) +
+  geom_line(aes(x=S,y=pW,color=source),alpha=0.5,color="purple",data=newdata)+
+  facet_wrap(~basin_rn)+
+  scale_x_continuous(name = "Surface (10^6 m2)", limits=c(0,500))+
+  scale_y_continuous(name = "River width (m)", limits=c(0,50))
+```
+
+```{r predictions, echo=FALSE, eval=FALSE}
+require(mgcv)
+load(file=str_c(ddatawd,"gmh0.Rdata"))
+load(file = paste(ddatawd,"rios_spain.RData",sep = ""))		 	
+rios_sp <- rios@data 										
+load(file = paste(ddatawd,"rios_portugal.RData",sep = ""))
+rios_pt<-rios@data
+# rios<-rbind(rios_sp[,c("idsegment","shreeve","basin","surfacebvm2")],
+# 		rios_pt[,c("idsegment","shreeve","basin","surfacebvm2")])
+rios<-rbind(rios_sp,
+		rios_pt)
+rios$lS <- log(rios$surfacebvm2)
+#rios[is.na(rios$basin),]
+#unique(rios$basin)
+#table(rios$basin)
+#sum(is.na(rios$basin)) # now zero
+# rios[is.na(rios$basin),] # nothing now
+
+
+path<-"C:/workspace/EDAdata/report2.3/data/basin_width_groups.xlsx"
+basin_width_groups <- read_excel(path, sheet=1, skip=0) 
+basin_width_groups <- basin_width_groups[,c(2,3)]
+colnames(basin_width_groups) <- c("basin","basin_rn")
+rios <-dplyr::left_join(rios,basin_width_groups,by="basin")
+# View(test[,c("basin","basin_rn")])
+# describe(test$basin_rn)
+rios$S <- rios$surfacebvm2 # NA in portugal
+rios[is.na(rios$S),]
+rios[rios$S==0,c("idsegment","surfacebvm2","path","surfaceunitbvm2")]
+paste0("('",paste(rios[rios$S==0,c("idsegment")],collapse="','"),"')")
+
+
+# TEMP CORRECTION THESE SEGMENTS HAVE BEEN REMOVED OR CORRECTED THE DATABASE (see downstream_routing_corrections.sql) 
+# REMOVE IN THE NEXT RUN
+
+rios <- rios[!rios$idsegment %in% c('PT9280','PT68560'),]
+rios$isendoreic <- as.logical(rios$isendoreic)
+rios[rios$idsegment %in% c('PT16120','PT16628','PT16629',
+				'PT16705','PT16706','PT16966','PT16968','PT16969','PT62200','PT63880',
+				'PT63884','PT63951','PT64000'),"isendoreic"] <-TRUE
+rios$isendoreic[is.na(rios$isendoreic)] <- FALSE
+rios[rios$idsegment %in% c('SP161479','SP161478','SP160918','SP161476','SP1112'),"surfacebvm2"] <- 65844*10^6
+rios[rios$idsegment %in% c('PT34661'),"surfacebvm2"] <- 12315014.1
+rios$S <- rios$surfacebvm2
+rios$lS <- log(rios$surfacebvm2)
+
+
+
+rios <- rios[!rios$isendoreic,]
+rios[rios$S==0,]
+rios$lS <- log(rios$S)
+rios[is.na(rios$lS),]
+range(WW4$lS)
+range(rios$lS)
+rios$basin_rn[is.na(rios$basin_rn)]<-"CUENCAS INTERNAS PAIS VASCO" # 3 lines Bidassoa
+rios$basin_rn <- as.factor(rios$basin_rn)
+unique(rios$basin_rn)
+rios$pred_river_width <- exp(predict(gmh0,newdata=rios))
+
+
+ggplot(rios)+
+  geom_histogram(aes(x=pred_river_width,fill=basin_rn,color=basin_rn))+
+  facet_wrap(~basin_rn,scales="free")
+
+unique(rios$riverwidthmsource)
+#rios$riverwidthmsource
+#result <- rios[is.na(rios$riverwidthmsource),c("idsegment","pred_river_width","riverwidthmsource","basin_rn")]
+
+result <- rios[substring(rios$riverwidthmsource,1,10)=='Prediction',c("idsegment","pred_river_width","riverwidthmsource","basin_rn")]
+# r$riverwidthmsource <- str_c("Prediction using scam(lW~s(lS,k=4,bs='micx',m=1,by=basin_rn) where lS = log(surface) and basin=",result$basin_rn)
+sqldf("DROP TABLE IF EXISTS riverwidth_spain_portugal")
+sqldf("CREATE TABLE riverwidth_spain_portugal AS SELECT * FROM result")
+
+
+## missing replacement where MERIT AND NA . ... Now these have been replaced but with wrong (log values)
+#result <- rios[substring(rios$riverwidthmsource,1,5)=='MERIT'& is.na(rios$riverwidthm),c("idsegment","pred_river_width","riverwidthmsource","basin_rn")]
+#result$riverwidthmsource <- str_c("Prediction using scam(lW~s(lS,k=4,bs='micx',m=1,by=basin_rn) where lS = log(surface) and basin=",result$basin_rn)
+#sqldf("DROP TABLE IF EXISTS riverwidth_merit_not_updated")
+#sqldf("CREATE TABLE riverwidth_merit_not_updated AS SELECT * FROM result")
+#
+## missing data
+#rios_source <- sqldf("select idsegment, riverwidthm, riverwidthmsource from spain.rna where riverwidthm is NULL")
+#
+#result2 <- rios[rios$idsegment%in%rios_source$idsegment,c("idsegment","pred_river_width","riverwidthmsource","basin_rn")]
+#result2$riverwidthmsource <- str_c("Prediction using scam(lW~s(lS,k=4,bs='micx',m=1,by=basin_rn) where lS = log(surface) and basin=",result2$basin_rn)
+#sqldf("DROP TABLE IF EXISTS riverwidth_merit_not_updated")
+#sqldf("CREATE TABLE riverwidth_merit_not_updated AS SELECT * FROM result2")
+#
+## same for portugal ... missing data
+#
+#rios_source <- sqldf("select idsegment, riverwidthm, riverwidthmsource from portugal.rna where riverwidthm is NULL")
+#
+#result2 <- rios[rios$idsegment%in%rios_source$idsegment,c("idsegment","pred_river_width","riverwidthmsource","basin_rn")]
+#result2$riverwidthmsource <- str_c("Prediction using scam(lW~s(lS,k=4,bs='micx',m=1,by=basin_rn) where lS = log(surface) and basin=",result2$basin_rn)
+#sqldf("DROP TABLE IF EXISTS riverwidth_portugal_bis")
+#sqldf("CREATE TABLE riverwidth_portugalbis AS SELECT * FROM result2")
+
+```
+
+The final predictions for the Spanish and Portugese river network are as following :
+![river_width_final][river_width_final]
+
+
+```{sql write, eval=FALSE}
+reindex table spain.rna; -- necessary for not like statements (bug)
+VACUUM ANALYSE spain.rna;
+
+BEGIN;
+with notmerit AS(
+select idsegment from spain.rna where riverwidthmsource NOT LIKE '%MERIT%')
+UPDATE spain.rna set riverwidthm=pred_river_width::numeric 
+ from public.riverwidth_spain_portugal, notmerit
+ WHERE rna.idsegment=riverwidth_spain_portugal.idsegment
+ AND rna.idsegment IN (select idsegment FROM notmerit);
+ COMMIT;
+
+
+
+
+```
+
+
+# References
+
+[basins_and_runoff]:C:/workspace/EDAdata/report2.3/images/water_runoff_swicca.PNG "Basins and runoff(swicca project)"
+
+[avalaible_data]:C:/workspace/EDAdata/report2.3/images/available_width.png "Map of available for river with"
+
+[river_width_final]:C:/workspace/EDAdata/report2.3/images/river_width_final.png "Map of river width according to the MERIT Hydro wordwide river width computation"

@@ -1,0 +1,89 @@
+\BOOKMARK [-1][]{section*.2}{The RN table}{}% 1
+\BOOKMARK [0][]{section*.5}{idsegment}{section*.2}% 2
+\BOOKMARK [1][]{section*.7}{source}{section*.5}% 3
+\BOOKMARK [1][]{section*.9}{target}{section*.5}% 4
+\BOOKMARK [1][]{section*.11}{lengthm}{section*.5}% 5
+\BOOKMARK [1][]{section*.13}{nextdownidsegment}{section*.5}% 6
+\BOOKMARK [1][]{section*.15}{path}{section*.5}% 7
+\BOOKMARK [1][]{section*.17}{isfrontier}{section*.5}% 8
+\BOOKMARK [1][]{section*.19}{issource}{section*.5}% 9
+\BOOKMARK [1][]{section*.21}{seaidsegment}{section*.5}% 10
+\BOOKMARK [1][]{section*.23}{issea}{section*.5}% 11
+\BOOKMARK [1][]{section*.25}{isendoreic}{section*.5}% 12
+\BOOKMARK [1][]{section*.27}{isinternational}{section*.5}% 13
+\BOOKMARK [1][]{section*.29}{country}{section*.5}% 14
+\BOOKMARK [1][]{section*.31}{geom}{section*.5}% 15
+\BOOKMARK [-1][]{section*.33}{The RNA table}{}% 16
+\BOOKMARK [0][]{section*.34}{altitudem}{section*.33}% 17
+\BOOKMARK [1][]{section*.36}{distanceseam}{section*.34}% 18
+\BOOKMARK [1][]{section*.38}{distancesourcem}{section*.34}% 19
+\BOOKMARK [1][]{section*.40}{cumnbdam}{section*.34}% 20
+\BOOKMARK [1][]{section*.42}{cumheightdam}{section*.34}% 21
+\BOOKMARK [1][]{section*.44}{surfaceunitbvm2}{section*.34}% 22
+\BOOKMARK [1][]{section*.46}{surfacebvm2}{section*.34}% 23
+\BOOKMARK [1][]{section*.48}{strahler}{section*.34}% 24
+\BOOKMARK [1][]{section*.50}{shreeve}{section*.34}% 25
+\BOOKMARK [1][]{section*.52}{codesea}{section*.34}% 26
+\BOOKMARK [1][]{section*.54}{name}{section*.34}% 27
+\BOOKMARK [1][]{section*.56}{pfafriver}{section*.34}% 28
+\BOOKMARK [1][]{section*.58}{pfafsegment}{section*.34}% 29
+\BOOKMARK [1][]{section*.60}{basin}{section*.34}% 30
+\BOOKMARK [1][]{section*.62}{riverwidthm}{section*.34}% 31
+\BOOKMARK [1][]{section*.64}{riverwidthmsource}{section*.34}% 32
+\BOOKMARK [1][]{section*.66}{temperature}{section*.34}% 33
+\BOOKMARK [1][]{section*.68}{wettedsurfacem2}{section*.34}% 34
+\BOOKMARK [1][]{section*.70}{wettedsurfaceotherm2}{section*.34}% 35
+\BOOKMARK [1][]{section*.72}{lengthriverm}{section*.34}% 36
+\BOOKMARK [1][]{section*.74}{emu}{section*.34}% 37
+\BOOKMARK [1][]{section*.76}{slope}{section*.34}% 38
+\BOOKMARK [1][]{section*.78}{dis m3 pyr riveratlas}{section*.34}% 39
+\BOOKMARK [1][]{section*.80}{dis m3 pmn riveratlas}{section*.34}% 40
+\BOOKMARK [1][]{section*.82}{dis m3 pmx riveratlas}{section*.34}% 41
+\BOOKMARK [1][]{section*.84}{medianflowm3ps}{section*.34}% 42
+\BOOKMARK [1][]{section*.86}{drought}{section*.34}% 43
+\BOOKMARK [-1][]{section*.88}{The RNE table: eel predictions}{}% 44
+\BOOKMARK [0][]{section*.89}{delta}{section*.88}% 45
+\BOOKMARK [1][]{section*.91}{gamma}{section*.89}% 46
+\BOOKMARK [1][]{section*.93}{density}{section*.89}% 47
+\BOOKMARK [1][]{section*.95}{neel}{section*.89}% 48
+\BOOKMARK [1][]{section*.97}{beel}{section*.89}% 49
+\BOOKMARK [1][]{section*.99}{p150}{section*.89}% 50
+\BOOKMARK [1][]{section*.101}{p150300}{section*.89}% 51
+\BOOKMARK [1][]{section*.103}{p300450}{section*.89}% 52
+\BOOKMARK [1][]{section*.105}{p450600}{section*.89}% 53
+\BOOKMARK [1][]{section*.107}{p600750}{section*.89}% 54
+\BOOKMARK [1][]{section*.109}{p750}{section*.89}% 55
+\BOOKMARK [1][]{section*.111}{nsilver}{section*.89}% 56
+\BOOKMARK [1][]{section*.113}{bsilver}{section*.89}% 57
+\BOOKMARK [1][]{section*.115}{psilver150300}{section*.89}% 58
+\BOOKMARK [1][]{section*.117}{psilver300450}{section*.89}% 59
+\BOOKMARK [1][]{section*.119}{psilver450600}{section*.89}% 60
+\BOOKMARK [1][]{section*.121}{psilver600750}{section*.89}% 61
+\BOOKMARK [1][]{section*.123}{psilver750}{section*.89}% 62
+\BOOKMARK [1][]{section*.125}{psilver}{section*.89}% 63
+\BOOKMARK [1][]{section*.127}{pmale150300}{section*.89}% 64
+\BOOKMARK [1][]{section*.129}{pmale300450}{section*.89}% 65
+\BOOKMARK [1][]{section*.131}{pmale450600}{section*.89}% 66
+\BOOKMARK [1][]{section*.133}{pfemale300450}{section*.89}% 67
+\BOOKMARK [1][]{section*.135}{pfemale450600}{section*.89}% 68
+\BOOKMARK [1][]{section*.137}{pfemale600750}{section*.89}% 69
+\BOOKMARK [1][]{section*.139}{pfemale750}{section*.89}% 70
+\BOOKMARK [1][]{section*.141}{pmale}{section*.89}% 71
+\BOOKMARK [1][]{section*.143}{sex ratio}{section*.89}% 72
+\BOOKMARK [1][]{section*.145}{cnfemaleXX}{section*.89}% 73
+\BOOKMARK [1][]{section*.147}{cnmaleXX}{section*.89}% 74
+\BOOKMARK [1][]{section*.149}{cnsilverXX}{section*.89}% 75
+\BOOKMARK [1][]{section*.151}{cnsilver}{section*.89}% 76
+\BOOKMARK [1][]{section*.153}{delta tr}{section*.89}% 77
+\BOOKMARK [1][]{section*.155}{gamma tr}{section*.89}% 78
+\BOOKMARK [1][]{section*.157}{density tr}{section*.89}% 79
+\BOOKMARK [1][]{section*.159}{density pmax tr}{section*.89}% 80
+\BOOKMARK [1][]{section*.161}{neel pmax tr}{section*.89}% 81
+\BOOKMARK [1][]{section*.163}{nsilver pmax tr}{section*.89}% 82
+\BOOKMARK [1][]{section*.165}{sector tr}{section*.89}% 83
+\BOOKMARK [1][]{section*.167}{neel wd}{section*.89}% 84
+\BOOKMARK [1][]{section*.169}{beel wd}{section*.89}% 85
+\BOOKMARK [1][]{section*.171}{nsilver wd}{section*.89}% 86
+\BOOKMARK [1][]{section*.173}{bsilver wd}{section*.89}% 87
+\BOOKMARK [1][]{section*.175}{is current distribution area}{section*.89}% 88
+\BOOKMARK [1][]{section*.177}{is pristine distribution area 1985}{section*.89}% 89

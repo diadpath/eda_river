@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<diagram version="1" name="dbeel_test.erd" time="201905111402">
+	<entities>
+		<data-source id="postgres-jdbc-1698ccd7f80-4a210a2b368ef128">
+			<entity id="1" name="batch" fq-name="dbeel.batch" order="0" x="338" y="941">
+				<path name="dbeel"/>
+				<path name="eda2.3"/>
+			</entity>
+			<entity id="2" name="biological_characteristic" fq-name="dbeel.biological_characteristic" order="1" x="20" y="646">
+				<path name="dbeel"/>
+				<path name="eda2.3"/>
+			</entity>
+			<entity id="3" name="bypass" fq-name="dbeel.bypass" order="2" x="1054" y="750">
+				<path name="dbeel"/>
+				<path name="eda2.3"/>
+			</entity>
+			<entity id="4" name="data_provider" fq-name="dbeel.data_provider" order="3" x="1601" y="120">
+				<path name="dbeel"/>
+				<path name="eda2.3"/>
+			</entity>
+			<entity id="5" name="electrofishing" fq-name="dbeel.electrofishing" order="4" x="1523" y="466">
+				<path name="dbeel"/>
+				<path name="eda2.3"/>
+			</entity>
+			<entity id="6" name="environmental_characteristic" fq-name="dbeel.environmental_characteristic" order="5" x="581" y="152">
+				<path name="dbeel"/>
+				<path name="eda2.3"/>
+			</entity>
+			<entity id="7" name="establishment" fq-name="dbeel.establishment" order="6" x="1837" y="140">
+				<path name="dbeel"/>
+				<path name="eda2.3"/>
+			</entity>
+			<entity id="8" name="hpp" fq-name="dbeel.hpp" order="7" x="1414" y="990">
+				<path name="dbeel"/>
+				<path name="eda2.3"/>
+			</entity>
+			<entity id="9" name="observation_places" fq-name="dbeel.observation_places" order="8" x="925" y="162">
+				<path name="dbeel"/>
+				<path name="eda2.3"/>
+			</entity>
+			<entity id="10" name="observations" fq-name="dbeel.observations" order="9" x="1812" y="439">
+				<path name="dbeel"/>
+				<path name="eda2.3"/>
+			</entity>
+			<entity id="11" name="obstruction" fq-name="dbeel.obstruction" order="10" x="1880" y="273">
+				<path name="dbeel"/>
+				<path name="eda2.3"/>
+			</entity>
+			<entity id="12" name="physical_obstruction" fq-name="dbeel.physical_obstruction" order="11" x="1750" y="970">
+				<path name="dbeel"/>
+				<path name="eda2.3"/>
+			</entity>
+			<entity id="13" name="turbine" fq-name="dbeel.turbine" order="12" x="1086" y="1046">
+				<path name="dbeel"/>
+				<path name="eda2.3"/>
+			</entity>
+		</data-source>
+	</entities>
+	<relations>
+		<relation name="fk_dp" fq-name="dbeel.electrofishing.fk_dp" type="fk" pk-ref="4" fk-ref="5"/>
+		<relation name="fk_dp" fq-name="dbeel.observations.fk_dp" type="fk" pk-ref="4" fk-ref="10"/>
+		<relation name="fk_dp" fq-name="dbeel.obstruction.fk_dp" type="fk" pk-ref="4" fk-ref="11"/>
+		<relation name="fk_dp" fq-name="dbeel.physical_obstruction.fk_dp" type="fk" pk-ref="4" fk-ref="12">
+			<bend type="abs" x="1503" y="761"/>
+			<bend type="abs" x="1486" y="411"/>
+		</relation>
+		<relation name="fk_et_id" fq-name="dbeel.data_provider.fk_et_id" type="fk" pk-ref="7" fk-ref="4"/>
+		<relation name="c_fk_bypass_hpp_id" fq-name="dbeel.bypass.c_fk_bypass_hpp_id" type="fk" pk-ref="8" fk-ref="3"/>
+		<relation name="c_fk_turb_hpp_id" fq-name="dbeel.turbine.c_fk_turb_hpp_id" type="fk" pk-ref="8" fk-ref="13"/>
+		<relation name="dbeel.electrofishing-&gt;dbeel.observations" fq-name="dbeel.electrofishing.&quot;dbeel.electrofishing-&gt;dbeel.observations&quot;" type="inheritance" pk-ref="10" fk-ref="5"/>
+		<relation name="dbeel.obstruction-&gt;dbeel.observations" fq-name="dbeel.obstruction.&quot;dbeel.obstruction-&gt;dbeel.observations&quot;" type="inheritance" pk-ref="10" fk-ref="11"/>
+		<relation name="dbeel.physical_obstruction-&gt;dbeel.obstruction" fq-name="dbeel.physical_obstruction.&quot;dbeel.physical_obstruction-&gt;dbeel.obstruction&quot;" type="inheritance" pk-ref="11" fk-ref="12">
+			<bend type="abs" x="2021" y="771"/>
+		</relation>
+		<relation name="c_fk_hpp_ob_id" fq-name="dbeel.hpp.c_fk_hpp_ob_id" type="fk" pk-ref="12" fk-ref="8"/>
+	</relations>
+	<notes/>
+</diagram>

@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<diagram version="1" name="test" time="201905111237">
+	<entities>
+		<data-source id="postgres-jdbc-1698ccd7f80-4a210a2b368ef128">
+			<entity id="1" name="dbeel_batch_fish" fq-name="sudoang.dbeel_batch_fish">
+				<path name="sudoang"/>
+				<path name="eda2.3"/>
+			</entity>
+			<entity id="2" name="dbeel_batch_ope" fq-name="sudoang.dbeel_batch_ope">
+				<path name="sudoang"/>
+				<path name="eda2.3"/>
+			</entity>
+			<entity id="3" name="dbeel_bypass" fq-name="sudoang.dbeel_bypass">
+				<path name="sudoang"/>
+				<path name="eda2.3"/>
+			</entity>
+			<entity id="4" name="dbeel_electrofishing" fq-name="sudoang.dbeel_electrofishing">
+				<path name="sudoang"/>
+				<path name="eda2.3"/>
+			</entity>
+			<entity id="5" name="dbeel_hpp" fq-name="sudoang.dbeel_hpp">
+				<path name="sudoang"/>
+				<path name="eda2.3"/>
+			</entity>
+			<entity id="6" name="dbeel_mensurationindiv_biol_charac" fq-name="sudoang.dbeel_mensurationindiv_biol_charac">
+				<path name="sudoang"/>
+				<path name="eda2.3"/>
+			</entity>
+			<entity id="7" name="dbeel_obstruction_place" fq-name="sudoang.dbeel_obstruction_place">
+				<path name="sudoang"/>
+				<path name="eda2.3"/>
+			</entity>
+			<entity id="8" name="dbeel_physical_obstruction" fq-name="sudoang.dbeel_physical_obstruction">
+				<path name="sudoang"/>
+				<path name="eda2.3"/>
+			</entity>
+			<entity id="9" name="dbeel_station" fq-name="sudoang.dbeel_station">
+				<path name="sudoang"/>
+				<path name="eda2.3"/>
+			</entity>
+			<entity id="10" name="dbeel_turbine" fq-name="sudoang.dbeel_turbine">
+				<path name="sudoang"/>
+				<path name="eda2.3"/>
+			</entity>
+		</data-source>
+	</entities>
+	<relations>
+		<relation name="fk_mensindivbiocho_bc_ba_id" fq-name="sudoang.dbeel_mensurationindiv_biol_charac.fk_mensindivbiocho_bc_ba_id" type="fk" pk-ref="1" fk-ref="6"/>
+		<relation name="c_fk_fi_ob_id" fq-name="sudoang.dbeel_batch_fish.c_fk_fi_ob_id" type="fk" pk-ref="4" fk-ref="1"/>
+		<relation name="c_fk_ba_ob_id" fq-name="sudoang.dbeel_batch_ope.c_fk_ba_ob_id" type="fk" pk-ref="4" fk-ref="2"/>
+		<relation name="c_fk_ob_op_id" fq-name="sudoang.dbeel_physical_obstruction.c_fk_ob_op_id" type="fk" pk-ref="7" fk-ref="8"/>
+		<relation name="c_fk_hpp_ob_id" fq-name="sudoang.dbeel_hpp.c_fk_hpp_ob_id" type="fk" pk-ref="8" fk-ref="5"/>
+		<relation name="fk_oo_op_id" fq-name="sudoang.dbeel_electrofishing.fk_oo_op_id" type="fk" pk-ref="9" fk-ref="4"/>
+	</relations>
+	<notes/>
+</diagram>

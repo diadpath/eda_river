@@ -1,0 +1,646 @@
+---
+title: "COMPUTING SURFACE OF WATER INCLUDING POLYGON SOURCES (EDA 2.3)"
+author: "Cédric Briand, Maria Matteo Laurent Beaulaton and Hilaire Drouineau, "
+date: "january 2020"
+output: html_document
+bibliography: water_surface.bib
+---
+
+```{r launch, echo=FALSE, include=FALSE}
+require(knitr)
+opts_knit$set(eval.after = 'fig.cap')
+```
+
+# Introduction
+
+The eda model predicts the density of yellow eel using attributes extracted and projected on the river network   @BriandEeldensityanalysis2018. This model uses then a silvering model to predict the number of silver eels departing from the streams to the ocean @BeaulatonAnalysedonneesargenture2015.
+
+In 2012, the second version of EDA has been built on the ccm @VogtpanEuropeanrivercatchment2007 @VogtCCMrivercatchment2003. One of the main problem using the ccm was that it was not covering the whole water surface @JouaninEelDensityAnalysis2012, and a hack used in Ireland was to raise the estimates of water surface using the water surface of the total river network and waterbodies (including lakes). This let to estimates of biomass close to those estimated by the Irish model @deEytoApplicationEDAIreland2016. However, this raising was done at the EMU (eel management unit) scale which always correspond to very large territories.
+
+In 2018, EDA was built on antoher river network, where the width of the stream is predicted  @Pellareseauhydrographiquetheorique2012. The lack of inclusion of true water surface in the RHT explains the mismatch betwen productions of silver eels predicted by the model and independant observation obtained from various surveys of silver eel migration. The largest mistach between these two productions has been found in the basins where a large part of the production was stemming from lakes or reservoir such as the Frémur (@LaffailleSpatialorganisationEuropean2003, @AcouMigrationpatternsilver2008) where part of the catchments is a reservoir enpounded by a large dam or Souston which is a small stream including many large lakes.
+
+This, and the fact that the most productive environment are not covered by EDA @BeaulatonEvaluationBiomasseanguille2018 has led us to try to find a way of inserting the water surface bodies.
+We describe a method to join the river network and the waterbodies using different data sources in the different countries. We also propose a method to remove the surface bodies of the streams when they are overlapped with surface water bodies.
+
+# Method
+
+## France
+
+The source of data in France is the BD TOPO® Hydrographie which corresponds to the stream, water surface and reservoirs in France. The layers can be downloaded [here](https://geoservices.ign.fr/documentation/diffusion/telechargement-donnees-libres.html).
+Among the attributes of the layer, we find :
+
+* the hydrographic code of the stream
+* the nature of the layer 
+ 
+ |Nature                 | Included|
+|---------------------------|-----|
+|Canal (channel)                     | Yes|
+|Réservoir-bassin piscicole (fish pond)| No|
+|Réservoir-bassin d'orage   (storm surge pond)| No|
+|Conduit buse (duct)   |  No|          |
+|Ecoulement naturel (natural flow) |Yes |
+|Retenue-digue  (dike reservoir)|No|            |
+|Lac        (lake)                |Yes |
+|Retenue     (reservoir)               |Yes |
+|Glacier, névé  (glacier, snow sheet)       | No| 
+|Lagune        (lagoon  )           |Yes |
+|Retenue-barrage  (reservoir-dam)          |Yes |
+|Mare          (pond)            |No |
+|Ecoulement canalisé    (channelled flow)    | No| 
+|Retenue-bassin portuaire  (reservoir, harbour) | No| 
+|Plan d'eau de gravière (Gravel pit pond)    | No|
+|Plan d'eau de mine   (Mine pond)      | No| 
+|Inconnue     unknown              | No| 
+|Marais        (marshes)             |Yes |
+|Réservoir-bassin   (reservoir, pond)        |Yes |
+|Estuaire        (estuary)           |Yes |
+
+* The salinity 
+* the code of the poind
+* the name
+* the Persitence of flow
+
+The french part of the SUDOANG river network database is based on the RHT @Pellareseauhydrographiquetheorique2012.
+In particular the RHT is also built on unit basins, this layer has been used to split the polygons of water surface per basins.
+
+The data are reprojected to the ETRS89-extended / LAEA Europe which can be used at the scale of Europe.
+
+We use the rn and rna tables computed within the sudoang projects. Of particular interest to us are the 
+`wettessurfacem2` and `wettedsurfaceotherm2` fields.
+The `wettessurfacem2` corresponds to the surface of streams that is not covered by a watebody.
+The `wettedsurfaceotherm2` corresponds to the sum of the areas of polygpons clipped within the unit basins.
+
+|Rn table|
+|----------------------|
+|gid                                                                                                 |
+|idsegment                                                                                           |
+|source                                                                                              |
+|target                                                                                              |
+|lengthm                                                                                             |
+|nextdownidsegment                                                                                   |
+|path                                                                                                |
+|isfrontier                                                                                          |
+|issource                                                                                            |
+|seaidsegment                                                                                        |
+|issea                                                                                               |
+|geom                                                                                                |
+|isendoreic                                                                                          |
+|isinternational                                                                                     |
+|country                                                                                             |
+
+|rna (river network attributes)                                                                      |
+|-------------------------------|
+|idsegment                                                                                           |
+|altitudem                                                                                           |
+|distanceseam                                                                                        |
+|distancesourcem                                                                                     |
+|cumnbdam                                                                                            |
+|medianflowm3ps                                                                                      |
+|surfaceunitbvm2                                                                                     |
+|surfacebvm2                                                                                         |
+|strahler                                                                                            |
+|shreeve                                                                                             |
+|codesea                                                                                             |
+|name                                                                                                |
+|pfafriver                                                                                           |
+|pfafsegment                                                                                         |
+|basin                                                                                               |
+|riverwidthm                                                                                         |
+|temperature                                                                                         |
+|temperaturejan                                                                                      |
+|temperaturejul                                                                                      |
+|wettedsurfacem2        (1)                                                                             |
+|wettedsurfaceotherm2   (2)                                                                             |
+|delta                                                                                               |
+|gamma                                                                                               |
+|density                                                                                             |
+|nyellow                                                                                             |
+|pyellow150                                                                                          |
+|pyellow150300                                                                                       |
+|pyellow300450                                                                                       |
+|pyellow450600                                                                                       |
+|pyellow600750                                                                                       |
+|pyellow750                                                                                          |
+|nsilver                                                                                             |
+|nsilver300450                                                                                       |
+|nsilver450600                                                                                       |
+|nsilver600750                                                                                       |
+|nsilver750                                                                                          |
+|turbinemortalitynsilver                                                                             |
+|turbinemortalityrate                                                                                |
+|lengthriverm                                                                                        |
+|emu                                                                                                 |
+|cumheightdam                                                                                        |
+|riverwidthmsource                                                                                   |
+
+
+```{sql, eval=FALSE}
+DROP TABLE if exists france.surface_hydrographique_bdtopo_unitrht;
+CREATE TABLE france.surface_hydrographique_bdtopo_unitrht as
+			select  
+			  surface_hydrographique_bdtopo."ID" as id, 
+			  surface_hydrographique_bdtopo."CODE_HYDRO" as code_hydro, 
+			  surface_hydrographique_bdtopo."CODE_PAYS" as code_pays, 
+			  surface_hydrographique_bdtopo."NATURE" as nature, 
+			  surface_hydrographique_bdtopo."PERSISTANC" as persistance, 
+			  surface_hydrographique_bdtopo."SALINITE" as salinite, 
+			  surface_hydrographique_bdtopo."COMMENT" as commentaire, 
+			  surface_hydrographique_bdtopo."ID_P_EAU" as id_p_eau, 
+			  surface_hydrographique_bdtopo."ID_C_EAU" as id_c_eau, 
+			  surface_hydrographique_bdtopo."ID_ENT_TR" as id_ent_tr, 
+			  surface_hydrographique_bdtopo."NOM_P_EAU" as nom_p_eau, 
+			  surface_hydrographique_bdtopo."NOM_C_EAU" as nom_c_eau, 
+			  surface_hydrographique_bdtopo."NOM_ENT_TR" as nom_ent_tr,
+			'FR'||gridid as idsegment,  
+			st_intersection(r.geom,	the_geom) geom
+			 from france.bvunitaire3035 r 
+			inner join france.surface_hydrographique_bdtopo  
+			on st_intersects(the_geom,r.geom) 
+			where "PERSISTANC"='Permanent' 
+			AND "NATURE" in ('Lagune','Estuaire','Ecoulement naturel','Canal','Retenue-barrage','Réservoir-bassin','Marais','Lac','Retenue');--723627 rows affected, 26:29 minutes execution time
+
+CREATE INDEX  surface_hydrographique_bdtopo_unitrht_geom_gist ON france.surface_hydrographique_bdtopo_unitrht 
+ USING gist (geom);
+ COMMENT ON TABLE france.surface_hydrographique_bdtopo_unitrht is 'Table issued from bd_topo hydro cut by unit rht basins, the 
+ type of water surface considered is permanent surfaces with natures in lagune, estuaire, ecoulement naturel, canal, retenue-barrage,
+ reservoir-bassin, marais, lac, retenue';
+
+```
+
+
+```{r out.width="800px", echo=FALSE, fig.cap = cap}
+knitr::include_graphics("C:/workspace/EDAdata/report2.3/images/surface_water.PNG")
+cap <- "**River segments from the RHT (yellow dashed line), units basin from rht (in grey), natural stream (écoulement naturel) in blue, canals (in green), and ponds. Marais Poitevin in France.** "
+```
+
+
+
+```{r out.width="1000px", echo=FALSE, fig.cap = cap}
+knitr::include_graphics("C:/workspace/EDAdata/report2.3/images/Gironde.PNG")
+cap <- "**Gironde and medocan lakes. The surface of the hydrographic units is indicated as a label for each unit basin.** "
+```
+
+
+```{r out.width="900px", echo=FALSE, fig.cap = cap}
+knitr::include_graphics("C:/workspace/EDAdata/report2.3/images/bages-sigean.PNG")
+cap <- "**Bages Sigean lagoon. Temporary waters in black not included. The surface of water bodies per unit basin is given in labels. Some the basins (limited as rectangles) are associated with an inland stream on the right, so the circulation of water is porbably badly rendered in this case.**"
+```
+
+In the case of Mediterranean lagoons, the attribution of water surface to a stream is not straightforward (see rectangle unit basins from the bottom). Some of the ponds near the shore or used to produce salt might be an habitat for eel, and a dedicated model of eel production in the mediterranean lagoons is needed.
+
+
+```{r out.width="900px", echo=FALSE, fig.cap = cap}
+knitr::include_graphics("C:/workspace/EDAdata/report2.3/images/Etang_de_Rolland_Aigues_Mortes.PNG")
+cap <- "**Etang de Rolland lagoon near Aigues Mortes. Temporary waters in black not included. The surface of water bodies per unit basin is given in labels.**"
+
+```
+
+The proportion of the length of each segment free of water bodies polygon is computed. See the Spain section for more details.
+
+
+```{sql, eval=FALSE}
+-- calculate the proportion of riverssegments free of water surface bodies.
+
+With 
+clippedsegment as(
+	select clipped.idsegment, clipped.geom
+	from (
+		 select r.idsegment, 
+		     (ST_Dump(ST_Intersection(m.geom, r.geom))).geom
+		 from france.surface_hydrographique_bdtopo_unitrht m
+		 inner join france.rn r on 
+		 ST_Intersects(m.geom, r.geom)         
+	     ) as clipped
+	where ST_Dimension(clipped.geom) = 1), -- remvoe points
+-- in some cases there are several polygons per basin... need to group them first
+lengthclipped AS (
+SELECT sum(st_length(c.geom)) as totalclippedlength, idsegment FROM
+		clippedsegment c
+		group by idsegment),	
+percnotcovered AS(
+	select 1-totalclippedlength/st_length(r.geom) as perc, 
+	r.idsegment 
+	from lengthclipped c 
+	JOIN france.rn r ON c.idsegment = r.idsegment 
+)
+UPDATE france.bvunitaire3035 set perc_rn_notcovered=perc 
+	FROM percnotcovered
+	WHERE bvunitaire3035.idsegment=percnotcovered.idsegment; --56861 rows affected, ? execution time.
+
+
+/*------------------------------------
+* updating rna table with both surface from waterbodies and surface from segments corrected
+-------------------------------------*/
+
+
+begin;
+with ggg as(
+select idsegment, sum(st_area(geom)) as wettedarea from france.surface_hydrographique_bdtopo_unitrht group by idsegment)
+update france.rna set wettedsurfaceotherm2 = wettedarea from ggg where ggg.idsegment=rna.idsegment;
+COMMIT; --89789 rows affected, 23.8 secs execution time.
+ 
+
+BEGIN;
+with recalculated as (
+SELECT 
+rna.idsegment,
+st_length(rn.geom) as lengthriverm,
+round((riverwidthm * st_length(rn.geom) * coalesce(perc_rn_notcovered,1))::numeric,2) as wettedsurfacem2,
+perc_rn_notcovered
+FROM france.rna 
+JOIN france.rn on rn.idsegment=rna.idsegment
+left JOIN
+france.bvunitaire3035 p on rna.idsegment=p.idsegment)
+UPDATE france.rna set (wettedsurfacem2, lengthriverm)= (recalculated.wettedsurfacem2,recalculated.lengthriverm)
+FROM recalculated
+where recalculated.idsegment=rna.idsegment;
+COMMIT; -- 114564  rows affected, 7 secs execution time.
+```
+
+```{r out.width="600px", echo=FALSE, fig.cap = cap}
+knitr::include_graphics("C:/workspace/EDAdata/report2.3/images/Vilaine.png")
+cap <- "**the Vilaine Near Redon, surface corresponding to waterbodies (W) or to the riversegments (S) in ha. The percentage of river segments not covered by a polygon of water surface is indicated in black for each unit basin.**"
+```
+
+TODO : transitional waters out from unitbv....
+
+## Spain
+
+The data used are the `Subcuencas de ríos completos clasificadas según Pfafstetter modificado.` : [metadata](http://www.mapama.gob.es/ide/metadatos/index.html?srv=metadata.show&uuid=898f0ff8-f06c-4c14-88f7-43ea90e48233).
+
+These basins correspond to the unit river segments [metadata](http://www.mapama.gob.es/ide/metadatos/index.html?srv=metadata.show&uuid=588501d1-d5bf-450b-a67e-29b0c3973dba). 
+
+The surface water layer comes from 	`Masas de agua superficial (polígonos) PHC 2015-2021`  [metadata](https://www.mapama.gob.es/ide/metadatos/index.html?srv=metadata.show&uuid=bb612c55-2729-4f31-bf4f-b5e190d74b46)
+
+```{r out.width="600px", echo=FALSE, fig.cap = cap}
+knitr::include_graphics("C:/workspace/EDAdata/report2.3/images/embalse.PNG")
+cap <- "**Geoportal from spain with the selection of embalse and superficial water mass**"
+```
+
+As was done in France, the waterbodies are cut by the unit basins
+
+```{sql, eval=FALSE}
+DROP TABLE if exists spain.masas_agua_unitbv;
+CREATE TABLE spain.masas_agua_unitbv as
+			SELECT 
+			  idsegment,
+			  s.id, 
+			  s.cod_masa, 
+			  s.nom_masa, 
+			  s.categoria, 
+			  s.naturalida, 
+			  s.tipona_cod, 
+			  s.dh_cod, 
+			  s.dh_nom, 
+			  s.tipona_nom, 
+			  s.tipocalib, 
+			  s.num_tipoca, 
+			  s.internac, 
+			  s.embalse,			   
+			st_intersection(c.geom,	s.geom) geom
+			 from spain.cuencas c 
+			INNER join spain.rna on pfafsegment=pfafcuen
+			inner join spain.masas_agua s on st_intersects(s.geom,c.geom);	--Query returned successfully: 18731 rows affected, 20:01 minutes execution time.
+
+
+-- What is the portion of idsegment covered by aquas masas
+
+ALTER TABLE spain.masas_agua_unitbv DROP column perc_rn_notcovered numeric;
+COMMENT ON COLUMN spain.masas_agua_unitbv.perc_rn_notcovered IS 'percentage of length of line not covered by masas in the basin';
+
+create index masas_agua_unitbv_geom_idx on spain.masas_agua_unitbv
+  USING gist  (geom) ;
+
+```
+
+The percentage of coverage of streams by water surface polygon is calculating by clipping the lines using the waterbodies polygons.
+
+```{sql, eval=FALSE}
+-- first test with a small table
+drop table if exists spain.temp_test;
+CREATE TABLE spain.temp_test as (
+With petitmas as (
+select * FROM spain.masas_agua_unitbv where idsegment='SP311133'),
+petitrn as (
+select * FROM spain.rn_rna where idsegment='SP311133'),
+clippedbv as(
+select idsegment, geom
+from (
+         select petitrn.idsegment, 
+             (ST_Dump(ST_Intersection(petitmas.geom, petitrn.geom))).geom
+         from petitmas
+              inner join petitrn on ST_Intersects(petitmas.geom, petitrn.geom)
+     ) as clipped
+where ST_Dimension(clipped.geom) = 1)
+SELECT * FROM clippedbv);
+
+select idsegment,round(st_length(geom)) from spain.temp_test;
+/*
+idsegment;round
+SP311133;66
+SP311133;102
+SP311133;13
+SP311133;31
+SP311133;22
+SP311133;21
+SP311133;10
+SP311133;2
+SP311133;35
+SP311133;15
+SP311133;10
+SP311133;8
+SP311133;1551
+*/
+
+with longueur as (
+select idsegment, sum(st_length(geom)) length_inter from spain.temp_test group by idsegment)
+SELECT rn.idsegment,sum(length_inter)/sum(st_length(geom)) FROM longueur 
+join spain.rn on rn.idsegment=longueur.idsegment GROUP BY rn.idsegment; --0.53 OK (1-0.46)
+
+```
+
+```{r out.width="600px", echo=FALSE, fig.cap = cap}
+knitr::include_graphics("C:/workspace/EDAdata/report2.3/images/line_cut_to_calculate_overlap.PNG")
+cap <- "Example if a cutting of the line using water bodies polygon for the randomly selected SP311133 riversegment. In this case there are two water bodies, Embalse de Ricobayo, Embalse de Villacompo within the same unit river basin. The second is a canal small canal in the lower part of the picture not always covering the stream (it is very narrow when compared to the openstreetview below). So the line is cut into segments. The surface of lines not covered by polygons correspond to 1 minus the sum of the length of segment in black divided by the length of the total segment in yellow = 0.46."
+```
+```{sql, eval=FALSE}
+/*
+Computes the perentage of segment free of water mass (polygon) overlap
+*/
+With 
+clippedsegment as(
+	select clipped.idsegment, clipped.geom
+	from (
+		 select r.idsegment, 
+		     (ST_Dump(ST_Intersection(m.geom, r.geom))).geom
+		 from spain.masas_agua_unitbv m
+		 inner join spain.rn r on 
+		 ST_Intersects(m.geom, r.geom)         
+	     ) as clipped
+	where ST_Dimension(clipped.geom) = 1), -- remvoe points
+-- in some cases there are several polygons per basin... need to group them first
+lengthclipped AS (
+SELECT sum(st_length(c.geom)) as totalclippedlength, idsegment FROM
+		clippedsegment c
+		group by idsegment),	
+percnotcovered AS(
+	select 1-totalclippedlength/st_length(r.geom) as perc, 
+	r.idsegment 
+	from lengthclipped c 
+	JOIN spain.rn r ON c.idsegment = r.idsegment 
+)
+UPDATE spain.masas_agua_unitbv set perc_rn_notcovered=perc 
+	FROM percnotcovered
+	WHERE masas_agua_unitbv.idsegment=percnotcovered.idsegment;--Query returned successfully: 18338 rows affected, 01:34 minutes execution time.
+	
+BEGIN;
+with percnotcovered as (
+-- there might be several water mass within one basin
+select distinct on (idsegment) idsegment, perc_rn_notcovered from spain.masas_agua_unitbv
+),
+recalculated as (
+SELECT 
+rna.idsegment,
+lengthriverm,
+riverwidthm,
+round((lengthriverm * riverwidthm) * coalesce(perc_rn_notcovered,1),2) as wettedsurfacem2,
+perc_rn_notcovered
+FROM spain.rna 
+left JOIN
+percnotcovered p on rna.idsegment=p.idsegment)
+UPDATE spain.rna set wettedsurfacem2 = recalculated.wettedsurfacem2 
+FROM recalculated
+where recalculated.idsegment=rna.idsegment;
+COMMIT; -- Query returned successfully: 325607 rows affected, 22.3 secs execution time.
+
+```
+
+In most cases the intersection with polygons is correctly calculated. In some cases such as the narrow stream used as an example before the fit is not perfect but sufficient for our needs. 
+
+```{r out.width="600px", echo=FALSE, fig.cap = cap}
+knitr::include_graphics("C:/workspace/EDAdata/report2.3/images/surface_perc_segment_not_covered.PNG")
+cap <- "**Result of the calculation of the percentage of length of segments not included in the reservoirs polygons. The red dots correspond to some of the places where this percentage is zero i.e. the stream is completely covered by the segment. In some other cases only the tip of the river segment is included in the water body, as the stream is a tributary from the main stream that was dammed. In that case the percentage is high**"
+```
+
+
+## Portugal
+
+
+
+
+In portugal two tables have been collated to compute wisewaterbody.
+It was necessary to build a spatial join to join unit basins and rivers.
+The same procedure has been applied than spain an portugal
+
+
+
+```{sql, eval=FALSE}
+/*
+* Portugal
+*/
+/*
+HY_PhysicalWaters_DrainageBasinGeoCod.gml => fail when copied to postgis (missing lines due to varchar10 restriction pb)
+=> had to save in shp and then to postgis, encoding UTF8
+*/
+
+
+ALTER TABLE portugal.wise_vw_surfacewaterbody_transitional_ptcont add column categoria text;
+UPDATE portugal.wise_vw_surfacewaterbody_transitional_ptcont set categoria='TW';--49
+ALTER TABLE portugal.wise_vw_surfacewaterbody_river_area_ptcont add column categoria text;
+UPDATE portugal.wise_vw_surfacewaterbody_river_area_ptcont set categoria='RW';--119
+
+DROP TABLE if exists portugal.wisewaterbody;
+create table portugal.wisewaterbody as (
+SELECT * FROM portugal.wise_vw_surfacewaterbody_transitional_ptcont
+UNION
+SELECT * FROM portugal.wise_vw_surfacewaterbody_river_area_ptcont);--168
+
+select * from portugal.wisewaterbody
+COMMENT ON TABLE portugal.wisewaterbody is 'Source wise_vw_surfacewaterbody_transitional_ptcont and wise_vw_surfacewaterbody_river_area_ptcont, added comun categoria with TW AND RW for transitional and river water'
+
+SELECT st_srid(geom) from portugal.wisewaterbody limit 10; --4326
+SELECT type 
+FROM geometry_columns 
+WHERE f_table_schema = 'portugal' 
+AND f_table_name = 'wisewaterbody' 
+and f_geometry_column = 'geom';   --MULTIPOLYGON
+
+ALTER TABLE portugal.wisewaterbody
+  ALTER COLUMN geom
+    TYPE geometry(MULTIPOLYGON, 3035)
+    USING ST_Transform(geom, 3035);   
+
+ALTER TABLE portugal.wise_vw_riverbasindistrict_ptcont
+  ALTER COLUMN geom
+    TYPE geometry(MULTIPOLYGON, 3035)
+    USING ST_Transform(geom, 3035); 
+
+
+ ALTER TABLE  portugal.unit_basins
+  ALTER COLUMN geom
+    TYPE geometry(MULTIPOLYGON, 3035)
+    USING ST_Transform(geom, 3035);     --50s
+ 
+   
+SELECT count(*) FROM portugal.rna where riverwidthm IS NULL; --2
+SELECT * FROM riverwidth_spain_portugalbis limit 10 --7997
+
+
+ALTER TABLE portugal.unit_basins add column idsegment text;
+--- jsub joining segments and unit basins. I don't have any link between the two tables so I have to run a spatial query
+-- and select the basin with the largest join...
+/*
+SELECT * FROm portugal.rn join portugal.unit_basins b on st_intersects(rn.geom, b.geom) where idsegment = 'PT80645';
+SELECT rn.idsegment, "order" FROm portugal.rn join 
+portugal.rivers r on 'PT'||r.gid = rn.idsegment
+JOIN portugal.unit_basins on "order" =id_localid; --321204 wrong
+*/ 
+BEGIN;
+with jsub as (
+SELECT rn.idsegment, id, st_length(st_intersection(rn.geom,b.geom)) len
+ FROm portugal.rn join portugal.unit_basins b on st_intersects(rn.geom, b.geom)),
+ -- getting the longest segment for the join
+ jsub1 as (
+SELECT distinct on (idsegment) * FROM jsub order by idsegment, len desc)
+UPDATE portugal.unit_basins set idsegment=jsub1.idsegment FROM jsub1 where jsub1.id=unit_basins.id;
+COMMIT;---Query returned successfully: 75336 rows affected, 10 minutes execution time.
+
+
+
+
+/*
+This collects the data from data generated with the R markdown river width script
+there is a part for spain and the last one is for portugal...
+The table riverwidth_spain_portugal is a union of spain and portugal so all is OK 
+*/
+
+BEGIN;
+update portugal.rna r set (riverwidthm, riverwidthmsource)=(s.pred_river_width::numeric, s.riverwidthmsource)
+FROM riverwidth_spain_portugal s where  
+s.idsegment=r.idsegment; --Query returned successfully: 68738 rows affected, 4.4 secs execution time.
+COMMIT;
+
+
+BEGIN;
+update portugal.rna r set (riverwidthm, riverwidthmsource)=(s.pred_river_width::numeric, s.riverwidthmsource)
+FROM riverwidth_portugalbis s where  
+s.idsegment=r.idsegment
+; --2363
+COMMIT;
+
+
+SELECT * from portugal.rna where riverwidthm is null; --184 -- all surfacebvm2 null
+
+SELECT * from portugal.rn_rna where riverwidthm is null and seaidsegment is null;
+BEGIN;
+UPDATE portugal.rn set isendoreic = TRUE  WHERE idsegment in (
+select idsegment from portugal.rn_rna where riverwidthm is null and seaidsegment is null); --182
+UPDATE portugal.rna set (riverwidthm,riverwidthmsource) = (0,'Not computed, the stream is endoreic') WHERE idsegment in (
+select idsegment from portugal.rn_rna where riverwidthm is null and seaidsegment is null); --182
+COMMIT;
+
+
+/*
+CREATE SPLITTED POLYGONS PER UNIT BASINS PORTUGAL
+*/
+  
+create index unit_basins_geom_idx on portugal.unit_basins
+  USING gist  (geom) ;
+
+-- SELECT * FROM portugal.unit_basins limit 10;
+-- SELECT * from portugal.wisewaterbody limit 10;
+   
+DROP TABLE if exists portugal.wisewaterbody_unitbv;
+CREATE TABLE portugal.wisewaterbody_unitbv as
+			SELECT 
+			  idsegment,	
+			  s.id, 
+			  s.codigo, 
+			  s.nome, 
+			  s.regiao_hid, 
+			  s.natur_fm_a, 
+			  s.transfront, 
+			  s.est_pot_ec, 
+			  s.estado_qui, 
+			  s.categoria,   
+			st_intersection(c.geom,	s.geom) geom
+			 from portugal.unit_basins c 
+			inner join portugal.wisewaterbody s on st_intersects(s.geom,c.geom);	--Query returned successfully: 7036 rows affected, 09:50 minutes execution time.
+
+ALTER TABLE portugal.unit_basins ADD column perc_rn_notcovered numeric; 
+COMMENT ON COLUMN portugal.unit_basins.perc_rn_notcovered IS 'percentage of length of line not covered by waterbody in the basin';
+
+create index wisewaterbody_unitbv_geom_idx on portugal.wisewaterbody_unitbv 
+  USING gist  (geom) ;--171msec
+/*
+Computes the percentage of segment free of water mass (polygon) overlap  portugal.wisewaterbody / portugal.unit_basins
+*/
+
+With 
+clippedsegment as(
+	select clipped.idsegment, clipped.geom
+	from (
+		 select r.idsegment, 
+		     (ST_Dump(ST_Intersection(m.geom, r.geom))).geom
+		 from portugal.wisewaterbody_unitbv m
+		 inner join portugal.rn r on 
+		 ST_Intersects(m.geom, r.geom)         
+	     ) as clipped
+	where ST_Dimension(clipped.geom) = 1), -- remvoe points
+-- in some cases there are several polygons per basin... need to group them first
+lengthclipped AS (
+SELECT sum(st_length(c.geom)) as totalclippedlength, idsegment FROM
+		clippedsegment c
+		group by idsegment),	
+percnotcovered AS(
+	select 1-totalclippedlength/st_length(r.geom) as perc, 
+	r.idsegment 
+	from lengthclipped c 
+	JOIN portugal.rn r ON c.idsegment = r.idsegment 
+)
+UPDATE portugal.unit_basins set perc_rn_notcovered=perc 
+	FROM percnotcovered
+	WHERE unit_basins.idsegment=percnotcovered.idsegment;--Query returned successfully: 6254 rows affected, 25.7 secs execution time.
+
+BEGIN;
+UPDATE portugal.rna set lengthriverm=st_length(geom) from portugal.rn_rna where rn_rna.idsegment=rna.idsegment;
+COMMIT; --Query returned successfully: 75830 rows affected, 4.2 secs execution time.
+
+BEGIN;
+with percnotcovered as (
+-- there might be several water mass within one basin
+select distinct on (idsegment) idsegment, perc_rn_notcovered from portugal.unit_basins
+),
+recalculated as (
+SELECT 
+rna.idsegment,
+lengthriverm,
+riverwidthm,
+round((lengthriverm * riverwidthm) * coalesce(perc_rn_notcovered,1),2) as wettedsurfacem2,
+perc_rn_notcovered
+FROM portugal.rna 
+left JOIN
+percnotcovered p on rna.idsegment=p.idsegment)
+UPDATE portugal.rna set wettedsurfacem2 = recalculated.wettedsurfacem2 
+FROM recalculated
+where recalculated.idsegment=rna.idsegment;
+COMMIT; -- Query returned successfully: 75830 rows affected, 5.2 secs execution time.
+
+
+
+begin;
+with ggg as(
+select idsegment, sum(st_area(geom)) as wettedarea from portugal.wisewaterbody_unitbv group by idsegment)
+update portugal.rna set wettedsurfaceotherm2 = wettedarea from ggg where ggg.idsegment=rna.idsegment;
+COMMIT; -- 6260 rows affected, 23.8 secs execution time.
+```
+```{r out.width="600px", echo=FALSE, fig.cap = cap}
+knitr::include_graphics("C:/workspace/EDAdata/report2.3/images/portugal_surface_water.png")
+cap <- "**Computation of water surface from river width and length and surfacebody. The source of the riverwidth (either merit hydro or model) is indicated.**"
+```
+
+#TODO
+
+Transitional water out of unitbv....
+
+# REFERENCES

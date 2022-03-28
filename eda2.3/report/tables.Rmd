@@ -1,0 +1,34 @@
+---
+title: "Test for tables"
+author: "Cedric"
+date: "29 octobre 2019"
+output: html_document
+---
+
+
+```{r launch, echo=FALSE, include=FALSE}
+# install.packages("kableExtra")
+library("RPostgreSQL")
+library("sqldf")
+library("sp")
+library("rgdal")
+library('knitr')
+library('kableExtra')
+setwd("C:/workspace/EDA")
+rivernetwork <- "RIOS"
+source("C:/workspace/EDA/EDACCM/init.r")
+```
+
+```{r test, echo=TRUE}
+rios <- new('BaseEdaRiosRiversegments',
+		baseODBC = "baseODBCrios",
+		schema = "dbeel_rivers", 		
+		table = "rn",
+		prkey = "idsegment")
+# object <- rios
+sql="SELECT * FROM dbeel_nomenclature.obstruction_type;"
+pretty_table(rios, sql)%>%  
+	kable_styling(bootstrap_options = c("striped", "hover",
+				"condensed"))
+
+```

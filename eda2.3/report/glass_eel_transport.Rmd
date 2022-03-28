@@ -1,0 +1,612 @@
+---
+title: "Transport of glass eel"
+author: "Cedric and Maria and Mathilde"
+date: "07 november 2019"
+output: 
+  html_document:
+    number_sections: true
+---
+
+
+
+
+
+```{r launch, echo=FALSE, include=FALSE}
+require(knitr)
+opts_knit$set(eval.after = 'fig.cap')
+# this will set figure caption to cap inside R chunk
+obj <- ls(all=TRUE)
+obj <- obj[!obj%in%c("passworddistant","passwordlocal")]
+getUsername <- function(){
+	name <- Sys.info()[["user"]]
+	return(name)
+}
+#memory.limit(size =4000)
+if(getUsername() == 'cedric.briand'|getUsername() == 'mmateo') setwd("C:/workspace/EDA/")
+rivernetwork <- "RIOS"
+source("EDACCM/init.r")
+#citation("sqldf")
+#citation("RPostgreSQL")
+#citation("RColorBrewer")
+#citation("plyr")
+#citation("ggplot2")
+#citation("stargazer")
+#citation("visreg")
+#citation("mgcv")
+#citation("PresenceAbsence")
+graphics.off() 
+
+#options(warn =  -1)
+options(sqldf.RPostgreSQL.user = "postgres", 
+		sqldf.RPostgreSQL.password = passwordlocal,
+		sqldf.RPostgreSQL.dbname = "eda2.3",
+		sqldf.RPostgreSQL.host = "localhost",#  1.100.1.6
+		sqldf.RPostgreSQL.port = 5432)
+#t <- tryCatch(sqldf("select gid from rht.rhtvs2 limit 1"),error =  function(e) e)
+#is_simple_error <- function(x) inherits(x, "simpleError")
+#if (is_simple_error(t)) stop("distant call using w3.eptb-vilaine.fr failed, check connection to the database")
+
+
+#baseODBCccm[1] <- "eda2"
+#baseODBC[1] <- "ouvragelb"
+#baseODBCdbeel[1] <- "dbeel"
+#baseODBCrht[1] <- "eda2rht"
+
+# Attention il faut crï¿½er les rï¿½pertoires
+options(warn =  0)
+#setwd("C:/workspace/EDA/report2.3")
+#datawd <- "C:/workspace/EDAdata/"
+ddatawd <- paste0(datawd,"/report2.3/data/")
+#imgwd <- "C:/workspace/EDAdata/reportt2.3/images/"
+#edawd =  "C:/workspace/EDA/"
+
+sanitizeLatexS <- function(str) {
+	gsub('([#$%&~_\\^\\\\{}])', '\\\\\\\\\\1', str, perl = TRUE);
+}
+# la fonction sn utilise maintenant le package siunitx
+# ajouter \usepackage{siunitx}
+#\sisetup{
+#round-mode = places, % nombre de decimales apres la virgule
+#round-precision = 3
+#}%
+# Dans le preambule
+num <- function(x,round_precision =  NULL)
+{
+	if (is.null(round_precision)) {
+		return(sprintf("\\num{%s}", x))
+	} else {
+		return(sprintf("\\num[round-precision=%s]{%s}",round_precision+1, x))
+	}
+}
+wd <- getwd()
+# choix de la version a charger
+rapport <- "2020" #"2012" "2015" "2009" 
+sector <- "spain"
+open_in_excel <- function(some_df){
+	tFile <- paste("C:/temp/",gsub("\\\\","",tempfile(fileext =  paste0(substitute(some_df), ".csv"),tmpdir =  "")),sep =  "")
+	write.table(some_df, tFile, row.names = F, sep = ";", quote = F)
+	system(paste('open -a \"/ProgramData/Microsoft/Windows/Start Menu/Programs/Microsoft Office/Microsoft Excel 2010\"', tFile))
+}
+library(readxl)
+library(sf)
+library(scam)
+library(colorspace)
+# vvv <- list()
+# save(vvv, file=paste0(ddatawd,"vvv.Rdata"))
+```
+
+When trying to calibrate the model, sites where eels are translocated will act
+as outliers, diminishing the real effect of dams as eels are found above very
+large cumulated heights. 
+For that reason the eels found above cumulated height of 150 m and 300 m have
+been analysed site by site. 
+There can be several reasons why eels might be found there. The first is that
+operations of transport have taken place, those might of might not have been
+recorded. The second is that cumulated height are wrong. Reasons behing this
+are often duplicated dams, dams corresponding to penstock pipes with a lateral
+reservoir with the hpp located on the bank of the river but without impact on
+the river continuity. Dams recently built or simply planned and reported as
+being constructed. And finally, in France, where the dam database is very
+detailed, lateral dams often built in the downstream areas that are projected
+on the main river. 
+
+
+
+```{r check_transport, eval=FALSE, echo=TRUE, include=FALSE}
+frsppt$transport <- "unknown"
+frsppt$transport[frsppt$cs_height_10_p>150 & !is.na(frsppt$cs_height_10_p) & 
+				frsppt$densCS>0 & !is.na(frsppt$densCS)]<-"possible"
+frsppt$transport[frsppt$cs_height_10_p>300  &
+				!is.na(frsppt$cs_height_10_p) & 
+				frsppt$densCS>0]<-"sure"
+sqldf("DROP TABLE IF EXISTS sudoang.ers_full;")
+sqldf("CREATE TABLE sudoang.ers_full as select * from frsppt;")
+sqldf("SELECT AddGeometryColumn ('sudoang','ers_full','geom',3035,'POINT',2, false);")
+sqldf("UPDATE sudoang.ers_full set geom=join_station_rn.geom FROM
+				france.join_station_rn  WHERE join_station_rn.st_id=ers_full.op_id
+				and country='FR';")
+sqldf("UPDATE sudoang.ers_full set geom=dbeel_station.the_geom FROM
+				sudoang.dbeel_station   WHERE dbeel_station.op_id=uuid(ers_full.op_id)
+				and ers_full.country in ('PT','SP');")
+```
+
+
+```{r out.width="500px", echo=FALSE, fig.cap = cap}
+knitr::include_graphics("C:/workspace/EDAdata/report2.3/images/possible_transport_sites.png")
+cap <- "Possible transport sites in France, Spain and Portugal"
+```
+## Transport sites in France
+
+```{r out.width="500px", echo=FALSE, fig.cap = cap}
+knitr::include_graphics("C:/workspace/EDAdata/report2.3/images/transport_charente.png")
+cap <- "Transport Charente"
+```
+Grouped points at the very top of the Charente Basin.
+
+```{r out.width="500px", echo=FALSE, fig.cap = cap}
+knitr::include_graphics("C:/workspace/EDAdata/report2.3/images/transport_vassiviere.png")
+cap <- "Transport Vienne arround Vassivière lake, transport corresponding probably to an angler association (AAPPMA)"
+```
+
+```{r out.width="500px", echo=FALSE, fig.cap = cap}
+knitr::include_graphics("C:/workspace/EDAdata/report2.3/images/transport_lot.png")
+cap <- "Several sites on the Lot basin"
+```
+
+```{r out.width="500px", echo=FALSE, fig.cap = cap}
+knitr::include_graphics("C:/workspace/EDAdata/report2.3/images/transport_yonne.png")
+cap <- "Many sites on the Yonne basin"
+```
+```{r out.width="500px", echo=FALSE, fig.cap = cap}
+knitr::include_graphics("C:/workspace/EDAdata/report2.3/images/transport_rhone.png")
+cap <- "Many sites on the Rhône, there used to be transport by the commercial fishermen in the Saône"
+```
+
+```{r out.width="500px", echo=FALSE, fig.cap = cap}
+knitr::include_graphics("C:/workspace/EDAdata/report2.3/images/transport_la_rioja.png")
+cap <- "Transport sites in La Rioja & Navarra & Basque country"
+```
+
+```{r out.width="500px", echo=FALSE, fig.cap = cap}
+knitr::include_graphics("C:/workspace/EDAdata/report2.3/images/transport_cataluna.png")
+cap <- "Transport sites in Cataluna, Aude amont"
+```
+
+```{r out.width="500px", echo=FALSE, fig.cap = cap}
+knitr::include_graphics("C:/workspace/EDAdata/report2.3/images/transport_Minho.png")
+cap <- "Transport sites for Mino, and surrounding area "
+```
+
+
+## Problems with projection in the downstream path of large rivers (France)
+
+One of the reasons large cumulated height are sometimes found in France is that
+some obstacles are connected to lateral artificial canals or outlets that are
+not recorded in the RHT (the theoretical simplified river network used in France Pella et al. (2012)). 
+Some of these dams have been attributed the category
+of dam (i.e. blocking more than the river bed) which is wrong, in fact those
+should be weirs. Since they are often a bit complex in their management, they
+don't have a height, and the model of height used to predict uses the river
+flow in France. So these "lateral" obstacle are used in the model and some
+large rivers, free in their downstream course are attributed obstacles that
+don't really exist. For that reason all dams predictions on rivers having a
+flow larger than 150 m3/s have been set a height of zero. They are selected by
+the following query.
+
+```{sql view_badly_projected, eval=FALSE}
+/*
+ this view allows to remove dams from the main streams when they are projected on the border
+*/
+ 
+DROP VIEW IF EXISTS sudoang.downstream_badly_projected;
+create view sudoang.downstream_badly_projected as(
+select  o.*,   
+rn_rna.seaidsegment, 
+  rn_rna.basin, 
+  rn_rna.riverwidthm, 
+  rn_rna.dis_m3_pyr_riveratlas from dbeel_rivers.join_obstruction_rn d
+JOIn dbeel_rivers.rn_rna on rn_rna.idsegment=d.idsegment
+JOIN sudoang.view_obstruction o on o.op_id=d.op_id
+where dis_m3_pyr_riveratlas>150
+and po_obstruction_height is NULL
+and op_op_id is NULL
+order by dis_m3_pyr_riveratlas);
+```
+
+
+```{r out.width="500px", echo=FALSE, fig.cap = cap}
+knitr::include_graphics("C:/workspace/EDAdata/report2.3/images/projpb_rhone1.png")
+cap <- "Rhône a lateral canal of the Durance, the height predicted for type dam in mainstream was 24 m"
+```
+
+```{r out.width="500px", echo=FALSE, fig.cap = cap}
+knitr::include_graphics("C:/workspace/EDAdata/report2.3/images/projpb_rhone1.png")
+cap <- "Rhône in Arles, the lateral canal has a predicted height of 10m "
+```
+
+```{r out.width="500px", echo=FALSE, fig.cap = cap}
+knitr::include_graphics("C:/workspace/EDAdata/report2.3/images/projpb_rhone1.png")
+cap <- "Rhône on of the outlets (screw pumps from the Camargue) with a type dam and predicted height of 10 m"
+```
+
+
+```{r out.width="500px", echo=FALSE, fig.cap = cap}
+knitr::include_graphics("C:/workspace/EDAdata/report2.3/images/projpb_garonne1.png")
+cap <- "Garonne a lateral canal"
+```
+
+```{r out.width="500px", echo=FALSE, fig.cap = cap}
+knitr::include_graphics("C:/workspace/EDAdata/report2.3/images/projpb_garonne2.png")
+cap <- "Garonne a lateral canal, with a predicted height of 24 m"
+```
+
+
+```{r out.width="500px", echo=FALSE, fig.cap = cap}
+knitr::include_graphics("C:/workspace/EDAdata/report2.3/images/projpb_adour.png")
+cap <- "Adour, outlets from lateral marshes, the Barthes, could lead to large predicted cumulated heights"
+```
+
+## final product
+
+
+
+The final query to build the transported areas is as following :
+It creates a table with independent transport areas to fit in the model
+
+
+```{r out.width="500px", echo=FALSE, fig.cap = cap}
+knitr::include_graphics("C:/workspace/EDAdata/report2.3/images/transport_zones.png")
+cap <- "Transport sites for Mino, and surrounding area "
+```
+
+```{sql Transported_areas, eval=FALSE}
+-- Charente : Barrages de Lavaud et Mas chaban (1984 2007 2013)
+-- distance sea 367
+-- transport_charente.png
+-- cs_height10_p 166 m
+
+CREATE TABLE dbeel_rivers.transport AS(
+
+SELECT _idsegment AS idsegment, sector, "year" FROM  dbeel_rivers.upstream_segments_rn('FR100728') 
+CROSS JOIN (SELECT 'Charente' AS sector,1984 AS "year") sub 
+
+UNION
+
+-- Vienne : barrage de Vassivière (2006)
+--transport_vassiviere.png
+
+SELECT _idsegment AS idsegment, sector, "year" FROM  dbeel_rivers.upstream_segments_rn('FR230915') 
+CROSS JOIN (SELECT 'Vassivière' AS sector, 2006 AS "year") sub1
+
+
+UNION
+
+SELECT 'FR231328' AS idsegment, 'Vienne' AS sector, 2006 AS "year"
+
+
+UNION
+
+-- le lot 66 m (cs_height) 123 m cs_height_p 315 km mer
+--1995 => 2014
+-- transport_lot.png
+
+SELECT _idsegment AS idsegment, sector, "year"  FROM  dbeel_rivers.upstream_segments_rn('FR110889') 
+CROSS JOIN (SELECT 'Lot' AS sector, 1995 AS "year") sub3
+
+
+-- La lède 1988 (affluent du lot) 
+UNION 
+
+
+SELECT _idsegment AS idsegment, sector, "year"  FROM  dbeel_rivers.upstream_segments_rn('FR110130')
+CROSS JOIN (SELECT 'Lède' AS sector,  1988 AS "year") sub4
+
+UNION 
+-- Le dropt  1988 (affluent du lot) 
+
+SELECT _idsegment AS idsegment, sector, "year"  FROM  dbeel_rivers.upstream_segments_rn('FR109171')
+CROSS JOIN (SELECT 'Dropt' AS sector,  1988 AS "year") sub5
+
+-- L'aude près PSICICULTURE FEDERALES  ... 
+-- transport_aude.png
+UNION
+SELECT _idsegment AS idsegment, sector, "year"  FROM  dbeel_rivers.upstream_segments_rn('FR24294')
+CROSS JOIN (SELECT 'Aude' AS sector,  1994 AS "year") sub6
+
+
+-- Aveyron (2 stations)
+UNION
+SELECT _idsegment AS idsegment, sector, "year"  FROM  dbeel_rivers.upstream_segments_rn('FR112201')
+CROSS JOIN (SELECT 'Aveyron' AS sector,  2004 AS "year") sub7
+
+-- yonne (43 m -- 151 m pred 634 km mer)
+--1998
+-- transport_yonne.png
+
+
+UNION
+SELECT _idsegment AS idsegment, sector, "year"  FROM  dbeel_rivers.upstream_segments_rn('FR317084')
+CROSS JOIN (SELECT 'Yonne' AS sector,  1998 AS "year") sub8
+
+--Marne
+
+UNION
+SELECT _idsegment AS idsegment, sector, "year"  FROM  dbeel_rivers.upstream_segments_rn('FR313384')
+CROSS JOIN (SELECT 'Marne' AS sector,  1990 AS "year") sub9
+
+--Seine Amont
+
+UNION
+SELECT _idsegment AS idsegment, sector, "year"  FROM  dbeel_rivers.upstream_segments_rn('FR316121')
+CROSS JOIN (SELECT 'Seine' AS sector,  1990 AS "year") sub10
+
+
+
+
+--Meuse
+
+UNION
+SELECT _idsegment AS idsegment, sector, "year"  FROM  dbeel_rivers.upstream_segments_rn('FR500284')
+CROSS JOIN (SELECT 'Meuse' AS sector,  1985 AS "year") sub11
+
+
+-- Rhone
+
+UNION
+SELECT _idsegment AS idsegment, sector, "year"  FROM  dbeel_rivers.upstream_segments_rn('FR9301')
+CROSS JOIN (SELECT 'Rhone' AS sector,  1995 AS "year") sub12
+
+-- Vale 
+
+UNION
+SELECT _idsegment AS idsegment, sector, "year"  FROM  dbeel_rivers.upstream_segments_rn('SP61960')
+CROSS JOIN (SELECT 'Rio Guadalest' AS sector,  1992 AS "year") sub13
+
+
+
+UNION
+SELECT _idsegment AS idsegment, sector, "year"  FROM  dbeel_rivers.upstream_segments_rn('SP63917')
+CROSS JOIN (SELECT 'Rio Amadorio' AS sector,  2007 AS "year") sub14
+
+
+UNION
+SELECT _idsegment AS idsegment, sector, "year"  FROM  dbeel_rivers.upstream_segments_rn('SP58528')
+CROSS JOIN (SELECT 'Rio Serpis' AS sector,  2007 AS "year") sub15
+
+
+UNION
+SELECT _idsegment AS idsegment, sector, "year"  FROM  dbeel_rivers.upstream_segments_rn('SP43630')
+CROSS JOIN (SELECT 'Rio Jucar' AS sector,  2001 AS "year") sub16
+
+UNION
+SELECT _idsegment AS idsegment, sector, "year"  FROM  dbeel_rivers.upstream_segments_rn('SP50192')
+CROSS JOIN (SELECT 'Rio Cazunta' AS sector,  2015 AS "year") sub17
+
+UNION
+SELECT _idsegment AS idsegment, sector, "year"  FROM  dbeel_rivers.upstream_segments_rn('SP44871')
+CROSS JOIN (SELECT 'Rio Turia o Guadalaviar' AS sector,  1995 AS "year") sub18
+
+UNION
+SELECT _idsegment AS idsegment, sector, "year"  FROM  dbeel_rivers.upstream_segments_rn('SP44871')
+CROSS JOIN (SELECT 'Rio Turia o Guadalaviar' AS sector,  1995 AS "year") sub19
+
+
+UNION
+SELECT _idsegment AS idsegment, sector, "year"  FROM  dbeel_rivers.upstream_segments_rn('SP44871')
+CROSS JOIN (SELECT 'Riu Palancia' AS sector,  2015 AS "year") sub20
+
+
+UNION
+SELECT _idsegment AS idsegment, sector, "year"  FROM  dbeel_rivers.upstream_segments_rn('SP33591')
+CROSS JOIN (SELECT 'Riu Mijares' AS sector,  2008 AS "year") sub21
+
+UNION
+SELECT _idsegment AS idsegment, sector, "year"  FROM  dbeel_rivers.upstream_segments_rn('SP30468')
+CROSS JOIN (SELECT 'Riu Lucena' AS sector,  2009 AS "year") sub22
+
+-- there are NOT reported
+
+UNION
+SELECT _idsegment AS idsegment, sector, "year"  FROM  dbeel_rivers.upstream_segments_rn('SP286559')
+CROSS JOIN (SELECT 'Riu Segre' AS sector,  2002 AS "year") sub23
+
+UNION
+SELECT _idsegment AS idsegment, sector, "year"  FROM  dbeel_rivers.upstream_segments_rn('SP120302')
+CROSS JOIN (SELECT 'Riu Muga' AS sector,  2002 AS "year") sub24
+
+UNION
+SELECT _idsegment AS idsegment, sector, "year"  FROM  dbeel_rivers.upstream_segments_rn('SP264971')
+CROSS JOIN (SELECT 'Rio Aragon' AS sector,  2002 AS "year") sub25
+
+UNION
+SELECT _idsegment AS idsegment, sector, "year"  FROM  dbeel_rivers.upstream_segments_rn('SP238906')
+CROSS JOIN (SELECT 'Rio Ubagua' AS sector,  2009 AS "year") sub26
+
+UNION
+SELECT _idsegment AS idsegment, sector, "year"  FROM  dbeel_rivers.upstream_segments_rn('SP241801')
+CROSS JOIN (SELECT 'Rio Ega' AS sector,  2003 AS "year") sub27
+
+UNION
+SELECT _idsegment AS idsegment, sector, "year"  FROM  dbeel_rivers.upstream_segments_rn('SP240328')
+CROSS JOIN (SELECT 'Rio Ebro' AS sector,  2008 AS "year") sub28
+
+UNION
+SELECT _idsegment AS idsegment, sector, "year"  FROM  dbeel_rivers.upstream_segments_rn('SP232597')
+CROSS JOIN (SELECT 'Araxes Ibaia' AS sector,  2018 AS "year") sub29
+
+UNION
+SELECT _idsegment AS idsegment, sector, "year"  FROM  dbeel_rivers.upstream_segments_rn('SP231807')
+CROSS JOIN (SELECT 'Leitzaran Ibaia' AS sector,  2018 AS "year") sub30
+
+
+
+-- 2015 and 2018
+UNION
+SELECT _idsegment AS idsegment, sector, "year"  FROM  dbeel_rivers.upstream_segments_rn('SP231292')
+CROSS JOIN (SELECT 'Oria Ibaia' AS sector,  2015 AS "year") sub33
+
+UNION
+SELECT _idsegment AS idsegment, sector, "year"  FROM  dbeel_rivers.upstream_segments_rn('SP233795')
+CROSS JOIN (SELECT 'Rio Agauntza' AS sector,  2007 AS "year") sub34
+
+UNION
+SELECT _idsegment AS idsegment, sector, "year"  FROM  dbeel_rivers.upstream_segments_rn('SP233817')
+CROSS JOIN (SELECT 'Txiki Erreka' AS sector, 2018  AS "year") sub35
+
+
+UNION
+SELECT _idsegment AS idsegment, sector, "year"  FROM  dbeel_rivers.upstream_segments_rn('SP230385')
+CROSS JOIN (SELECT 'Urola Ibaia' AS sector,  2018 AS "year") sub36
+
+UNION
+SELECT _idsegment AS idsegment, sector, "year"  FROM  dbeel_rivers.upstream_segments_rn('SP232288')
+CROSS JOIN (SELECT 'Antzinako Erreka' AS sector,  2018 AS "year") sub37
+
+UNION
+SELECT _idsegment AS idsegment, sector, "year"  FROM  dbeel_rivers.upstream_segments_rn('SP233592')
+CROSS JOIN (SELECT 'Olaran Erreka' AS sector,  2018 AS "year") sub38
+
+UNION
+SELECT _idsegment AS idsegment, sector, "year"  FROM  dbeel_rivers.upstream_segments_rn('SP255753')
+CROSS JOIN (SELECT 'Rio Navia' AS sector,  1990 AS "year") sub39
+
+UNION
+SELECT _idsegment AS idsegment, sector, "year"  FROM  dbeel_rivers.upstream_segments_rn('SP163646')
+CROSS JOIN (SELECT 'Rio Minno' AS sector,  1999 AS "year") sub40
+
+UNION
+
+
+
+-- A single point but possible error so far upstream on the Tejo
+UNION
+SELECT 'SP206198' AS idsegment, 'RIO DE RAMACASTAÑAS O PRADO LATORRE' AS sector, 2009 AS "year"
+) --51143 2h22
+
+
+
+
+
+
+DELETE FROM dbeel_rivers.transport WHERE sector='Rio Tera'; --2020
+
+
+INSERT INTO dbeel_rivers.transport
+SELECT _idsegment AS idsegment, sector, "year"  FROM  dbeel_rivers.upstream_segments_rn('SP294614')
+CROSS JOIN (SELECT 'Rio Tera' AS sector,  2011 AS "year") sub
+
+-- no double ok:
+DELETE FROM dbeel_rivers.transport WHERE idsegment IN (
+SELECT idsegment
+FROM
+  (SELECT idsegment,
+          rank() OVER (PARTITION BY idsegment) AS pos
+     FROM dbeel_rivers.transport
+  ) AS ss
+WHERE pos >1;
+
+
+
+
+ALTER TABLE  dbeel_rivers.transport  DROP COLUMN geom;
+SELECT AddGeometryColumn ('dbeel_rivers','transport','geom',3035,'MULTILINESTRING',2, false);
+UPDATE dbeel_rivers.transport set geom=rn.geom FROM
+				dbeel_rivers.rn  WHERE rn.idsegment=transport.idsegment;--50662
+            
+INSERT INTO dbeel_rivers.transport(idsegment,sector,"year",geom)
+SELECT idsegment, sector, "year", geom  
+FROM  
+spain.rn 
+CROSS JOIN (SELECT 'Rio Tamega' AS sector,  1999 AS "year") sub
+WHERE idsegment IN (SELECT
+dbeel_rivers.upstream_segments_rn('SP296436'));
+
+
+INSERT INTO dbeel_rivers.transport(idsegment,sector,"year",geom)
+SELECT idsegment, sector, "year", geom  
+FROM  
+spain.rn 
+CROSS JOIN (SELECT 'Rio da riberina de San Lourenzo' AS sector,  1999 AS "year") sub
+WHERE idsegment IN (SELECT
+dbeel_rivers.upstream_segments_rn('SP290384')); --472
+
+
+
+INSERT INTO dbeel_rivers.transport(idsegment,sector,"year",geom)
+SELECT idsegment, sector, "year", geom  
+FROM  
+spain.rn 
+CROSS JOIN (SELECT 'Rios Lor' AS sector,  1989 AS "year") sub
+WHERE idsegment IN (SELECT
+dbeel_rivers.upstream_segments_rn('SP167721')); --472
+
+
+INSERT INTO dbeel_rivers.transport(idsegment,sector,"year",geom)
+SELECT idsegment, sector, "year", geom  
+FROM  
+spain.rn 
+CROSS JOIN (SELECT 'Rio mao' AS sector,  1989 AS "year") sub
+WHERE idsegment IN (SELECT
+dbeel_rivers.upstream_segments_rn('SP169708')); --31
+
+
+INSERT INTO dbeel_rivers.transport(idsegment,sector,"year",geom)
+SELECT idsegment, sector, "year", geom  
+FROM  
+spain.rn 
+CROSS JOIN (SELECT 'Rio arnoia' AS sector,  1995 AS "year") sub
+WHERE idsegment IN (SELECT
+dbeel_rivers.upstream_segments_rn('SP170986')); --445
+
+
+INSERT INTO dbeel_rivers.transport(idsegment,sector,"year",geom)
+SELECT idsegment, sector, "year", geom  
+FROM  
+spain.rn 
+CROSS JOIN (SELECT 'Rio Avia' AS sector,  2006 AS "year") sub
+WHERE idsegment IN (SELECT
+dbeel_rivers.upstream_segments_rn('SP168413'));--393
+
+
+INSERT INTO dbeel_rivers.transport(idsegment,sector,"year",geom)
+SELECT idsegment, sector, "year", geom  
+FROM  
+spain.rn 
+CROSS JOIN (SELECT 'Rio Cabe' AS sector,  1999 AS "year") sub
+WHERE idsegment IN (SELECT
+dbeel_rivers.upstream_segments_rn('SP166299'));--327
+
+INSERT INTO dbeel_rivers.transport(idsegment,sector,"year",geom)
+SELECT idsegment, sector, "year", geom  
+FROM  
+spain.rn 
+CROSS JOIN (SELECT 'Rio Amsa' AS sector,  2003 AS "year") sub
+WHERE idsegment IN (SELECT
+dbeel_rivers.upstream_segments_rn('SP1208'));--27
+
+
+INSERT INTO dbeel_rivers.transport(idsegment,sector,"year",geom)
+SELECT idsegment, sector, "year", geom  
+FROM  
+spain.rn 
+CROSS JOIN (SELECT 'Rio Iso' AS sector,  2003 AS "year") sub
+WHERE idsegment IN (SELECT
+dbeel_rivers.upstream_segments_rn('SP186399'));--27
+
+INSERT INTO dbeel_rivers.transport(idsegment,sector,"year",geom)
+SELECT idsegment, sector, "year", geom  
+FROM  
+spain.rn 
+CROSS JOIN (SELECT 'Rio Ulla' AS sector,  2000 AS "year") sub
+WHERE idsegment IN (SELECT
+dbeel_rivers.upstream_segments_rn('SP183112'));--303
+
+
+INSERT INTO dbeel_rivers.transport(idsegment,sector,"year",geom)
+SELECT idsegment, sector, "year", geom  
+FROM  
+spain.rn 
+CROSS JOIN (SELECT 'Rio Sil' AS sector,  1997 AS "year") sub
+WHERE idsegment IN (SELECT
+dbeel_rivers.upstream_segments_rn('SP167099'));--1978
+```

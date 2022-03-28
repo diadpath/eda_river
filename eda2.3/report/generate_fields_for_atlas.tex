@@ -1,0 +1,3489 @@
+% this document must be run using knitr + latex
+% it writes (for the beginning of work) then reads the fileds3.xlsx file to build the river Atlas
+\documentclass[pdftex,12pt,a4paper,svgnames]{report}\usepackage[]{graphicx}\usepackage[]{color}
+% maxwidth is the original width if it is less than linewidth
+% otherwise use linewidth (to make sure the graphics do not exceed the margin)
+\makeatletter
+\def\maxwidth{ %
+  \ifdim\Gin@nat@width>\linewidth
+    \linewidth
+  \else
+    \Gin@nat@width
+  \fi
+}
+\makeatother
+
+\definecolor{fgcolor}{rgb}{0.345, 0.345, 0.345}
+\newcommand{\hlnum}[1]{\textcolor[rgb]{0.686,0.059,0.569}{#1}}%
+\newcommand{\hlstr}[1]{\textcolor[rgb]{0.192,0.494,0.8}{#1}}%
+\newcommand{\hlcom}[1]{\textcolor[rgb]{0.678,0.584,0.686}{\textit{#1}}}%
+\newcommand{\hlopt}[1]{\textcolor[rgb]{0,0,0}{#1}}%
+\newcommand{\hlstd}[1]{\textcolor[rgb]{0.345,0.345,0.345}{#1}}%
+\newcommand{\hlkwa}[1]{\textcolor[rgb]{0.161,0.373,0.58}{\textbf{#1}}}%
+\newcommand{\hlkwb}[1]{\textcolor[rgb]{0.69,0.353,0.396}{#1}}%
+\newcommand{\hlkwc}[1]{\textcolor[rgb]{0.333,0.667,0.333}{#1}}%
+\newcommand{\hlkwd}[1]{\textcolor[rgb]{0.737,0.353,0.396}{\textbf{#1}}}%
+\let\hlipl\hlkwb
+
+\usepackage{framed}
+\makeatletter
+\newenvironment{kframe}{%
+ \def\at@end@of@kframe{}%
+ \ifinner\ifhmode%
+  \def\at@end@of@kframe{\end{minipage}}%
+  \begin{minipage}{\columnwidth}%
+ \fi\fi%
+ \def\FrameCommand##1{\hskip\@totalleftmargin \hskip-\fboxsep
+ \colorbox{shadecolor}{##1}\hskip-\fboxsep
+     % There is no \\@totalrightmargin, so:
+     \hskip-\linewidth \hskip-\@totalleftmargin \hskip\columnwidth}%
+ \MakeFramed {\advance\hsize-\width
+   \@totalleftmargin\z@ \linewidth\hsize
+   \@setminipage}}%
+ {\par\unskip\endMakeFramed%
+ \at@end@of@kframe}
+\makeatother
+
+\definecolor{shadecolor}{rgb}{.97, .97, .97}
+\definecolor{messagecolor}{rgb}{0, 0, 0}
+\definecolor{warningcolor}{rgb}{1, 0, 1}
+\definecolor{errorcolor}{rgb}{1, 0, 0}
+\newenvironment{knitrout}{}{} % an empty environment to be redefined in TeX
+
+\usepackage{alltt}
+\usepackage[UTF8]{inputenc} %encodage du fichier source
+\usepackage[T1]{fontenc}  %gestion des accents (pour les pdf) 
+\usepackage{lmodern} %
+\usepackage[pdftex]{graphicx}
+%\addto\captionsfrench{\def\tablename{Tableau}}
+\usepackage{float}
+%h	Place the float here, i.e., approximately at the same point it occurs in the source text (however, not exactly at the spot)
+%t	Position at the top of the page.
+%b	Position at the bottom of the page.
+%p	Put on a special page for floats only.
+%!	Override internal parameters LaTeX uses for determining "good" float positions.
+%H	Places the float at precisely the location in the LaTeX code. Requires the float package,[1] e.g., \usepackage{float}. This is somewhat equivalent to h!.
+%\renewcommand{\headrulewidth}{0pt}
+% http://texblog.org/2011/01/27/add-your-logo-to-the-title-page/ Specifier	Permission
+\usepackage[section]{placeins} %The placeins package provides the command \FloatBarrier
+\usepackage{wrapfig}
+\usepackage{rotating}
+\usepackage[table,usenames,dvipsnames]{xcolor}
+\usepackage{booktabs}
+\usepackage{color}
+\usepackage[font={it}]{caption} % pour des legendes en italique
+\usepackage{tcolorbox} % pour la page de titres
+\usepackage{adjustbox} % within table pictures
+% definiton de couleurs "custom"
+\definecolor{graysudo}{RGB}{45,47,44}
+\definecolor{bleu}{RGB}{16,18,138}
+\definecolor{navysudo}{RGB}{23,45,147}
+\definecolor{orangesudo}{RGB}{219,87,24}
+\definecolor{orangesudolight}{RGB}{243,191,149}
+\definecolor{bluesudo}{RGB}{0,184,205}
+\definecolor{bluesudolight}{RGB}{115,228,255}
+\definecolor{bluesudodeep}{RGB}{0,134,166}
+\definecolor{greensudo}{RGB}{146,194,0}
+\definecolor{grisbleu}{RGB}{62,59,132}
+\definecolor{lightgray}{gray}{0.95}
+\usepackage[left=3cm, right=3cm, top=2cm, bottom=2cm]{geometry}
+\geometry{dvips,a4paper,hmargin=2.5cm,vmargin=2.5cm}
+\setcounter{secnumdepth}{10}
+\usepackage{hyperref} %gestion des hyperliens
+\usepackage{glossaries}
+%\deftranslation{Glossary}{Glossaire} % remove for english version
+\renewcommand*{\glstextformat}[1]{\textcolor{grisbleu}{#1}}
+\newcommand{\HRule}{\rule{\linewidth}{0.5mm}} % cette commande est pour creer un ligne il faut la preceder de noident
+% recommended,[toc]=> glossary in the table of contents
+%\hypersetup{pdfstartview <- XYZ} %zoom par d�faut
+\hypersetup{
+     backref =  true,    %permet d'ajouter des liens dans...
+     pagebackref = true,%...les bibliographies
+     hyperindex = true, %ajoute des liens dans les index.
+     colorlinks = true, %colorise les liens
+     breaklinks = true, %permet le retour a la ligne dans les liens trop longs
+     urlcolor= grisbleu,  %couleur des hyperliens
+     linkcolor= navysudo, %couleur des liens internes(change box color with
+     % linkbordercolor)
+     filecolor = magenta,      % color of file links 
+     citecolor =  grisbleu,
+     bookmarks =  true,  %cr�� des signets pour Acrobat
+     bookmarksopen =  true,            %si les signets Acrobat sont crees,
+                                    %les afficher compl�tement.
+     pdftitle =  {Atlas of European Eel Distribution \textit{(Anguilla
+     anguilla)} in Portugal, Spain and France},
+     %informations apparaissant dans
+     pdfauthor =  {M. Mateo, H. Drouineau, H. Pella, L. Beaulaton, E. Amilhat,
+     A. Bardonnet, I. Domingos, C. Fernández-Delgado, R. J. De Miguel Rubio, M.
+     Herrera, M. Korta, L. Zamora, E. Diaz, C. Briand},
+     %dans les informations du document
+     pdfsubject =  {SUDOANG EU project GT1 Product 1.1},          %sous Acrobat
+     pdfkeywords =  {"eel,atlas,distribution"}
+}
+
+
+\usepackage{siunitx}
+\sisetup{
+round-mode = places, % nombre de décimales apres la virgule
+round-precision = 3
+}%
+\DeclareSIUnit{\silver}{Silver}
+\DeclareSIUnit{\yellow}{Yellow}
+\DeclareSIUnit{\eel}{eel}
+\DeclareSIUnit{\ind}{Ind.}
+\graphicspath{{../../EDAdata/report2.3/images/}}
+
+\usepackage{caption} % pour les subfigures http://en.wikibooks.org/wiki/LaTeX/Floats,_Figures_and_Captions
+\usepackage{subcaption} % pour les subfigures
+\addto{\captionsfrench}{\renewcommand{\abstractname}{Executive Summary}}
+\usepackage[abs]{overpic}
+\usepackage{relsize} % pour pouvoir utiliser \\relsize{-2} pour des subscripts dans les captions
+
+\newcommand{\HRule}{\rule{\linewidth}{0.5mm}} % cette commande est pour créer un ligne il faut la précéder de noident
+
+\usepackage{tikz}
+\usetikzlibrary{shapes,arrows}
+\usepackage{textcomp} % commercial R
+
+%\usepackage{transparent} % pour avoir des couleurs transparentes dans les
+
+%\newcommand*\chapterlabel{}
+%\titleformat{\chapter}
+%  {\gdef\chapterlabel{}
+%   \normalfont\sffamily\Large\bfseries\scshape}
+%  {\gdef\chapterlabel{\thechapter\ }}{0pt}
+%  {\begin{tikzpicture}[remember picture,overlay]
+%    \node[yshift =  -3cm] at (current page.north west)
+%      {\begin{tikzpicture}[remember picture, overlay]
+%        \draw[fill=LightSkyBlue] (0,0) rectangle
+%          (\paperwidth,8cm);
+%        \node[anchor=east,xshift=.8\paperwidth,rectangle,
+%              rounded corners=10pt,inner sep=11pt,
+%              fill=bluesudolight]
+%              {\color{white}\chapterlabel#1};
+%       \end{tikzpicture}
+%      };
+%   \end{tikzpicture}
+%  }
+%\titlespacing*{\chapter}{0pt}{50pt}{-30pt}
+%\addto{\captionsfrench}{\renewcommand{\bibname}{R�f�rences bibliographiques}}
+%\addto{\captionsfrench}{\renewcommand{\abstractname}{R�sum�}}
+%\addto{\captionsfrench}{\renewcommand{\glossaryname}{Glossaire}}
+%\addto{\captionsfrench}{\renewcommand{\tablename}{Tableau}}
+% to set the width of figures by default
+%\setkeys{Gin}{width=0.8\textwidth}{}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%\usepackage{fancyhdr}
+%\renewcommand{\headrulewidth}{0.4pt}
+%\thispagestyle{fancyplain}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% FIN DU CHARGEMENT DES PACKAGE
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\input{../report2.3/EDA_glossary.tex}
+\makeglossaries
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\begin{document}
+%\SweaveOpts{concordance=TRUE}
+
+% title page of the report
+\begin{titlepage}
+\pagecolor{graysudo}
+\newgeometry{margin=0cm}
+
+%\addtolength{\oddsidemargin}{0cm}
+%\addtolength{\evensidemargin}{0cm}
+\hspace*{-0.5cm}
+\includegraphics[width=\paperwidth]{rn2.jpg};
+
+%\vspace*{0cm}
+
+%\textcolor{white}{\HRule}\\
+\begin{center}
+\begin{minipage}{0.8\textwidth}
+\begin{tcolorbox}[arc=1ex, colback=bluesudodeep, colframe=greensudo,
+left=1.5pt,right=1.5pt, top=1.5pt, bottom=1.5pt]
+\begin{center}
+ \vspace{4mm}
+ \Huge
+\textcolor{graysudo}{\textbf{Atlas of European Eel Distribution
+\\\textit{(Anguilla anguilla)}} \\in Portugal, Spain and France}\\
+\Large {\color{greensudo}{GT1 Product 1.1\\}}
+ \vspace{4mm}
+\end{center}
+\end{tcolorbox}
+\end{minipage}
+%\textcolor{white}{\HRule}%
+\\[2.7cm]
+
+
+
+{\begin{tikzpicture}[remember picture, overlay]
+      \node[inner sep=0, opacity=0.9] (image) at (1cm,0cm) % X Y from center (as
+      % we are in centered env) node here on the left first letter
+      {\includegraphics[width=10cm]{mondego.png}}; 
+      \end{tikzpicture}} 
+{\begin{tikzpicture}[remember picture, overlay]
+      \node[anchor=south west,inner sep=0,opacity=1] (image) at (-2cm,-1cm) % -2cm (to the left of center)
+      {\includegraphics[width=3cm]{logoSUDOANG.png}}; 
+      \end{tikzpicture}}\\
+\vfill
+\begin{center}
+\begin{minipage}{0.8\textwidth}
+\large{
+\color{bluesudolight}{\itshape{M. Mateo (1), H. Drouineau (2), H. Pella (2),
+L. Beaulaton (2, 3), E. Amilhat (4), A. Bardonnet
+(2),I. Domingos (5), C. Fernández-Delgado (6), R. J.
+De Miguel Rubio (6), M. Herrera (6), M. Korta (1), L. Zamora (7),
+E. Díaz (1), C. Briand (8)\\}}}
+\color{greensudo}{(1) AZTI, (2) INRAe, (3) OFB, (4) University of Perpignan,
+(5) FCUL/MARE, (6) University of Córdoba, (7) University of Girona, (8)
+EPTB-Vilaine}%
+\end{minipage}
+\end{center}
+\\[0.5cm]
+
+
+\color{orangesudolight}\LARGE{{May 2021- EDA2.3.0}}
+\end{center}
+\vspace*{1cm}
+\restoregeometry
+\end{titlepage}
+\pagebreak
+\restoregeometry
+\pagecolor{white}
+\tableofcontents
+\pagebreak
+
+
+
+  
+
+
+
+
+
+
+% Introduction page -------------------------------------
+
+\arrayrulecolor{greensudo}
+\renewcommand{\arraystretch}{1.5} % Default value: 1
+\begin{center}
+\Huge\textsc{\textbv{Introduction}}\\
+\end{center}
+\vspace*{5cm}
+
+The SUDOANG project aims at providing common tools to managers to support eel
+conservation in the SUDOE area (Spain, France and Portugal). VISUANG is the
+SUDOANG Interactive Web Application that will host all these tools. The
+application consists of an eel distribution atlas (GT1), assessments of
+mortalities caused by turbines and an atlas showing obstacles to migration
+(GT2), estimates of recruitment and exploitation rate (GT3) and
+escapement (chosen as a target by the EC for the Eel Management Plans) (GT4).
+In addition, it will include an interactive map showing sampling results from
+the pilot basin network produced by GT6.
+
+The eel abundance for the eel atlas and escapement has been obtained using
+the Eel Density Analysis model (EDA, GT4's product). EDA extrapolates the
+abundance of eel in sampled river segments to other segments taking into
+account how the abundance, sex and size of the eels change depending on
+different parameters
+\href{https://www.youtube.com/watch?v=uS5sehcH7Uc&ab_channel=SUDOANG}{(model
+summary)}. Thus, EDA requires two main data sources: those related to the river
+characteristics and those related to eel abundance and characteristics.
+
+However, in both cases, data availability was uneven in the SUDOE area. In
+addition, this information was dispersed among several managers and in
+different formats due to different sampling sources: Water Framework Directive
+(WFD), Community Framework for the Collection, Management and Use of Data in
+the Fisheries Sector (EUMAP), Eel Management Plans, research groups, scientific
+papers and technical reports. Therefore, the first step towards having eel
+abundance estimations including the whole SUDOE area, was to have a joint river
+and eel database. In this report we will describe the database corresponding
+to the river’s characteristics in the SUDOE area and the eel abundances and
+their characteristics.
+
+In the case of rivers, two types of information has been collected: 
+\begin{itemize}
+\item \textbf{River topology (RN table)}: a compilation of data on rivers and
+their topological and hydrographic characteristics in the three countries.
+\item \textbf{River attributes (RNA table)}: contains physical attributes that
+have fed the SUDOANG models.
+\end{itemize}
+
+The estimation of eel abundance and characteristic (size, biomass, sex-ratio and
+silver) distribution at different scales (river segment, basin, Eel Management Unit
+(EMU), and country) in the SUDOE area obtained with the implementation of the
+EDA2.3 model has been compiled in \textbf{the RNE table (eel predictions)}.
+
+For each dataset (RN, RNA, RNE), a table has been developed and is
+described in this report.
+
+\clearpage
+
+
+%---------------------------------------------------------------
+% header page of the report (RN) 
+%----------------------------------------------------------------
+\pagecolor{graysudo}
+\newgeometry{margin=0cm}
+%\addtolength{\oddsidemargin}{0cm}
+%\addtolength{\evensidemargin}{0cm}
+\hspace*{-0.7cm}
+\includegraphics[width=\paperwidth]{RN.jpg};
+\vspace*{0cm}%
+%\textcolor{white}{\HRule}\\
+\begin{center}
+\begin{minipage}{0.8\textwidth}
+\begin{tcolorbox}[arc=1ex, colback=bluesudodeep, colframe=greensudo,
+left=2pt,right=2pt, top=2pt, bottom=2pt]
+\begin{center}
+ \vspace{8mm}
+ \Huge
+\textcolor{graysudo}{\textbf{River network}} \textcolor{greensudo}{\textbf{RN}}
+\textcolor{graysudo}{\textbf{table}}\\
+\huge {\color{greensudo}{Part 1 - river topology\\}}
+ \vspace{8mm}
+ \end{center}
+\end{tcolorbox}
+\end{minipage}
+\end{center}
+%\textcolor{white}{\HRule}%
+\vspace*{5cm}
+\begin{center}
+{\begin{tikzpicture}[remember picture, overlay]
+      \node[inner sep=0,opacity=0.9] (image) at (1cm,0cm) % X Y from center (as we are in centered env)
+      % node here on the left first letter
+      {\includegraphics[width=10cm]{mondego.png}}; 
+      \end{tikzpicture}} 
+{\begin{tikzpicture}[remember picture, overlay]
+      \node[anchor=south west,inner sep=0,opacity=1] (image) at (-2cm,-1cm) % -2cm (to the left of center)
+      {\includegraphics[width=5cm]{logoSUDOANG.png}}; 
+      \end{tikzpicture}}
+\vfill
+\vspace*{5cm}
+\end{center}
+\pagebreak
+
+
+\restoregeometry
+\pagecolor{white}
+
+% --- starting automated table
+
+
+
+\arrayrulecolor{greensudo}
+\renewcommand{\arraystretch}{1.5} % Default value: 1
+
+% RN -------------------------------------
+\begin{center}
+\Huge\textsc{\textbv{The RN table: River topology}}\\
+\phantomsection \label{RN}
+\addcontentsline{toc}{part}{The RN table}
+\end{center}
+\vspace*{5cm}
+
+EDA 2.3 extrapolates the abundance of eel in sampled river
+segments to other segments taking into account how the abundance, sex and size
+of the eels change depending on different parameters. Thus EDA extrapolations
+rely heavily in geographical data (topological and hydrographic
+characteristics) and this information has been compiled in the RN table.
+
+The previous EDA 2.0 version was based on the Catchment Characterisation and
+Modelling (CCM), a database that contains information on rivers on a European
+scale (Vogt et al., 2007)\footnote{Vogt, J., Soille, P., de Jager, A.,
+Rimaviciute, E., Mehl, W., Foisneau, S., Bodis, K., Dusart, J., Paracchini, M.,
+Haastrup, P., and Bamps, C. 2007. A pan-European river and catchment database.
+Technical report, Joint Research Celanntre-Institute for Environment and
+Sustainability, Luxembourg.}, which can be very useful to implement a common
+model in different countries. However,
+its resolution leaves a lot of eel habitat out. So for this new implementation
+of EDA it was decided to use other layers as they had several advantages.
+The European Directive for Infrastructure for Spatial Information in
+Europe (INSPIRE)
+\href{https://eur-lex.europa.eu/legal-content/EN/TXT/PDF/?uri=CELEX:32007L0002&from=EN}{(Directive
+2007/2/EC)} lays down the mandatory general rules for the establishment of an
+Infrastructure for Spatial Information in the European Community based on the
+infrastructure of the Member States. To ensure that the spatial data
+infrastructures of the Member States are compatible and interoperable in a
+community and cross-border context, the Directive requires the adoption of
+common implementing rules specific for data, metadata and services. The
+\href{https://data.europa.eu/euodp/en/data/dataset/jrc-10109-layer)}{INSPIRE
+layer register} contains all the harmonised layers, as defined in the
+"COMMISSION REGULATION (EU) No 1089/2010 of 23 November 2010 implementing the
+INSPIRE Directive. Accordingly, in Spain
+\href{https://sig.mapama.gob.es/Docs/PDFServiciosProd2/RiosPfafs.pdf}{(MAPAMA,
+2017)} and Portugal
+\href{https://sniambgeoportal.apambiente.pt/geoportal/catalog/search/resource/details.page?uuid={613E780E-052A-4183-99E5-6100D5663081}}{(APA,
+2019)} the river network developed for INPSPIRE was used. For France, it was
+decided to rely on the Theoretical Hidrographic Network (RHT) developed by
+Pella et al. (2012)\footnote{Pella, H., Lejot J., Lamouroux N., and Snelder T.
+2012. Le Réseau Hydrographique Théorique (RHT) Français et Ses Attributs
+Environnementaux (the Theoretical Hydrographical Network (RHT) for France and
+Its Environmental Attributes). Géomorphologie : Relief, Processus,
+Environnement. 18(3): 317-336 pp.} based in the hydrographic database proposed
+for INSPIRE Directive in France
+\href{http://www.geoinformations.developpement-durable.gouv.fr/bd-carthage-r363.html}{(Base
+de Données sur la CARtographie THématique des AGences de l’eau et du ministère
+chargé de l’environnement, BD Carthage ®, 2013)} because it provides many useful
+tools: a fully chained network, and most importantly the estimated flow which
+in turn allows to model flow at dam level and turbine mortality (see GT2 on
+estimation barrier-related mortality).
+
+However, in this river network layers the international rivers showed
+discontinuities between countries, so it was necessary to link the French,
+Portugese and Spanish river networks and chain them together (Figure
+\ref{figure:river_chain}).
+
+%==========================================================================
+\begin{figure}[htbp]
+  \begin{center}
+  \includegraphics[width=0.6\textwidth]{river_chain.png}
+  \caption[River network chain]{Example of a problem between the Spanish and
+  Portuguese river networks at the border. The Spanish (id1 and
+  id2) and Portuguese (target node) rivers were not linked.}
+  \label{figure:river_chain}
+  \end{center}
+\end{figure}
+%==========================================================================
+
+The RN table follows a hierarchical structure in which the data are organised
+into a tree-like structure, i.e. data are related in a parent-child manner, with
+the "parent table" as a single table in the database and "child tables" act as
+the branches flowing from the "parent table". The RN table is first created in
+the $dbeel\_rivers$ schema (which represents the logical configuration of the
+database and is supported by the database management system) and then "child
+tables" are created in schemas $france$, $spain$ and $portugal$ inheriting the
+the table structure from the $dbeel\_rivers$ schema (Figure
+\ref{figure:dbeel_rivers_rn}).
+
+%==========================================================================
+\begin{figure}[htbp]
+  \begin{center}
+  \includegraphics[width=0.6\textwidth]{dbeel_rivers_rn.png}
+  \caption[Hierarchical structure of database]{All data within the $france$,
+  $spain$ and $portugal$ schemas are also available at higer level in the
+  $dbeel\_rivers$ schema.}
+  \label{figure:dbeel_rivers_rn}
+  \end{center}
+\end{figure}
+%==========================================================================
+
+The result of this database structure is that even though intensive GIS
+calculations (e.g. search for the path between two river segments in the same
+basin) and corrections are made on each of the "child table" (that comes from
+schemas $france$, $spain$ and $portugal$), the EDA model connects directly to
+the 'parent' table of the $dbeel\_rivers$ schema to obtain data at the
+international level.
+
+Some useful spatial tools (e.g. a function calculating the distance between two
+river segments) are built on this dataset and described in
+\href{http://185.135.126.250/traceda/wiki/recipes\%20for\%20sudoang\%20database}{recipe
+for SUDOANG database}. They use the hierarchical structure to calculate rapidly
+the segments that are located upstream or downstream from one river segment.
+
+This document describes the main features of the RN table, and the names to
+which fields the column relate to in the original table.
+
+\vspace{2cm}
+
+\clearpage
+\phantomsection \n\addcontentsline{toc}{section}{idsegment}
+\noindent \textcolor{greensudo}{\rule{\textwidth}{.3mm}}\\ 
+\vspace*{-5mm} \\ 
+\begin{minipage}{.45\linewidth} 
+\begin{flushleft} 
+{\LARGE\textcolor{navysudo}{idsegment}} 
+\end{flushleft} 
+\end{minipage} 
+\begin{minipage}{.45\linewidth} 
+\begin{flushright} 
+Identifier of the river segment
+\end{flushright} 
+\end{minipage} \\ 
+\vspace*{-2mm} 
+\noindent \textcolor{greensudo}{\rule{\textwidth}{.3mm}}\\ 
+\begin{figure}[H]
+\begin{center} 
+\includegraphics[width=0.8\textwidth]{idsegment.png}
+\end{center} 
+\end{figure}
+\begin{minipage}[c]{\textwidth}
+\begin{tabular}{p{3cm}p{12cm}}
+\toprule  
+Description & Identifier of the river segment (primary key), starts with letter \textbf{PT} in Portugal, \textbf{SP} in Spain, and \textbf{FR} in France. In Portugal the identifier corresponds to PT + gid of \href{https://sniambgeoportal.apambiente.pt/geoportal/catalog/search/resource/details.page?uuid={613E780E-052A-4183-99E5-6100D5663081}}{Rede hidrografica GeoCodificada}. In Spain the identifier corresponds to SP + gid of "Tramos de ríos de España clasificados según Pfafstetter modificado" layer: \href{http://www.mapama.gob.es/ide/metadatos/index.html?srv=metadata.show&uuid=588501d1-d5bf-450b-a67e-29b0c3973dba}{metadata}, \href{http://www.mapama.gob.es/app/descargas/descargafichero.aspx?f=RiosPfafs.zip}{download}. Note that in Spain, the identifiers for \textit{pfafrio} and \textit{pfafsegment} are stored in the \textbf{rna table} in fields \textit{pfafriver} and \textit{pfasegment} respectively. In France the identifier corresponds to FR + $id\_drain$ in the Theoretical Hidrographic Network (RHT) (Pella \textit{et al.}, 2012). 
+\\
+\midrule  
+Reference & Mateo M., Beaulaton L., Drouineau H., Díaz E., and Briand C. (2021).  Eel density analysis (EDA 2.3). Escapement of silver eels (\textit{Anguilla anguilla}) from French, Spanish and Portugese rivers. GT4 - deliverable E4.1.1.\\
+\bottomrule 
+\end{tabular} 
+\end{minipage} 
+\clearpage
+\phantomsection \n\addcontentsline{toc}{section}{source}
+\noindent \textcolor{greensudo}{\rule{\textwidth}{.3mm}}\\ 
+\vspace*{-5mm} \\ 
+\begin{minipage}{.45\linewidth} 
+\begin{flushleft} 
+{\LARGE\textcolor{navysudo}{source}} 
+\end{flushleft} 
+\end{minipage} 
+\begin{minipage}{.45\linewidth} 
+\begin{flushright} 
+Upstream node of the river segment
+\end{flushright} 
+\end{minipage} \\ 
+\vspace*{-2mm} 
+\noindent \textcolor{greensudo}{\rule{\textwidth}{.3mm}}\\ 
+\begin{figure}[H]
+\begin{center} 
+\includegraphics[width=0.8\textwidth]{node.png}
+\end{center} 
+\end{figure}
+\begin{minipage}[c]{\textwidth}
+\begin{tabular}{p{3cm}p{12cm}}
+\toprule  
+Description & Identifier of the upstream point (or source node) of river segments. This corresponds to fields \textit{fnode}, \textit{source}, \textit{source} in France, Spain and Portugal respectively.\\
+\midrule  
+Reference & Briand C., Drouineau H., Beaulaton L., Díaz E., and Mateo M. \textit{(in prep)}. A reference hydrological system to build migratory fishes stock assessment in the south of Europe.\\
+\bottomrule 
+\end{tabular} 
+\end{minipage} 
+\clearpage
+\phantomsection \n\addcontentsline{toc}{section}{target}
+\noindent \textcolor{greensudo}{\rule{\textwidth}{.3mm}}\\ 
+\vspace*{-5mm} \\ 
+\begin{minipage}{.45\linewidth} 
+\begin{flushleft} 
+{\LARGE\textcolor{navysudo}{target}} 
+\end{flushleft} 
+\end{minipage} 
+\begin{minipage}{.45\linewidth} 
+\begin{flushright} 
+Downstream node of the river segment
+\end{flushright} 
+\end{minipage} \\ 
+\vspace*{-2mm} 
+\noindent \textcolor{greensudo}{\rule{\textwidth}{.3mm}}\\ 
+\begin{figure}[H]
+\begin{center} 
+\includegraphics[width=0.8\textwidth]{node.png}
+\end{center} 
+\end{figure}
+\begin{minipage}[c]{\textwidth}
+\begin{tabular}{p{3cm}p{12cm}}
+\toprule  
+Description & Identifier of the downstream point (or target node) of river segments. This corresponds to fields \textit{tnode}, \textit{target}, \textit{target} in France, Spain and Portugal respectively.\\
+\midrule  
+Reference & Briand C., Drouineau H., Beaulaton L., Díaz E., and Mateo M. \textit{(in prep)}. A reference hydrological system to build migratory fishes stock assessment in the south of Europe.\\
+\bottomrule 
+\end{tabular} 
+\end{minipage} 
+\clearpage
+\phantomsection \n\addcontentsline{toc}{section}{lengthm}
+\noindent \textcolor{greensudo}{\rule{\textwidth}{.3mm}}\\ 
+\vspace*{-5mm} \\ 
+\begin{minipage}{.45\linewidth} 
+\begin{flushleft} 
+{\LARGE\textcolor{navysudo}{lengthm}} 
+\end{flushleft} 
+\end{minipage} 
+\begin{minipage}{.45\linewidth} 
+\begin{flushright} 
+Length of the river segment (\si{\metre})
+\end{flushright} 
+\end{minipage} \\ 
+\vspace*{-2mm} 
+\noindent \textcolor{greensudo}{\rule{\textwidth}{.3mm}}\\ 
+\begin{figure}[H]
+\begin{center} 
+\includegraphics[width=0.8\textwidth]{lengthm.png}
+\end{center} 
+\end{figure}
+\begin{minipage}[c]{\textwidth}
+\begin{tabular}{p{3cm}p{12cm}}
+\toprule  
+Description & Length of the river segment (from  node to node) in meters. In France the length of the river segment comes from the Theoretical Hidrographic Network (RHT) developed by
+Pella \textit{et al.} (2012). In Portugal the source is "Rede hidrografica GeoCodificada" \href{https://sniambgeoportal.apambiente.pt/geoportal/catalog/search/resource/details.page?uuid={613E780E-052A-4183-99E5-6100D5663081}}{(layer metadata)}. In Spain the source is "Tramos de ríos de España clasificados según Pfafstetter modificado" \href{http://www.mapama.gob.es/ide/metadatos/index.html?srv=metadata.show&uuid=588501d1-d5bf-450b-a67e-29b0c3973dba}{(layer metadata)}.\\
+\midrule  
+Reference & Pella H., Lejot J., Lamouroux N., and Snelder T. 2012. Le réseau hydrographique théorique (RHT) français et ses attributs environnementaux (The theoretical hydrographical network (RHT) for France and its environmental attributes).  Géomorphologie : rélief, processus, environnement. 18(3): 317-336 pp.\\
+\bottomrule 
+\end{tabular} 
+\end{minipage} 
+\clearpage
+\phantomsection \n\addcontentsline{toc}{section}{nextdownidsegment}
+\noindent \textcolor{greensudo}{\rule{\textwidth}{.3mm}}\\ 
+\vspace*{-5mm} \\ 
+\begin{minipage}{.45\linewidth} 
+\begin{flushleft} 
+{\LARGE\textcolor{navysudo}{nextdownidsegment}} 
+\end{flushleft} 
+\end{minipage} 
+\begin{minipage}{.45\linewidth} 
+\begin{flushright} 
+Identifier of the next \\ downstream river segment
+\end{flushright} 
+\end{minipage} \\ 
+\vspace*{-2mm} 
+\noindent \textcolor{greensudo}{\rule{\textwidth}{.3mm}}\\ 
+\begin{figure}[H]
+\begin{center} 
+\includegraphics[width=0.8\textwidth]{nextdownidsegment.png}
+\end{center} 
+\end{figure}
+\begin{minipage}[c]{\textwidth}
+\begin{tabular}{p{3cm}p{12cm}}
+\toprule  
+Description & Identifier of the river segment located downtream from current river segment. It is null for sea nodes (issea = TRUE), and corresponds to the identifier of the river segment in another country when the river segment is a frontier segment (isfrontier = TRUE).\\
+\midrule  
+Reference & Briand C., Drouineau H., Beaulaton L., Díaz E., and Mateo M. \textit{(in prep)}. A reference hydrological system to build migratory fishes stock assessment in the south of Europe.\\
+\bottomrule 
+\end{tabular} 
+\end{minipage} 
+\clearpage
+\phantomsection \n\addcontentsline{toc}{section}{path}
+\noindent \textcolor{greensudo}{\rule{\textwidth}{.3mm}}\\ 
+\vspace*{-5mm} \\ 
+\begin{minipage}{.45\linewidth} 
+\begin{flushleft} 
+{\LARGE\textcolor{navysudo}{path}} 
+\end{flushleft} 
+\end{minipage} 
+\begin{minipage}{.45\linewidth} 
+\begin{flushright} 
+Chain of idsegments from the sea \\to the current river segment
+\end{flushright} 
+\end{minipage} \\ 
+\vspace*{-2mm} 
+\noindent \textcolor{greensudo}{\rule{\textwidth}{.3mm}}\\ 
+\begin{figure}[H]
+\begin{center} 
+\includegraphics[width=0.8\textwidth]{path.png}
+\end{center} 
+\end{figure}
+\begin{minipage}[c]{\textwidth}
+\begin{tabular}{p{3cm}p{12cm}}
+\toprule  
+Description & Path starting from the sea to the current idsegment computed as \textit{[seaidsegment].[idsegment1].[idsegment2].....[idsegmentn-1].[idsegment]} (ie: \textit{FR108559.FR108502.FR108498.FR108204}). In PostGIS this path is stored as a tree hierarchical structure which allows to query for river segments having common ancestors, extract parts of the path, and finally this allows to compute the basin upstream or the path from the river segment to the sea very efficiently.\\
+\midrule  
+Reference & PostgreSQL manual: \href{https://www.postgresql.org/docs/12/ltree.html}{ltree PostgreSQL module}\\
+\bottomrule 
+\end{tabular} 
+\end{minipage} 
+\clearpage
+\phantomsection \n\addcontentsline{toc}{section}{isfrontier}
+\noindent \textcolor{greensudo}{\rule{\textwidth}{.3mm}}\\ 
+\vspace*{-5mm} \\ 
+\begin{minipage}{.45\linewidth} 
+\begin{flushleft} 
+{\LARGE\textcolor{navysudo}{isfrontier}} 
+\end{flushleft} 
+\end{minipage} 
+\begin{minipage}{.45\linewidth} 
+\begin{flushright} 
+Is the downstream node of the river segment located at the frontier?
+\end{flushright} 
+\end{minipage} \\ 
+\vspace*{-2mm} 
+\noindent \textcolor{greensudo}{\rule{\textwidth}{.3mm}}\\ 
+\begin{figure}[H]
+\begin{center} 
+\includegraphics[width=0.8\textwidth]{isfrontier.png}
+\end{center} 
+\end{figure}
+\begin{minipage}[c]{\textwidth}
+\begin{tabular}{p{3cm}p{12cm}}
+\toprule  
+Description & If the river segment is a frontier segment (isfrontier = TRUE), next river segment dowstream will flow in another country. This feature was used in SUDOANG to get the number of dams and their cumulated height at the border when the Rhine, Moselle and Meuse flow into other countries.\\
+\midrule  
+Reference & Briand C., Drouineau H., Beaulaton L., Díaz E., and Mateo M. \textit{(in prep)}. A reference hydrological system to build migratory fishes stock assessment in the south of Europe.\\
+\bottomrule 
+\end{tabular} 
+\end{minipage} 
+\clearpage
+\phantomsection \n\addcontentsline{toc}{section}{issource}
+\noindent \textcolor{greensudo}{\rule{\textwidth}{.3mm}}\\ 
+\vspace*{-5mm} \\ 
+\begin{minipage}{.45\linewidth} 
+\begin{flushleft} 
+{\LARGE\textcolor{navysudo}{issource}} 
+\end{flushleft} 
+\end{minipage} 
+\begin{minipage}{.45\linewidth} 
+\begin{flushright} 
+Is the river segment a source?
+\end{flushright} 
+\end{minipage} \\ 
+\vspace*{-2mm} 
+\noindent \textcolor{greensudo}{\rule{\textwidth}{.3mm}}\\ 
+\begin{figure}[H]
+\begin{center} 
+\includegraphics[width=0.8\textwidth]{issource.png}
+\end{center} 
+\end{figure}
+\begin{minipage}[c]{\textwidth}
+\begin{tabular}{p{3cm}p{12cm}}
+\toprule  
+Description & If there are no riversegments upstream, this means it is a source river segment (issource = TRUE).\\
+\midrule  
+Reference & Briand C., Drouineau H., Beaulaton L., Díaz E., and Mateo M. \textit{(in prep)}. A reference hydrological system to build migratory fishes stock assessment in the south of Europe.\\
+\bottomrule 
+\end{tabular} 
+\end{minipage} 
+\clearpage
+\phantomsection \n\addcontentsline{toc}{section}{seaidsegment}
+\noindent \textcolor{greensudo}{\rule{\textwidth}{.3mm}}\\ 
+\vspace*{-5mm} \\ 
+\begin{minipage}{.45\linewidth} 
+\begin{flushleft} 
+{\LARGE\textcolor{navysudo}{seaidsegment}} 
+\end{flushleft} 
+\end{minipage} 
+\begin{minipage}{.45\linewidth} 
+\begin{flushright} 
+Identifier of the sea segment
+\end{flushright} 
+\end{minipage} \\ 
+\vspace*{-2mm} 
+\noindent \textcolor{greensudo}{\rule{\textwidth}{.3mm}}\\ 
+\begin{figure}[H]
+\begin{center} 
+\includegraphics[width=0.8\textwidth]{issea.png}
+\end{center} 
+\end{figure}
+\begin{minipage}[c]{\textwidth}
+\begin{tabular}{p{3cm}p{12cm}}
+\toprule  
+Description & Identifierof the most downstream river segment when this river segment is flowing into the sea. Endoreic streams or streams ending at the eastern frontier in France (Belgium, Luxemburg, Germany, Switzerland, Italy) have no seaidsegment (endoreic streams are not considered as possible eel habitat).\\
+\midrule  
+Reference & Briand C., Drouineau H., Beaulaton L., Díaz E., and Mateo M. \textit{(in prep)}. A reference hydrological system to build migratory fishes stock assessment in the south of Europe.\\
+\bottomrule 
+\end{tabular} 
+\end{minipage} 
+\clearpage
+\phantomsection \n\addcontentsline{toc}{section}{issea}
+\noindent \textcolor{greensudo}{\rule{\textwidth}{.3mm}}\\ 
+\vspace*{-5mm} \\ 
+\begin{minipage}{.45\linewidth} 
+\begin{flushleft} 
+{\LARGE\textcolor{navysudo}{issea}} 
+\end{flushleft} 
+\end{minipage} 
+\begin{minipage}{.45\linewidth} 
+\begin{flushright} 
+Is the river segment \\ flowing into the sea?
+\end{flushright} 
+\end{minipage} \\ 
+\vspace*{-2mm} 
+\noindent \textcolor{greensudo}{\rule{\textwidth}{.3mm}}\\ 
+\begin{figure}[H]
+\begin{center} 
+\includegraphics[width=0.8\textwidth]{issea.png}
+\end{center} 
+\end{figure}
+\begin{minipage}[c]{\textwidth}
+\begin{tabular}{p{3cm}p{12cm}}
+\toprule  
+Description & If there are no next downstream river segments, this river segment is flowing into the sea or into an estuary (issea = TRUE).\\
+\midrule  
+Reference & Briand C., Drouineau H., Beaulaton L., Díaz E., and Mateo M. \textit{(in prep)}. A reference hydrological system to build migratory fishes stock assessment in the south of Europe.\\
+\bottomrule 
+\end{tabular} 
+\end{minipage} 
+\clearpage
+\phantomsection \n\addcontentsline{toc}{section}{isendoreic}
+\noindent \textcolor{greensudo}{\rule{\textwidth}{.3mm}}\\ 
+\vspace*{-5mm} \\ 
+\begin{minipage}{.45\linewidth} 
+\begin{flushleft} 
+{\LARGE\textcolor{navysudo}{isendoreic}} 
+\end{flushleft} 
+\end{minipage} 
+\begin{minipage}{.45\linewidth} 
+\begin{flushright} 
+Is the river segment endoreic?
+\end{flushright} 
+\end{minipage} \\ 
+\vspace*{-2mm} 
+\noindent \textcolor{greensudo}{\rule{\textwidth}{.3mm}}\\ 
+\begin{figure}[H]
+\begin{center} 
+\includegraphics[width=0.8\textwidth]{isendoreic.png}
+\end{center} 
+\end{figure}
+\begin{minipage}[c]{\textwidth}
+\begin{tabular}{p{3cm}p{12cm}}
+\toprule  
+Description & If the river segment part of an endoreic stream, not flowing to the sea (isendoreic = TRUE). Initially in the Spanish layer ("Tramos de ríos de España clasificados según Pfafstetter modificado") only the most downstream river segment was classified as endoreic. This attribute has been extended to all segments that are part of the endoreic system.\\
+\midrule  
+Reference & Briand C., Drouineau H., Beaulaton L., Díaz E., and Mateo M. \textit{(in prep)}. A reference hydrological system to build migratory fishes stock assessment in the south of Europe.\\
+\bottomrule 
+\end{tabular} 
+\end{minipage} 
+\clearpage
+\phantomsection \n\addcontentsline{toc}{section}{isinternational}
+\noindent \textcolor{greensudo}{\rule{\textwidth}{.3mm}}\\ 
+\vspace*{-5mm} \\ 
+\begin{minipage}{.45\linewidth} 
+\begin{flushleft} 
+{\LARGE\textcolor{navysudo}{isinternational}} 
+\end{flushleft} 
+\end{minipage} 
+\begin{minipage}{.45\linewidth} 
+\begin{flushright} 
+Is the river segment part of \\ an international catchment?
+\end{flushright} 
+\end{minipage} \\ 
+\vspace*{-2mm} 
+\noindent \textcolor{greensudo}{\rule{\textwidth}{.3mm}}\\ 
+\begin{figure}[H]
+\begin{center} 
+\includegraphics[width=0.8\textwidth]{isinternational.png}
+\end{center} 
+\end{figure}
+\begin{minipage}[c]{\textwidth}
+\begin{tabular}{p{3cm}p{12cm}}
+\toprule  
+Description & If the segment is part of an international basin (i.e. with segments in different countries) (isinternational = TRUE).\\
+\midrule  
+Reference & Briand C., Drouineau H., Beaulaton L., Díaz E., and Mateo M. \textit{(in prep)}. A reference hydrological system to build migratory fishes stock assessment in the south of Europe.\\
+\bottomrule 
+\end{tabular} 
+\end{minipage} 
+\clearpage
+\phantomsection \n\addcontentsline{toc}{section}{country}
+\noindent \textcolor{greensudo}{\rule{\textwidth}{.3mm}}\\ 
+\vspace*{-5mm} \\ 
+\begin{minipage}{.45\linewidth} 
+\begin{flushleft} 
+{\LARGE\textcolor{navysudo}{country}} 
+\end{flushleft} 
+\end{minipage} 
+\begin{minipage}{.45\linewidth} 
+\begin{flushright} 
+Country code
+\end{flushright} 
+\end{minipage} \\ 
+\vspace*{-2mm} 
+\noindent \textcolor{greensudo}{\rule{\textwidth}{.3mm}}\\ 
+\begin{figure}[H]
+\begin{center} 
+\includegraphics[width=0.8\textwidth]{country.png}
+\end{center} 
+\end{figure}
+\begin{minipage}[c]{\textwidth}
+\begin{tabular}{p{3cm}p{12cm}}
+\toprule  
+Description & Code of the country: Spain (SP), France (FR) and Portugal (PT).\\
+\midrule  
+Reference & Briand C., Drouineau H., Beaulaton L., Díaz E., and Mateo M. \textit{(in prep)}. A reference hydrological system to build migratory fishes stock assessment in the south of Europe.\\
+\bottomrule 
+\end{tabular} 
+\end{minipage} 
+\clearpage
+\phantomsection \n\addcontentsline{toc}{section}{geom}
+\noindent \textcolor{greensudo}{\rule{\textwidth}{.3mm}}\\ 
+\vspace*{-5mm} \\ 
+\begin{minipage}{.45\linewidth} 
+\begin{flushleft} 
+{\LARGE\textcolor{navysudo}{geom}} 
+\end{flushleft} 
+\end{minipage} 
+\begin{minipage}{.45\linewidth} 
+\begin{flushright} 
+Geometry of the river segment (PostGIS)
+\end{flushright} 
+\end{minipage} \\ 
+\vspace*{-2mm} 
+\noindent \textcolor{greensudo}{\rule{\textwidth}{.3mm}}\\ 
+\begin{figure}[H]
+\begin{center} 
+\includegraphics[width=0.8\textwidth]{geom.png}
+\end{center} 
+\end{figure}
+\begin{minipage}[c]{\textwidth}
+\begin{tabular}{p{3cm}p{12cm}}
+\toprule  
+Description & The geometry (PostGIS spatial data type) of the river segment, using the coordinate system ESPG:3035, type MULTILINESTRING. If you use the PostgreSQL format then you will have a column named \textit{geom} with the geometry. This column will not appear when the table is exported as a shapefile. Beware, we use the european coordinate system, you most likely will want to project this layer into your national preferred reference system: \hfill
+France: \hfill
+RGF93 Lambert 93 (EPSG:2154), \hfill 
+Lambert-II (EPSG:27572). \hfill
+Spain: \hfill 
+ETRS89 UTM zone 30N (EPSG:25830), \hfill 
+ED50 UTM zone 30N (EPSG:23030). \hfill
+Portugal: \hfill 
+ETRS89 Portugal TM06 (EPSG:3763). \hfill
+Other: WGS84 (EPSG:4326), google (EPSG:900913).\\
+\midrule  
+Reference & http://postgis.net/workshops/postgis-intro/geometries.html\\
+\bottomrule 
+\end{tabular} 
+\end{minipage} 
+
+\clearpage 
+%-------------------------------------------------------------------------
+%                        RNA 
+%-------------------------------------------------------------------------
+\pagecolor{graysudo}
+\newgeometry{margin=0cm}
+%\addtolength{\oddsidemargin}{0cm}
+%\addtolength{\evensidemargin}{0cm}
+\hspace*{-0.7cm}
+\includegraphics[width=\paperwidth]{rna.jpg};
+\vspace*{0cm}
+%\textcolor{white}{\HRule}\\
+\begin{center}
+\begin{minipage}{0.8\textwidth}
+\begin{tcolorbox}[arc=1ex, colback=bluesudodeep, colframe=orangesudolight,
+left=2pt,right=2pt, top=2pt, bottom=2pt]
+\begin{center}
+ \vspace{8mm}
+ \Huge
+ \textcolor{graysudo}{\textbf{River network attributes}} \\
+ \textcolor{orangesudolight}{\textbf{RNA}} \textcolor{graysudo}{\textbf{table}}\\
+\huge {\color{orangesudolight}{Part 2 - river physical characteristics \\}}
+ \vspace{8mm}
+\end{center}
+\end{tcolorbox}
+\end{minipage}
+\end{center}
+%\textcolor{white}{\HRule}%
+\vspace*{5cm}
+\begin{center}
+{\begin{tikzpicture}[remember picture, overlay]
+      \node[inner sep=0,opacity=0.9] (image) at (1cm,0cm) % X Y from center (as we are in centered env)
+      % node here on the left first letter
+      {\includegraphics[width=10cm]{mondego.png}}; 
+      \end{tikzpicture}} 
+{\begin{tikzpicture}[remember picture, overlay]
+      \node[anchor=south west,inner sep=0,opacity=1] (image) at (-2cm,-1cm) % -2cm (to the left of center)
+      {\includegraphics[width=5cm]{logoSUDOANG.png}}; 
+      \end{tikzpicture}}
+\vfill
+\vspace*{5cm}
+\end{center}
+
+\pagebreak
+\restoregeometry
+\pagecolor{white}
+\arrayrulecolor{orangesudo}
+\renewcommand{\arraystretch}{1.5} % Default value: 1
+
+
+
+\begin{center}
+\Huge\textsc{\textbv{The RNA table: River attributes}}\\
+\phantomsection \label{RNA}
+\addcontentsline{toc}{part}{The RNA table}
+\end{center}
+
+In addition to the geographical information compiled in the RN table,
+ physical parameters are needed to predict the eel distribution and
+abundance using the EDA model. The RNA table compiles these physical attributes.
+
+In the RNA table, information from different sources has been collected. However
+this variety of data source implies that these might in some cases difficult to
+compare among countries. More information can be gained in dataset like
+CCM (Vogt et al., 2007)\footnote{Vogt, J., Soille, P., de Jager, A., Rimaviciute, E., Mehl, W.,
+Foisneau, S., Bodis, K., Dusart, J., Paracchini, M., Haastrup, P., and Bamps,
+C. 2007. A pan-European river and catchment database. Technical report, Joint
+Research Centre-Institute for Environment and Sustainability, Luxembourg.} or
+the HydroATLAS (Linke et al., 2019)\footnote{Linke, S., Lehner, B., Ouellet
+Dallaire, C., Ariwi, J., Grill, G., Anand, M., Beames, P., Burchard-Levine, V.,
+Maxwell, S., Moidu, H., Tan, F., Thieme, M. 2019. Global hydro-environmental
+sub-basin and river reach characteristics at high spatial resolution. Scientific
+Data, 6: 283. DOI: 10.1038/s41597-019-0300-6}.\\
+
+In addition to collected parameters, the RNA table also contains estimated
+parameters:
+
+\begin{itemize}
+\item As the RNA table  allows chaining the rivers several cumulated variables are calculated
+starting from each estuary (cumulated height of dams
+$cumheightdam$, cumulated number of dams $cumnbdams$, distance to the sea $distanceseam$), 
+or from the source (upstream basin surface: $surfacebvm2$, $shreeve$ rank,
+$strahler$ rank, distance to the source: $distancesourcem$). 
+The modelling approach is described in the
+\href{http://185.135.126.250/traceda/wiki/recipes\%20for\%20sudoang\%20database}{EDA
+trac}.
+\item EDA extrapolates eel density from the electrofishing surveys to produce
+number of eels in the whole catchment. For this reason,
+it is necessary to estimate the surface of waters. We have developped methods in
+each national context to estimate river surface using
+\href{http://185.135.126.250/traceda/browser/eda/EDA_Rios/river_width.Rmd}{river
+width} and join these surface with those of 
+\href{http://185.135.126.250/traceda/browser/eda/EDA_Rios/water_surface.Rmd}{associated waterbodies}.
+\end{itemize}
+
+A special attention has been brought to dams because of their impact on
+migration and habitat available for eel. As a consequence, some of the
+information gathered in this project is similar to that compiled in 
+\href{https://amber.international/}{AMBER}, a project with which SUDOANG had a
+great
+\href{https://amber.international/amber-collaborates-with-european-project-sudoang/}{collaboration}.
+However, in SUDOANG it has been necessary to validate other types of obstacles
+(e.g. penstock pipes have been identified) and the associated heights to
+estimate the effect of obstacles on eel distribution. In addition, a consistent 
+and validated dataset on cumulated effect of dams in France
+has been compiled from three pre-existing different database (referential of
+flow obstacles:
+\href{https://www.data.gouv.fr/fr/datasets/les-referentiels-des-obstacles-a-lecoulement-sur-les-cours-deau-roe/}{ROE},
+information of ecological continuity:
+\href{https://professionnels.ofb.fr/en/node/731}{ICE} and flow
+obstruction database:
+\href{https://www.data.gouv.fr/es/datasets/obstacles-a-lecoulement-metropole/}{BDOE}).\\
+
+Finally, some data concerning dry rivers have been collated to the best of our
+knowledge with information at hand (data from the Spanish Ministry for
+ecological transition (MITECO) and satellite image data). During the project
+when computing width we realised that many streams were not actual rivers or
+flowing, and thus cannot be defined as habitat for eel. The very detailed
+dataset of basins in Spain relies on altitude to define river course, but a
+close examination revealed that most head stream did not contain any river
+path, even dry. Rivers located upstream from dry river segments have been
+considered as no habitat for eel. A river by river expertise has been
+carried in the Spanish Mediterranean by University of Cordoba. Still devising a
+database of "true" rivers and their temporal status for the whole Iberian
+Peninsula remains a challenge for the future.
+	
+
+\clearpage
+\phantomsection
+\addcontentsline{toc}{section}{altitudem}
+\begin{minipage}[c]{\textwidth}
+\noindent \textcolor{orangesudo}{\rule{\textwidth}{.3mm}}\\ 
+\vspace*{-5mm} \\ 
+\begin{minipage}{.45\linewidth} 
+\begin{flushleft} 
+{\LARGE\textcolor{navysudo}{altitudem}} 
+\end{flushleft} 
+\end{minipage} 
+\begin{minipage}{.45\linewidth} 
+\begin{flushright} 
+Altitude of the river segment (\si{\metre})
+\end{flushright} 
+\end{minipage} \\ 
+\vspace*{-2mm} 
+\noindent \textcolor{orangesudo}{\rule{\textwidth}{.3mm}}\\ 
+\begin{figure}[H]
+\begin{center} 
+\includegraphics[width=0.8\textwidth]{altitudem.png}
+\end{center} 
+\end{figure}
+\begin{minipage}[c]{\textwidth}
+\begin{tabular}{p{3cm}p{12cm}}
+\toprule  
+Description & Altitude at which the river segment is located (\si{\metre}). Information source: Theoretical Hidrographic Network (RHT) in France (Pella \textit{et al.)}, 2012),  in Spain and Portugal it has been computed as the altitude at the centroid of the idsegment using European Digital Elevation Model \href{https://land.copernicus.eu/imagery-in-situ/eu-dem/eu-dem-v1.1}{(EU-DEM)}, version 1.1 (Bashfield \textit{et al.}, 2011).\\
+\midrule  
+Reference & Bashfield A., and Keim A. 2011. Continent-wide DEM Creation for the European Union. 34th International Symposium on Remote Sensing of Environment. The GEOSS Era: Towards Operational Environmental Monitoring. Sydney, Australia 10–15 April 2011.\\
+ & Pella H., Lejot J., Lamouroux N., and Snelder T. 2012. Le réseau hydrographique théorique (RHT) français et ses attributs environnementaux (The theoretical hydrographical network (RHT) for France and its environmental attributes).  Géomorphologie : rélief, processus, environnement. 18(3): 317-336 pp.\\
+\bottomrule 
+\end{tabular} 
+\end{minipage} 
+\end{minipage}
+\clearpage
+\phantomsection
+\addcontentsline{toc}{section}{distanceseam}
+\begin{minipage}[c]{\textwidth}
+\noindent \textcolor{orangesudo}{\rule{\textwidth}{.3mm}}\\ 
+\vspace*{-5mm} \\ 
+\begin{minipage}{.45\linewidth} 
+\begin{flushleft} 
+{\LARGE\textcolor{navysudo}{distanceseam}} 
+\end{flushleft} 
+\end{minipage} 
+\begin{minipage}{.45\linewidth} 
+\begin{flushright} 
+Distance to the sea (\si{\metre})
+\end{flushright} 
+\end{minipage} \\ 
+\vspace*{-2mm} 
+\noindent \textcolor{orangesudo}{\rule{\textwidth}{.3mm}}\\ 
+\begin{figure}[H]
+\begin{center} 
+\includegraphics[width=0.8\textwidth]{distanceseam.png}
+\end{center} 
+\end{figure}
+\begin{minipage}[c]{\textwidth}
+\begin{tabular}{p{3cm}p{12cm}}
+\toprule  
+Description & Distance to the sea of a river segment (\si{\metre}), calculated using the length of the river segment (\si{\metre}) and the chain of idsegments from the sea to the current river segment.\\
+\midrule  
+Reference & Briand C., Drouineau H., Beaulaton L., Díaz E., and Mateo M. \textit{(in prep)}. A reference hydrological system to build migratory fishes stock assessment in the south of Europe.\\
+\bottomrule 
+\end{tabular} 
+\end{minipage} 
+\end{minipage}
+\clearpage
+\phantomsection
+\addcontentsline{toc}{section}{distancesourcem}
+\begin{minipage}[c]{\textwidth}
+\noindent \textcolor{orangesudo}{\rule{\textwidth}{.3mm}}\\ 
+\vspace*{-5mm} \\ 
+\begin{minipage}{.45\linewidth} 
+\begin{flushleft} 
+{\LARGE\textcolor{navysudo}{distancesourcem}} 
+\end{flushleft} 
+\end{minipage} 
+\begin{minipage}{.45\linewidth} 
+\begin{flushright} 
+Distance to the source (\si{\metre})
+\end{flushright} 
+\end{minipage} \\ 
+\vspace*{-2mm} 
+\noindent \textcolor{orangesudo}{\rule{\textwidth}{.3mm}}\\ 
+\begin{figure}[H]
+\begin{center} 
+\includegraphics[width=0.8\textwidth]{distancesourcem.png}
+\end{center} 
+\end{figure}
+\begin{minipage}[c]{\textwidth}
+\begin{tabular}{p{3cm}p{12cm}}
+\toprule  
+Description & Distance to the farthest source of a river segment (\si{\metre}), calculated using the length of the river segment (\si{\metre}) and the chain of idsegments from the sea to the current river segment. Among all the possible source a river segment might have, this corresponds to the to the farthest source. This might not  be the "official" known source of the river.\\
+\midrule  
+Reference & Briand C., Drouineau H., Beaulaton L., Díaz E., and Mateo M. \textit{(in prep)}. A reference hydrological system to build migratory fishes stock assessment in the south of Europe.\\
+\bottomrule 
+\end{tabular} 
+\end{minipage} 
+\end{minipage}
+\clearpage
+\phantomsection
+\addcontentsline{toc}{section}{cumnbdam}
+\begin{minipage}[c]{\textwidth}
+\noindent \textcolor{orangesudo}{\rule{\textwidth}{.3mm}}\\ 
+\vspace*{-5mm} \\ 
+\begin{minipage}{.45\linewidth} 
+\begin{flushleft} 
+{\LARGE\textcolor{navysudo}{cumnbdam}} 
+\end{flushleft} 
+\end{minipage} 
+\begin{minipage}{.45\linewidth} 
+\begin{flushright} 
+Cumulated number of dams
+\end{flushright} 
+\end{minipage} \\ 
+\vspace*{-2mm} 
+\noindent \textcolor{orangesudo}{\rule{\textwidth}{.3mm}}\\ 
+\begin{figure}[H]
+\begin{center} 
+\includegraphics[width=0.8\textwidth]{cumnbdam.png}
+\end{center} 
+\end{figure}
+\begin{minipage}[c]{\textwidth}
+\begin{tabular}{p{3cm}p{12cm}}
+\toprule  
+Description & Cumulated number of dams between the sea and the river segment. In France the dams have been collected from the referential of flow obstacles (ROE), the information of ecological continuity (ICE) and the flow obstruction database (BDOE) integrated from a dump the 12-09-2019. Only dams actually standing (i.e. not in project, or destroyed, or under building) and of types excluding dikes, longitudinal control obstructions or grids have been considered. In Spain the data come from the Ministry for the Ecological Transition (MITECO), the Basque water agency (URA), the Catalan water agency (ACA), the University of Girona, the University of Córdoba, the Xunta of Galicia and the \href{https://amber.international/}{AMBER project}. In Portugal the data come from the Portuguese water agency (APA), the University of Lisbon, the University of Porto and the \href{https://amber.international/}{AMBER project}. The bridges type are excluded from cumulated counts in Spain and Portugal. In France only bridges with significant impact on river continuity are integrated in the ROE database so bridges have not been removed.\\
+\midrule  
+Reference & \href{https://sudoang.eu/wp-content/uploads/2020/11/E221\\_data\\_collection\\_storage-2.html}{E221 Data collection and storage}\\
+\bottomrule 
+\end{tabular} 
+\end{minipage} 
+\end{minipage}
+\clearpage
+\phantomsection
+\addcontentsline{toc}{section}{cumheightdam}
+\begin{minipage}[c]{\textwidth}
+\noindent \textcolor{orangesudo}{\rule{\textwidth}{.3mm}}\\ 
+\vspace*{-5mm} \\ 
+\begin{minipage}{.45\linewidth} 
+\begin{flushleft} 
+{\LARGE\textcolor{navysudo}{cumheightdam}} 
+\end{flushleft} 
+\end{minipage} 
+\begin{minipage}{.45\linewidth} 
+\begin{flushright} 
+Cumulated height of dams (\si{\kilometer})
+\end{flushright} 
+\end{minipage} \\ 
+\vspace*{-2mm} 
+\noindent \textcolor{orangesudo}{\rule{\textwidth}{.3mm}}\\ 
+\begin{figure}[H]
+\begin{center} 
+\includegraphics[width=0.8\textwidth]{cumheightdam.png}
+\end{center} 
+\end{figure}
+\begin{minipage}[c]{\textwidth}
+\begin{tabular}{p{3cm}p{12cm}}
+\toprule  
+Description & Cumulated height of dams (\si{\kilometer}) between the sea and the river segment. The cumulated height corresponds to the sum of height of dams without predictions for missing value\footnote{ Various cumulated metrics are available at the \href{http://185.135.126.250/traceda/wiki/download\%20instructions}{download site}, the cumulated dams metrics also include power transformed height of dams. This variable has been used to fit the EDA 2.3 model. It also includes sum of dam height including modelled prediction when dam height is missing.}. Sources of informations of dams are listed in the \textit{cumnbdam} field.\\
+\midrule  
+Reference & \href{https://sudoang.eu/wp-content/uploads/2020/11/E221\\_data\\_collection\\_storage-2.html}{E221 Data collection and storage}\\
+\bottomrule 
+\end{tabular} 
+\end{minipage} 
+\end{minipage}
+\clearpage
+\phantomsection
+\addcontentsline{toc}{section}{surfaceunitbvm2}
+\begin{minipage}[c]{\textwidth}
+\noindent \textcolor{orangesudo}{\rule{\textwidth}{.3mm}}\\ 
+\vspace*{-5mm} \\ 
+\begin{minipage}{.45\linewidth} 
+\begin{flushleft} 
+{\LARGE\textcolor{navysudo}{surfaceunitbvm2}} 
+\end{flushleft} 
+\end{minipage} 
+\begin{minipage}{.45\linewidth} 
+\begin{flushright} 
+Land surface of the unit basin (\si{\square\meter})
+\end{flushright} 
+\end{minipage} \\ 
+\vspace*{-2mm} 
+\noindent \textcolor{orangesudo}{\rule{\textwidth}{.3mm}}\\ 
+\begin{figure}[H]
+\begin{center} 
+\includegraphics[width=0.8\textwidth]{surfaceunitbvm2.png}
+\end{center} 
+\end{figure}
+\begin{minipage}[c]{\textwidth}
+\begin{tabular}{p{3cm}p{12cm}}
+\toprule  
+Description & Land surface of the unit basin (\si{\square\meter}) corresponding to one river segment. A catchment is split into unit catchment surrounding river segments. Information source: in France the surface of the unit basin comes from the Theoretical Hidrographic Network (RHT) (Pella \textit{et al.}, 2012). In Spain the surface come from\\
+\midrule  
+Reference & Briand C., Drouineau H., Beaulaton L., Díaz E., and Mateo M. \textit{(in prep)}. A reference hydrological system to build migratory fishes stock assessment in the south of Europe.\\
+\bottomrule 
+\end{tabular} 
+\end{minipage} 
+\end{minipage}
+\clearpage
+\phantomsection
+\addcontentsline{toc}{section}{surfacebvm2}
+\begin{minipage}[c]{\textwidth}
+\noindent \textcolor{orangesudo}{\rule{\textwidth}{.3mm}}\\ 
+\vspace*{-5mm} \\ 
+\begin{minipage}{.45\linewidth} 
+\begin{flushleft} 
+{\LARGE\textcolor{navysudo}{surfacebvm2}} 
+\end{flushleft} 
+\end{minipage} 
+\begin{minipage}{.45\linewidth} 
+\begin{flushright} 
+Upstream basin surface (\si{\square\meter})
+\end{flushright} 
+\end{minipage} \\ 
+\vspace*{-2mm} 
+\noindent \textcolor{orangesudo}{\rule{\textwidth}{.3mm}}\\ 
+\begin{figure}[H]
+\begin{center} 
+\includegraphics[width=0.8\textwidth]{surfacebvm2.png}
+\end{center} 
+\end{figure}
+\begin{minipage}[c]{\textwidth}
+\begin{tabular}{p{3cm}p{12cm}}
+\toprule  
+Description & Land surface of the basin located upstream from the river segment (\si{\square\meter}) including the unit basin of the segment. Information source: it corresponds to the calculation from the Theoretical Hidrographic Network (RHT) in France (Pella \textit{et al.}, 2012), and to the routing from the source developed within the SUDOANG project for Spain, Portugal and international basins (Briand \textit{et al.}, \textit{in prep}).\\
+\midrule  
+Reference & Pella H., Lejot J., Lamouroux N., and Snelder T. 2012. Le réseau hydrographique théorique (RHT) français et ses attributs environnementaux (The theoretical hydrographical network (RHT) for France and its environmental attributes).  Géomorphologie : rélief, processus, environnement. 18(3): 317-336 pp.\\
+ & Briand C., Drouineau H., Beaulaton L., Díaz E., and Mateo M. \textit{(in prep)}. A reference hydrological system to build migratory fishes stock assessment in the south of Europe.\\
+\bottomrule 
+\end{tabular} 
+\end{minipage} 
+\end{minipage}
+\clearpage
+\phantomsection
+\addcontentsline{toc}{section}{strahler}
+\begin{minipage}[c]{\textwidth}
+\noindent \textcolor{orangesudo}{\rule{\textwidth}{.3mm}}\\ 
+\vspace*{-5mm} \\ 
+\begin{minipage}{.45\linewidth} 
+\begin{flushleft} 
+{\LARGE\textcolor{navysudo}{strahler}} 
+\end{flushleft} 
+\end{minipage} 
+\begin{minipage}{.45\linewidth} 
+\begin{flushright} 
+Strahler rank
+\end{flushright} 
+\end{minipage} \\ 
+\vspace*{-2mm} 
+\noindent \textcolor{orangesudo}{\rule{\textwidth}{.3mm}}\\ 
+\begin{figure}[H]
+\begin{center} 
+\includegraphics[width=0.8\textwidth]{strahler.png}
+\end{center} 
+\end{figure}
+\begin{minipage}[c]{\textwidth}
+\begin{tabular}{p{3cm}p{12cm}}
+\toprule  
+Description & Stahler rank (the order is assigned for each river segment based on the hierarchy of streams). As the different networks don't have the same resolution, the Strahler must be interpreted for each country. However for crossborder basins it is calculated using the calculation at the frontier.\\
+\midrule  
+Reference & Strahler A. N. 1957. Quantitative analysis of watershed geomorphology. Transactions of the American Geophysical Union, (38): 913-920 pp.\\
+\bottomrule 
+\end{tabular} 
+\end{minipage} 
+\end{minipage}
+\clearpage
+\phantomsection
+\addcontentsline{toc}{section}{shreeve}
+\begin{minipage}[c]{\textwidth}
+\noindent \textcolor{orangesudo}{\rule{\textwidth}{.3mm}}\\ 
+\vspace*{-5mm} \\ 
+\begin{minipage}{.45\linewidth} 
+\begin{flushleft} 
+{\LARGE\textcolor{navysudo}{shreeve}} 
+\end{flushleft} 
+\end{minipage} 
+\begin{minipage}{.45\linewidth} 
+\begin{flushright} 
+Shreeve rank
+\end{flushright} 
+\end{minipage} \\ 
+\vspace*{-2mm} 
+\noindent \textcolor{orangesudo}{\rule{\textwidth}{.3mm}}\\ 
+\begin{figure}[H]
+\begin{center} 
+\includegraphics[width=0.8\textwidth]{shreeve.png}
+\end{center} 
+\end{figure}
+\begin{minipage}[c]{\textwidth}
+\begin{tabular}{p{3cm}p{12cm}}
+\toprule  
+Description & Shreeve rank, or total number of source upstream the river segment. All source river segments are assigned an order of 1. Starting at those headwaters, numbers are added at the confluence of each stream. The same remarks as for the Stralher rank stands for Shreeve rank.\\
+\midrule  
+Reference & Shreve R. 1974. Variation of Mainstream Length With Basin Area in River Networks. Water Resources Research, 10: 6.\\
+\bottomrule 
+\end{tabular} 
+\end{minipage} 
+\end{minipage}
+\clearpage
+\phantomsection
+\addcontentsline{toc}{section}{codesea}
+\begin{minipage}[c]{\textwidth}
+\noindent \textcolor{orangesudo}{\rule{\textwidth}{.3mm}}\\ 
+\vspace*{-5mm} \\ 
+\begin{minipage}{.45\linewidth} 
+\begin{flushleft} 
+{\LARGE\textcolor{navysudo}{codesea}} 
+\end{flushleft} 
+\end{minipage} 
+\begin{minipage}{.45\linewidth} 
+\begin{flushright} 
+Sea code
+\end{flushright} 
+\end{minipage} \\ 
+\vspace*{-2mm} 
+\noindent \textcolor{orangesudo}{\rule{\textwidth}{.3mm}}\\ 
+\begin{figure}[H]
+\begin{center} 
+\includegraphics[width=0.8\textwidth]{codesea.png}
+\end{center} 
+\end{figure}
+\begin{minipage}[c]{\textwidth}
+\begin{tabular}{p{3cm}p{12cm}}
+\toprule  
+Description & Code of the sea, "A" for Atlantic, "M" for the Mediterranean.\\
+\midrule  
+Reference & Briand C., Drouineau H., Beaulaton L., Díaz E., and Mateo M. \textit{(in prep)}. A reference hydrological system to build migratory fishes stock assessment in the south of Europe.\\
+\bottomrule 
+\end{tabular} 
+\end{minipage} 
+\end{minipage}
+\clearpage
+\phantomsection
+\addcontentsline{toc}{section}{name}
+\begin{minipage}[c]{\textwidth}
+\noindent \textcolor{orangesudo}{\rule{\textwidth}{.3mm}}\\ 
+\vspace*{-5mm} \\ 
+\begin{minipage}{.45\linewidth} 
+\begin{flushleft} 
+{\LARGE\textcolor{navysudo}{name}} 
+\end{flushleft} 
+\end{minipage} 
+\begin{minipage}{.45\linewidth} 
+\begin{flushright} 
+Name
+\end{flushright} 
+\end{minipage} \\ 
+\vspace*{-2mm} 
+\noindent \textcolor{orangesudo}{\rule{\textwidth}{.3mm}}\\ 
+\begin{figure}[H]
+\begin{center} 
+\includegraphics[width=0.8\textwidth]{name.png}
+\end{center} 
+\end{figure}
+\begin{minipage}[c]{\textwidth}
+\begin{tabular}{p{3cm}p{12cm}}
+\toprule  
+Description & Name of the river. In France it corresponds to the name of subsector from the "Database on Thematic Cartography of the Water Agencies and the Ministry of the Environment" (BD Carthage), $lbsoussect$, having the largest intersection with the river segment, in brackets the $codesoussect$ (code of the hydrographic subsector) is also provided in BD Carthage database. In Spain it corresponds the $nom\_rio$ field from  "Tramos de ríos de España clasificados según Pfafstetter modificado" layer: \href{http://www.mapama.gob.es/ide/metadatos/index.html?srv=metadata.show&uuid=588501d1-d5bf-450b-a67e-29b0c3973dba}{metadata}, \href{http://www.mapama.gob.es/app/descargas/descargafichero.aspx?f=RiosPfafs.zip}{download}. In Portugal, it corresponds to the $nome$ field from the \href{https://sniambgeoportal.apambiente.pt/geoportal/catalog/search/resource/details.page?uuid={613E780E-052A-4183-99E5-6100D5663081}}{"Rede hidrografica GeoCodificada"} layer.\\
+\midrule  
+Reference & \href{http://www.geoinformations.developpement-durable.gouv.fr/bd-carthage-r363.html}{Referential of Database on Thematic Cartography of the Water Agencies and the Ministry of the Environment (BD Carthage)}\\
+\bottomrule 
+\end{tabular} 
+\end{minipage} 
+\end{minipage}
+\clearpage
+\phantomsection
+\addcontentsline{toc}{section}{pfafriver}
+\begin{minipage}[c]{\textwidth}
+\noindent \textcolor{orangesudo}{\rule{\textwidth}{.3mm}}\\ 
+\vspace*{-5mm} \\ 
+\begin{minipage}{.45\linewidth} 
+\begin{flushleft} 
+{\LARGE\textcolor{navysudo}{pfafriver}} 
+\end{flushleft} 
+\end{minipage} 
+\begin{minipage}{.45\linewidth} 
+\begin{flushright} 
+Pfafstetter of the river
+\end{flushright} 
+\end{minipage} \\ 
+\vspace*{-2mm} 
+\noindent \textcolor{orangesudo}{\rule{\textwidth}{.3mm}}\\ 
+\begin{figure}[H]
+\begin{center} 
+\includegraphics[width=0.8\textwidth]{pfafriver.png}
+\end{center} 
+\end{figure}
+\begin{minipage}[c]{\textwidth}
+\begin{tabular}{p{3cm}p{12cm}}
+\toprule  
+Description & Spain: Code of the main river according to the Pfafstetter hierarchichal coding system (Jager and Vogt, 2010).  Corresponds to $pfafrio$ field from "Tramos de ríos de España clasificados según Pfafstetter modificado" layer: \href{http://www.mapama.gob.es/ide/metadatos/index.html?srv=metadata.show&uuid=588501d1-d5bf-450b-a67e-29b0c3973dba}{metadata}, \href{http://www.mapama.gob.es/app/descargas/descargafichero.aspx?f=RiosPfafs.zip}{download}. France and Portugal do not have this information (this field does not exist in their respective source layers).\\
+\midrule  
+Reference & Jager A. L., and de Vog, J. V. 2010. Development and demonstration of a structured hydrological feature coding system for Europe. Hydrological Sciences Journal. 55 (5): 661-675 pp. doi:10.1080/02626667.2010.490786.\\
+\bottomrule 
+\end{tabular} 
+\end{minipage} 
+\end{minipage}
+\clearpage
+\phantomsection
+\addcontentsline{toc}{section}{pfafsegment}
+\begin{minipage}[c]{\textwidth}
+\noindent \textcolor{orangesudo}{\rule{\textwidth}{.3mm}}\\ 
+\vspace*{-5mm} \\ 
+\begin{minipage}{.45\linewidth} 
+\begin{flushleft} 
+{\LARGE\textcolor{navysudo}{pfafsegment}} 
+\end{flushleft} 
+\end{minipage} 
+\begin{minipage}{.45\linewidth} 
+\begin{flushright} 
+Pfafstetter of the river segment
+\end{flushright} 
+\end{minipage} \\ 
+\vspace*{-2mm} 
+\noindent \textcolor{orangesudo}{\rule{\textwidth}{.3mm}}\\ 
+\begin{figure}[H]
+\begin{center} 
+\includegraphics[width=0.8\textwidth]{pfafsegment.png}
+\end{center} 
+\end{figure}
+\begin{minipage}[c]{\textwidth}
+\begin{tabular}{p{3cm}p{12cm}}
+\toprule  
+Description & Spain: Code of the river segment according to the Pfafstetter hierarchichal coding system (Jager and Vogt, 2010).  Corresponds to $pfafsegment$ field from  "Tramos de ríos de España clasificados según Pfafstetter modificado" layer: \href{http://www.mapama.gob.es/ide/metadatos/index.html?srv=metadata.show&uuid=588501d1-d5bf-450b-a67e-29b0c3973dba}{metadata}, \href{http://www.mapama.gob.es/app/descargas/descargafichero.aspx?f=RiosPfafs.zip}{download}. France and Portugal do not have this information (this field does not exist in their respective source layers).\\
+\midrule  
+Reference & Jager A. L., and de Vog, J. V. 2010. Development and demonstration of a structured hydrological feature coding system for Europe. Hydrological Sciences Journal. 55 (5): 661-675 pp. doi:10.1080/02626667.2010.490786.\\
+\bottomrule 
+\end{tabular} 
+\end{minipage} 
+\end{minipage}
+\clearpage
+\phantomsection
+\addcontentsline{toc}{section}{basin}
+\begin{minipage}[c]{\textwidth}
+\noindent \textcolor{orangesudo}{\rule{\textwidth}{.3mm}}\\ 
+\vspace*{-5mm} \\ 
+\begin{minipage}{.45\linewidth} 
+\begin{flushleft} 
+{\LARGE\textcolor{navysudo}{basin}} 
+\end{flushleft} 
+\end{minipage} 
+\begin{minipage}{.45\linewidth} 
+\begin{flushright} 
+Basin
+\end{flushright} 
+\end{minipage} \\ 
+\vspace*{-2mm} 
+\noindent \textcolor{orangesudo}{\rule{\textwidth}{.3mm}}\\ 
+\begin{figure}[H]
+\begin{center} 
+\includegraphics[width=0.8\textwidth]{basin.png}
+\end{center} 
+\end{figure}
+\begin{minipage}[c]{\textwidth}
+\begin{tabular}{p{3cm}p{12cm}}
+\toprule  
+Description & Name of the basin. In France corresponds to the name of the hydrographic sector $lbsecteurh$ from the "Database on Thematic Cartography of the Water Agencies and the Ministry of the Environment" (BD Carthage) having the largest intersection with the segment, in brackets the $codesect$ (code of the hydrographic sector) is also provided in the BD Carthage. In Spain, the basin corresponds to the field $basin$, in "Tramos de ríos de España clasificados según Pfafstetter modificado" layer: \href{http://www.mapama.gob.es/ide/metadatos/index.html?srv=metadata.show&uuid=588501d1-d5bf-450b-a67e-29b0c3973dba}{metadata}, \href{http://www.mapama.gob.es/app/descargas/descargafichero.aspx?f=RiosPfafs.zip}{download}, this field might not always be consistent with hydrographical basins (i.e. segments with the same seaidsegment might have several basin names). In Portugal, the basin corresponds to the $name$ field from the \href{https://sniambgeoportal.apambiente.pt/geoportal/catalog/search/resource/details.page?uuid={613E780E-052A-4183-99E5-6100D5663081}}{"Rede hidrografica GeoCodificada"} layer.\\
+\midrule  
+Reference & \href{http://www.geoinformations.developpement-durable.gouv.fr/bd-carthage-r363.html}{Referential of Database on Thematic Cartography of the Water Agencies and the Ministry of the Environment (BD Carthage)}\\
+\bottomrule 
+\end{tabular} 
+\end{minipage} 
+\end{minipage}
+\clearpage
+\phantomsection
+\addcontentsline{toc}{section}{riverwidthm}
+\begin{minipage}[c]{\textwidth}
+\noindent \textcolor{orangesudo}{\rule{\textwidth}{.3mm}}\\ 
+\vspace*{-5mm} \\ 
+\begin{minipage}{.45\linewidth} 
+\begin{flushleft} 
+{\LARGE\textcolor{navysudo}{riverwidthm}} 
+\end{flushleft} 
+\end{minipage} 
+\begin{minipage}{.45\linewidth} 
+\begin{flushright} 
+River width (si{\meter})
+\end{flushright} 
+\end{minipage} \\ 
+\vspace*{-2mm} 
+\noindent \textcolor{orangesudo}{\rule{\textwidth}{.3mm}}\\ 
+\begin{figure}[H]
+\begin{center} 
+\includegraphics[width=0.8\textwidth]{riverwidthm.png}
+\end{center} 
+\end{figure}
+\begin{minipage}[c]{\textwidth}
+\begin{tabular}{p{3cm}p{12cm}}
+\toprule  
+Description & In France, the river width corresponds to the width of the stream in natural conditions (Morel \textit{et al.}, 2019)\footnote{ The updated French width is lower than the width in previous RHT data, this is compensated by considering the water surface of the rivers and joining them to the segments, but the predicted numbers on rivers alone have dminished as the theoretical river width (from Theoretical Hidrographic Network, RHT) are smaller than previous values used in Briand \textit{et al.}, 2018}. In Spain and Portugal, the river width is derived from two sources:
+For the largest streams and reservoirs the \href{http://hydro.iis.u-tokyo.ac.jp/~yamadai/MERIT_Hydro/index.html}{MERIT Hydro}\footnote{MERIT Hydro database licence CC-BY-NC 4.0.} wordwide river width computation has been used (Yamazaki \textit{et al.}, 2019)\footnote{The raster was joined with segments using the average width projected at 10 points along the river segment. This projection excluded the segments with Strahler 1 to 3 in Spain and Strahler 1 in Portugal to only join reservoirs to the main stream. MERIT Hydro database licence CC-BY-NC 4.0.}.
+For other segments, the width has been calculated using a model based on drainage area, basins grouped by runoff categories, and calibrated on data comprising both randomly collected width and electrofishing data (Briand \textit{et al.}, \textit{in prep}).\\
+\midrule  
+Reference & Morel M., Booker D.J., Gob F., and Lamourou N. 2019. Intercontinental predictions of river hydraulic geometry from catchment physical characteristics. Journal of Hydrology. 124292.\\
+ & Briand C., Drouineau H., Beaulaton L., Díaz E., and Mateo M. \textit{(in prep)}. A reference hydrological system to build migratory fishes stock assessment in the south of Europe.\\
+\bottomrule 
+\end{tabular} 
+\end{minipage} 
+\end{minipage}
+\clearpage
+\phantomsection
+\addcontentsline{toc}{section}{riverwidthmsource}
+\begin{minipage}[c]{\textwidth}
+\noindent \textcolor{orangesudo}{\rule{\textwidth}{.3mm}}\\ 
+\vspace*{-5mm} \\ 
+\begin{minipage}{.45\linewidth} 
+\begin{flushleft} 
+{\LARGE\textcolor{navysudo}{riverwidthmsource}} 
+\end{flushleft} 
+\end{minipage} 
+\begin{minipage}{.45\linewidth} 
+\begin{flushright} 
+River width data source
+\end{flushright} 
+\end{minipage} \\ 
+\vspace*{-2mm} 
+\noindent \textcolor{orangesudo}{\rule{\textwidth}{.3mm}}\\ 
+\begin{figure}[H]
+\begin{center} 
+\includegraphics[width=0.8\textwidth]{riverwidthmsource.png}
+\end{center} 
+\end{figure}
+\begin{minipage}[c]{\textwidth}
+\begin{tabular}{p{3cm}p{12cm}}
+\toprule  
+Description & Source of the data for the river width computation: Theoretical Hidrographic Network (RHT) in France (corresponds to Morel \textit{et al.} (2019), update of the RHT width model). In Spain and Portugal, corresponds either to no computation, when the stream is endoreic, MERIT Hydro (Yamazaki \textit{et al.}, 2019), or the model used to predict river width (Briand \textit{et al.}, \textit{in prep}).\\
+\midrule  
+Reference & Morel M., Booker D.J., Gob F., and Lamourou N. 2019. Intercontinental predictions of river hydraulic geometry from catchment physical characteristics. Journal of Hydrology. 124292.\\
+\bottomrule 
+\end{tabular} 
+\end{minipage} 
+\end{minipage}
+\clearpage
+\phantomsection
+\addcontentsline{toc}{section}{temperature}
+\begin{minipage}[c]{\textwidth}
+\noindent \textcolor{orangesudo}{\rule{\textwidth}{.3mm}}\\ 
+\vspace*{-5mm} \\ 
+\begin{minipage}{.45\linewidth} 
+\begin{flushleft} 
+{\LARGE\textcolor{navysudo}{temperature}} 
+\end{flushleft} 
+\end{minipage} 
+\begin{minipage}{.45\linewidth} 
+\begin{flushright} 
+Temperature (\si{\celsius})
+\end{flushright} 
+\end{minipage} \\ 
+\vspace*{-2mm} 
+\noindent \textcolor{orangesudo}{\rule{\textwidth}{.3mm}}\\ 
+\begin{figure}[H]
+\begin{center} 
+\includegraphics[width=0.8\textwidth]{temperature.png}
+\end{center} 
+\end{figure}
+\begin{minipage}[c]{\textwidth}
+\begin{tabular}{p{3cm}p{12cm}}
+\toprule  
+Description & Mean temperatures collected from the the Catchment Characterisation and Modelling (CCM) database (Vogt \textit{et al.}, 2013) using the intersection between the unit catchment of the CCM and the river segments. Temperatures in the CCM correspond to the WORLDCLIM database which provides interpolated climate surfaces for global land areas, referring to 1950-200 period (Hijmans \textit{et al.}, 2005).\\
+\midrule  
+Reference & Vogt J., Soille P., Jager A., de Rimaviciute E., Mehl W., Foisneau S., Bodis K., Dusart J., Paracchini M., Haastrup P., and Bamps C. 2007. A pan-European river and catchment database. Joint Research Centre-Institute for Environment and Sustainability, Luxembourg. Available from http://www.envia.bl.uk/handle/123456789/4185 [accessed 8 March 2015].\\
+ & Hijmans R.J., Cameron S., Parra J., Jones P., Jarvis A., and Richardson K. 2005. WorldClim, version 1.3. University of California, Berkeley.\\
+\bottomrule 
+\end{tabular} 
+\end{minipage} 
+\end{minipage}
+\clearpage
+\phantomsection
+\addcontentsline{toc}{section}{wettedsurfacem2}
+\begin{minipage}[c]{\textwidth}
+\noindent \textcolor{orangesudo}{\rule{\textwidth}{.3mm}}\\ 
+\vspace*{-5mm} \\ 
+\begin{minipage}{.45\linewidth} 
+\begin{flushleft} 
+{\LARGE\textcolor{navysudo}{wettedsurfacem2}} 
+\end{flushleft} 
+\end{minipage} 
+\begin{minipage}{.45\linewidth} 
+\begin{flushright} 
+Wetted surface of the river segment (\si{\square\metre})
+\end{flushright} 
+\end{minipage} \\ 
+\vspace*{-2mm} 
+\noindent \textcolor{orangesudo}{\rule{\textwidth}{.3mm}}\\ 
+\begin{figure}[H]
+\begin{center} 
+\includegraphics[width=0.8\textwidth]{wettedsurfacem2.png}
+\end{center} 
+\end{figure}
+\begin{minipage}[c]{\textwidth}
+\begin{tabular}{p{3cm}p{12cm}}
+\toprule  
+Description & Wetted surface of the river segment in \si{\square\meter}. Corresponds to the $riverwidthm * lengthriverm$ of the river segment except when the river segment overlaps with other waterbodies. In France, it corresponds to the "theoretical surface" of the stream in a model where no alteration is brought to the stream. The true water surface are in the $wettedsurfaceother$, but you might want to access the \href{http://185.135.126.250/traceda/wiki/download%20instructions}{$waterbody\_unitbv water$} surface available for download for details. In any case, the streams for all three countries have been simplified so no branching or island exist.\\
+\midrule  
+Reference & Briand C., Drouineau H., Beaulaton L., Díaz E., and Mateo M. \textit{(in prep)}. A reference hydrological system to build migratory fishes stock assessment in the south of Europe.\\
+\bottomrule 
+\end{tabular} 
+\end{minipage} 
+\end{minipage}
+\clearpage
+\phantomsection
+\addcontentsline{toc}{section}{wettedsurfaceotherm2}
+\begin{minipage}[c]{\textwidth}
+\noindent \textcolor{orangesudo}{\rule{\textwidth}{.3mm}}\\ 
+\vspace*{-5mm} \\ 
+\begin{minipage}{.45\linewidth} 
+\begin{flushleft} 
+{\LARGE\textcolor{navysudo}{wettedsurfaceotherm2}} 
+\end{flushleft} 
+\end{minipage} 
+\begin{minipage}{.45\linewidth} 
+\begin{flushright} 
+Wetted surface of other waterbodies (\si{\square\meter})
+\end{flushright} 
+\end{minipage} \\ 
+\vspace*{-2mm} 
+\noindent \textcolor{orangesudo}{\rule{\textwidth}{.3mm}}\\ 
+\begin{figure}[H]
+\begin{center} 
+\includegraphics[width=0.8\textwidth]{wettedsurfaceotherm2.png}
+\end{center} 
+\end{figure}
+\begin{minipage}[c]{\textwidth}
+\begin{tabular}{p{3cm}p{12cm}}
+\toprule  
+Description & Wetted surface (\si{\square\meter}) of the waterbodies within the unit basin (simple basin that surrounds a river segment). The different waterbodies such as canal, rivers, lakes, reservoirs, lagoons have been split per unit basins\footnote{France: the source is the \href{https://geoservices.ign.fr/documentation/diffusion/telechargement-donnees-libres.html}{BD TOPO \textcopyright Hydrographie}, the type of water surface considered are permanent surfaces with type corresponding to lagoon, estuary, natural flow, channel, reservoir-dam, reservoir-bassin, marsh, lake, reservoir.\\ Spain: the source is \href{https://www.mapama.gob.es/ide/metadatos/index.html?srv=metadata.show&uuid=bb612c55-2729-4f31-bf4f-b5e190d74b46}{"Masas de agua superficial (polígonos) PHC 2015-2021"}, the waterbodies correspond to estuaries, reservoirs, temporary lakes, rivers, lakes, lagoons and coastal waters. \\Portugal: three layers, water surface, transitional waterbodies and lake/lagoons have been used from the \href{https://webgis.dgrm.mm.gov.pt/arcgis/rest/services/DA/PAqAT/MapServer}{APA layers portal}}. They correspond to estuaries, rivers, reservoirs, lagoons and lakes. The proportion of the length of each river segment free of waterbodies polygon has been computed in each river segment. This watersurface corresponding to the rivers (and contained in $wettedsurfacem2$) has been removed from $wettedsurfaceotherm2$. So that the wettedsurface that might be accessible to eels corresponds to $wettedsurfaceotherm2 + wettedsurfacem2$.
+\\
+\midrule  
+Reference & Briand C., Drouineau H., Beaulaton L., Díaz E., and Mateo M. \textit{(in prep)}. A reference hydrological system to build migratory fishes stock assessment in the south of Europe.\\
+\bottomrule 
+\end{tabular} 
+\end{minipage} 
+\end{minipage}
+\clearpage
+\phantomsection
+\addcontentsline{toc}{section}{lengthriverm}
+\begin{minipage}[c]{\textwidth}
+\noindent \textcolor{orangesudo}{\rule{\textwidth}{.3mm}}\\ 
+\vspace*{-5mm} \\ 
+\begin{minipage}{.45\linewidth} 
+\begin{flushleft} 
+{\LARGE\textcolor{navysudo}{lengthriverm}} 
+\end{flushleft} 
+\end{minipage} 
+\begin{minipage}{.45\linewidth} 
+\begin{flushright} 
+River length (\si{\metre})
+\end{flushright} 
+\end{minipage} \\ 
+\vspace*{-2mm} 
+\noindent \textcolor{orangesudo}{\rule{\textwidth}{.3mm}}\\ 
+\begin{figure}[H]
+\begin{center} 
+\includegraphics[width=0.8\textwidth]{lengthriverm.png}
+\end{center} 
+\end{figure}
+\begin{minipage}[c]{\textwidth}
+\begin{tabular}{p{3cm}p{12cm}}
+\toprule  
+Description & Total length (\si{\metre}) of the river from the farthest source.\\
+\midrule  
+Reference & Briand C., Drouineau H., Beaulaton L., Díaz E., and Mateo M. \textit{(in prep)}. A reference hydrological system to build migratory fishes stock assessment in the south of Europe.\\
+\bottomrule 
+\end{tabular} 
+\end{minipage} 
+\end{minipage}
+\clearpage
+\phantomsection
+\addcontentsline{toc}{section}{emu}
+\begin{minipage}[c]{\textwidth}
+\noindent \textcolor{orangesudo}{\rule{\textwidth}{.3mm}}\\ 
+\vspace*{-5mm} \\ 
+\begin{minipage}{.45\linewidth} 
+\begin{flushleft} 
+{\LARGE\textcolor{navysudo}{emu}} 
+\end{flushleft} 
+\end{minipage} 
+\begin{minipage}{.45\linewidth} 
+\begin{flushright} 
+Eel Management Unit
+\end{flushright} 
+\end{minipage} \\ 
+\vspace*{-2mm} 
+\noindent \textcolor{orangesudo}{\rule{\textwidth}{.3mm}}\\ 
+\begin{figure}[H]
+\begin{center} 
+\includegraphics[width=0.8\textwidth]{emu.png}
+\end{center} 
+\end{figure}
+\begin{minipage}[c]{\textwidth}
+\begin{tabular}{p{3cm}p{12cm}}
+\toprule  
+Description & Eel Management Unit (EMU) according to regulation No 1100/2007 of 18 September 2007 establishing measures for the recovery of the European eel stock. In France EMU corresponds to the river basin district, in Spain the EMU corresponds to regional autonomies, and the whole territroy of Portugal constitutes a single EMU. Spanish and Portuguese EMUs do not correspond to hydrographical regions, so reporting per EMU does not correspond to basin production.\\
+\midrule  
+Reference & \href{https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:52003DC0573}{Communication from the Commission to the Council and the European Parliament - Development of a Community Action Plan for the management of European Eel.}\\
+\bottomrule 
+\end{tabular} 
+\end{minipage} 
+\end{minipage}
+\clearpage
+\phantomsection
+\addcontentsline{toc}{section}{slope}
+\begin{minipage}[c]{\textwidth}
+\noindent \textcolor{orangesudo}{\rule{\textwidth}{.3mm}}\\ 
+\vspace*{-5mm} \\ 
+\begin{minipage}{.45\linewidth} 
+\begin{flushleft} 
+{\LARGE\textcolor{navysudo}{slope}} 
+\end{flushleft} 
+\end{minipage} 
+\begin{minipage}{.45\linewidth} 
+\begin{flushright} 
+Slope of the river segment (\si[per-mode = fraction]{\metre\per\metre})
+
+\end{flushright} 
+\end{minipage} \\ 
+\vspace*{-2mm} 
+\noindent \textcolor{orangesudo}{\rule{\textwidth}{.3mm}}\\ 
+\begin{figure}[H]
+\begin{center} 
+\includegraphics[width=0.8\textwidth]{slope.png}
+\end{center} 
+\end{figure}
+\begin{minipage}[c]{\textwidth}
+\begin{tabular}{p{3cm}p{12cm}}
+\toprule  
+Description & Slope of the river segment (France) or of the basin (Spain-Portugal). Corresponds to (rise/run) in \si[per-mode = fraction]{\metre\per\metre}. In France corresponds to the slope given in the Theoretical Hidrographic Network (RHT) divided by 1000 (Pella \textit{et al.}, 2012). In Spain corresponds to the delta in height within the unit basin \footnote{\href{https://www.mapa.gob.es/ide/metadatos/index.html?srv=metadata.show&uuid=898f0ff8-f06c-4c14-88f7-43ea90e48233}{"Subcuencas de ríos completos clasificadas según Pfafstetter modificado"}}, so this is different from the slope calculated along the river arc in France. In Portugal corresponds to the terrain slope of the unit basin calculated within the HydroATLAS project (Linke \textit{et al.}, 2019) converted from slope degrees. The projection of the RiverATLAS on the SUDOANG network has been done using a 500 m buffer and excluding Shreeve ranks less or equal to 2.\\
+\midrule  
+Reference & Pella H., Lejot J., Lamouroux N., and Snelder T. 2012. Le réseau hydrographique théorique (RHT) français et ses attributs environnementaux (The theoretical hydrographical network (RHT) for France and its environmental attributes).  Géomorphologie : rélief, processus, environnement. 18(3): 317-336 pp.\\
+ & Linke S., Lehner B., Ouellet Dallaire C., Ariwi J., Grill G., Anand M., Beames P., Burchard-Levine V., Maxwell S., Moidu H., Tan F., and Thieme M. 2019. Global hydro-environmental sub-basin and river reach characteristics at high spatial resolution. Scientific Data, 6(1). doi:10.1038/s41597-019-0300-6.\\
+\bottomrule 
+\end{tabular} 
+\end{minipage} 
+\end{minipage}
+\clearpage
+\phantomsection
+\addcontentsline{toc}{section}{dis m3 pyr riveratlas}
+\begin{minipage}[c]{\textwidth}
+\noindent \textcolor{orangesudo}{\rule{\textwidth}{.3mm}}\\ 
+\vspace*{-5mm} \\ 
+\begin{minipage}{.45\linewidth} 
+\begin{flushleft} 
+{\LARGE\textcolor{navysudo}{dis\_m3\_pyr\_riveratlas}} 
+\end{flushleft} 
+\end{minipage} 
+\begin{minipage}{.45\linewidth} 
+\begin{flushright} 
+Natural discharge  (\si[per-mode = fraction]{\cubic\metre\per\second}) \\  (from RiverATLAS)
+\end{flushright} 
+\end{minipage} \\ 
+\vspace*{-2mm} 
+\noindent \textcolor{orangesudo}{\rule{\textwidth}{.3mm}}\\ 
+\begin{figure}[H]
+\begin{center} 
+\includegraphics[width=0.8\textwidth]{dis_m3_pyr_riveratlas.png}
+\end{center} 
+\end{figure}
+\begin{minipage}[c]{\textwidth}
+\begin{tabular}{p{3cm}p{12cm}}
+\toprule  
+Description & Annual natural discharge average from the WaterGAP v2.2 (data of 2014) (Döll \textit{et al.}, 2019) in the RiverATLAS dataset (Linke \textit{et al.}, 2019). The projection of the RiverATLAS on the SUDOANG network has been done using a 500 m buffer, by excluding Shreeve ranks less or equal to 2, and by joining on the nearest Strahler rank.\\
+\midrule  
+Reference & Linke S., Lehner B., Ouellet Dallaire C., Ariwi J., Grill G., Anand M., Beames P., Burchard-Levine V., Maxwell S., Moidu H., Tan F., and Thieme M. 2019. Global hydro-environmental sub-basin and river reach characteristics at high spatial resolution. Scientific Data, 6(1). doi:10.1038/s41597-019-0300-6.\\
+ & Döll P., Kaspar F., Lehner B. (2003). A global hydrological model for deriving water availability indicators: model tuning and validation. Journal of Hydrology, 270: 105-134 pp.\\
+\bottomrule 
+\end{tabular} 
+\end{minipage} 
+\end{minipage}
+\clearpage
+\phantomsection
+\addcontentsline{toc}{section}{dis m3 pmn riveratlas}
+\begin{minipage}[c]{\textwidth}
+\noindent \textcolor{orangesudo}{\rule{\textwidth}{.3mm}}\\ 
+\vspace*{-5mm} \\ 
+\begin{minipage}{.45\linewidth} 
+\begin{flushleft} 
+{\LARGE\textcolor{navysudo}{dis\_m3\_pmn\_riveratlas}} 
+\end{flushleft} 
+\end{minipage} 
+\begin{minipage}{.45\linewidth} 
+\begin{flushright} 
+Natural minimum discharge (\si[per-mode = fraction]{\cubic\metre\per\second}) \\ (from RiverATLAS)
+\end{flushright} 
+\end{minipage} \\ 
+\vspace*{-2mm} 
+\noindent \textcolor{orangesudo}{\rule{\textwidth}{.3mm}}\\ 
+\begin{figure}[H]
+\begin{center} 
+\includegraphics[width=0.8\textwidth]{dis_m3_pmn_riveratlas.png}
+\end{center} 
+\end{figure}
+\begin{minipage}[c]{\textwidth}
+\begin{tabular}{p{3cm}p{12cm}}
+\toprule  
+Description & Annual minimum natural discharge from the WaterGAP v2.2 (Döll \textit{et al.}, 2019) in the RiverATLAS dataset (Linke \textit{et al.}, 2019). The projection of the RiverATLAS on the SUDOANG network has been done using a 500 m buffer, by excluding Shreeve ranks less or equal to 2, and by joining on the nearest Strahler rank.\\
+\midrule  
+Reference & Linke S., Lehner B., Ouellet Dallaire C., Ariwi J., Grill G., Anand M., Beames P., Burchard-Levine V., Maxwell S., Moidu H., Tan F., and Thieme M. 2019. Global hydro-environmental sub-basin and river reach characteristics at high spatial resolution. Scientific Data 6(1). doi:10.1038/s41597-019-0300-6.\\
+ & Döll P., Kaspar F., Lehner B. (2003). A global hydrological model for deriving water availability indicators: model tuning and validation. Journal of Hydrology, 270: 105-134 pp.\\
+\bottomrule 
+\end{tabular} 
+\end{minipage} 
+\end{minipage}
+\clearpage
+\phantomsection
+\addcontentsline{toc}{section}{dis m3 pmx riveratlas}
+\begin{minipage}[c]{\textwidth}
+\noindent \textcolor{orangesudo}{\rule{\textwidth}{.3mm}}\\ 
+\vspace*{-5mm} \\ 
+\begin{minipage}{.45\linewidth} 
+\begin{flushleft} 
+{\LARGE\textcolor{navysudo}{dis\_m3\_pmx\_riveratlas}} 
+\end{flushleft} 
+\end{minipage} 
+\begin{minipage}{.45\linewidth} 
+\begin{flushright} 
+Natural maximum discharge  (\si[per-mode = fraction]{\cubic\metre\per\second}) \\ (from RiverATLAS)
+\end{flushright} 
+\end{minipage} \\ 
+\vspace*{-2mm} 
+\noindent \textcolor{orangesudo}{\rule{\textwidth}{.3mm}}\\ 
+\begin{figure}[H]
+\begin{center} 
+\includegraphics[width=0.8\textwidth]{dis_m3_pmx_riveratlas.png}
+\end{center} 
+\end{figure}
+\begin{minipage}[c]{\textwidth}
+\begin{tabular}{p{3cm}p{12cm}}
+\toprule  
+Description & Annual maximum natural discharge from the WaterGAP v2.2 (Döll \textit{et al.}, 2019) in the RiverATLAS dataset (Linke \textit{et al.}, 2019). The projection of the RiverATLAS on the SUDOANG network has been done using a 500 m buffer, by excluding Shreeve ranks less or equal to 2, and by joining on the nearest Strahler rank.\\
+\midrule  
+Reference & Linke S., Lehner B., Ouellet Dallaire C., Ariwi J., Grill G., Anand M., Beames P., Burchard-Levine V., Maxwell S., Moidu H., Tan F., and Thieme M. 2019. Global hydro-environmental sub-basin and river reach characteristics at high spatial resolution. Scientific Data, 6(1). doi:10.1038/s41597-019-0300-6.\\
+ & Döll P., Kaspar F., Lehner B. (2003). A global hydrological model for deriving water availability indicators: model tuning and validation. Journal of Hydrology, 270: 105-134 pp.\\
+\bottomrule 
+\end{tabular} 
+\end{minipage} 
+\end{minipage}
+\clearpage
+\phantomsection
+\addcontentsline{toc}{section}{medianflowm3ps}
+\begin{minipage}[c]{\textwidth}
+\noindent \textcolor{orangesudo}{\rule{\textwidth}{.3mm}}\\ 
+\vspace*{-5mm} \\ 
+\begin{minipage}{.45\linewidth} 
+\begin{flushleft} 
+{\LARGE\textcolor{navysudo}{medianflowm3ps}} 
+\end{flushleft} 
+\end{minipage} 
+\begin{minipage}{.45\linewidth} 
+\begin{flushright} 
+Median natural discharge (\si[per-mode = fraction]{\cubic\metre\per\second}) (module)
+\end{flushright} 
+\end{minipage} \\ 
+\vspace*{-2mm} 
+\noindent \textcolor{orangesudo}{\rule{\textwidth}{.3mm}}\\ 
+\begin{figure}[H]
+\begin{center} 
+\includegraphics[width=0.8\textwidth]{medianflowm3ps.png}
+\end{center} 
+\end{figure}
+\begin{minipage}[c]{\textwidth}
+\begin{tabular}{p{3cm}p{12cm}}
+\toprule  
+Description & Median discharge (module interannuel) calculated on the Theoretical Hidrographic Network (RHT) (Morel \textit{et al.}, 2019). This data is not available for all segments in Spain and Portugal but see the $dis\_m3\_pyr\_riveratlas$ attribute.\\
+\midrule  
+Reference & Morel M., Booker D.J., Gob F., and Lamouroux, N. 2019. Intercontinental predictions of river hydraulic geometry from catchment physical characteristics. Journal of Hydrology: 124292.\\
+\bottomrule 
+\end{tabular} 
+\end{minipage} 
+\end{minipage}
+\clearpage
+\phantomsection
+\addcontentsline{toc}{section}{drought}
+\begin{minipage}[c]{\textwidth}
+\noindent \textcolor{orangesudo}{\rule{\textwidth}{.3mm}}\\ 
+\vspace*{-5mm} \\ 
+\begin{minipage}{.45\linewidth} 
+\begin{flushleft} 
+{\LARGE\textcolor{navysudo}{drought}} 
+\end{flushleft} 
+\end{minipage} 
+\begin{minipage}{.45\linewidth} 
+\begin{flushright} 
+Risk of drought
+\end{flushright} 
+\end{minipage} \\ 
+\vspace*{-2mm} 
+\noindent \textcolor{orangesudo}{\rule{\textwidth}{.3mm}}\\ 
+\begin{figure}[H]
+\begin{center} 
+\includegraphics[width=0.8\textwidth]{drought.png}
+\end{center} 
+\end{figure}
+\begin{minipage}[c]{\textwidth}
+\begin{tabular}{p{3cm}p{12cm}}
+\toprule  
+Description & The Spanish Water Information System for Europe (WISE) layer is based on a digital elevation model used for calculating the river network. Most small rivers in the South of Spain are ephemeral but to date no dataset exist. The stream classification is:
+1 Permanent stream.
+2 Temporal stream. 
+3 Intermitent stream. 
+4 Ephemeral stream. 
+5 No data (by default this means flowing).
+In practise we assume that 3 and 4 have no eels in the predictions. The habitat for eel in the mediterranean  basin have been expertised rivers by rivers by the University of Cordoba. The upstream limit of streams remains unclear in most cases.\\
+\midrule  
+Reference & Briand C., Drouineau H., Beaulaton L., Díaz E., and Mateo M. \textit{(in prep)}. A reference hydrological system to build migratory fishes stock assessment in the south of Europe.\\
+\bottomrule 
+\end{tabular} 
+\end{minipage} 
+\end{minipage}
+
+
+\clearpage 
+%-------------------------------------------------------------------------
+%                        RNE 
+%-------------------------------------------------------------------------
+\pagecolor{graysudo}
+\newgeometry{margin=0cm}
+%\addtolength{\oddsidemargin}{0cm}
+%\addtolength{\evensidemargin}{0cm}
+\hspace*{-0.7cm}
+\includegraphics[width=\paperwidth]{rne.jpg};
+\vspace*{0cm}
+%\textcolor{white}{\HRule}\\
+\begin{center}
+\begin{minipage}{0.8\textwidth}
+\begin{tcolorbox}[arc=1ex, colback=bluesudodeep, colframe=bluesudolight,
+left=2pt,right=2pt, top=2pt, bottom=2pt]
+\begin{center}
+ \vspace{8mm}
+ \Huge
+ \textcolor{graysudo}{\textbf{River network for eel}} \\
+ \textcolor{bluesudolight}{\textbf{RNE}} \textcolor{graysudo}{\textbf{table}}\\
+\huge {\color{bluesudolight}{Part 3 - eel predictions \\}}
+ \vspace{8mm}
+\end{center}
+\end{tcolorbox}
+\end{minipage}
+\end{center}
+%\textcolor{white}{\HRule}%
+\vspace*{5cm}
+\begin{center}
+{\begin{tikzpicture}[remember picture, overlay]
+      \node[inner sep=0,opacity=0.9] (image) at (1cm,0cm) % X Y from center (as we are in centered env)
+      % node here on the left first letter
+      {\includegraphics[width=10cm]{mondego.png}}; 
+      \end{tikzpicture}} 
+{\begin{tikzpicture}[remember picture, overlay]
+      \node[anchor=south west,inner sep=0,opacity=1] (image) at (-2cm,-1cm) % -2cm (to the left of center)
+      {\includegraphics[width=5cm]{logoSUDOANG.png}}; 
+      \end{tikzpicture}}
+\vfill
+\vspace*{5cm}
+\end{center}
+
+\pagebreak
+\restoregeometry
+\pagecolor{white}
+\arrayrulecolor{bluesudo}
+\renewcommand{\arraystretch}{1.5} % Default value: 1
+
+
+\begin{center}
+\Huge\textsc{\textbv{The RNE table: eel predictions}}\\
+\phantomsection \label{RNE}
+\addcontentsline{toc}{part}{The RNE table: eel predictions}
+\end{center}
+
+48.929 electrofishing operations have been compiled, 36.053 containing
+size data and 1.690 with silvering information.
+Electrofishing stations have been projected using the RN spatial table.
+Finally EDA2.3 has been implemented. It uses a model to extrapolate the eel
+characteristics collected from electrofishing operations to the
+rest of the basin taking into account the variables listed in the RN and RNA
+tables. The RNE table details the estimates of eel abundance and
+characteristics at the river segment level for the
+reference year 2015, in three different data subsets:
+\begin{itemize}
+\item Eel presence and density data. EDA2.3 model multiplies a delta $\Delta$
+model (a presence absence model) by a gamma $\Gamma$ model (which calculates
+densities for positive presence values) to estimate density: $\widehat{d_{i}}$
+in a given river segment ($i$). From these models, the number of eel
+($\widehat{N_i}$) estimated per river segment corresponds to the product of
+density, river water surface $\Psi_i$ and temporal status of the rivers $T_i$
+($T_i=0$ for temporal rivers).
+$$ \widehat{N}_{i} = \Delta_{i} \Gamma_{i} \Psi_i T_i = \widehat{d_{i}}\Psi_i T_i $$
+\item Data relative to size structure of eel ($\tau$ size class of eels).
+Following the number per size class for eel, EDA 2.3 predicts the proportion of
+each size class $\widehat{P_\tau}$ using a multinomial model:
+$$\widehat{N_{\tau,i}} = \widehat{N_{i}} \widehat{P_\tau} \\$$
+\item Data relative to the silver eels. EDA2.3 predicts the percentage of
+silver eel per sex and size class using a multinomial model considering that eel
+fall in the following categories: $\varsigma$ silver male, silver female or
+yellow eel. The proportion of silver eel ( $P_{i \varsigma}$) also depends on
+the size class $\Pi_{\varsigma,\tau,i}$, a small eel has a larger chance to
+become a male, and a larger eel will always silver as a female. Thus the number
+of silver eels per size class per sex is estimaded as follows:
+$$ \widehat{Ns}_{\tau,\varsigma, i}=\widehat{\Pi_{\varsigma,\tau,i}} \widehat{d_{\tau,i}} $$
+\item Data relative to the cumulated number of silver eels upstream from any
+given river segment j. Using the prediction of the number of silver eel, per
+sex, per size class it is possible to use river chaining to calculate the number of
+silver eels produced in the basin upstream from the segment
+$$
+\widehat{Ns}_{\tau,\varsigma, j}=\sum_{i\in j}\widehat{Ns}_{\tau,\varsigma, i}$$
+\item Other data, including the predictions without dams, the predictions using
+a separated model for places where eel have been translocated
+\end{itemize}
+
+
+\clearpage
+\phantomsection 
+\addcontentsline{toc}{section}{delta}
+\noindent \textcolor{bluesudo}{\rule{\textwidth}{.3mm}}\\ 
+\vspace*{-5mm} \\ 
+\begin{minipage}{.45\linewidth} 
+\begin{flushleft} 
+{\LARGE\textcolor{navysudo}{delta}} 
+\end{flushleft} 
+\end{minipage} 
+\begin{minipage}{.45\linewidth} 
+\begin{flushright} 
+Probability of presence of eel $\widehat{\Delta}$
+\end{flushright} 
+\end{minipage} \\ 
+\vspace*{-2mm} 
+\noindent \textcolor{bluesudo}{\rule{\textwidth}{.3mm}}\\ 
+\begin{figure}[H]
+\begin{center} 
+\includegraphics[width=0.8\textwidth]{delta.png}
+\end{center} 
+\end{figure}
+\begin{minipage}[c]{\textwidth}
+\begin{tabular}{p{3cm}p{12cm}}
+\toprule  
+Description & Prediction of the EDA delta model ($\widehat{\Delta}$). This is a GAM binomial model to predict presence / absence of eel. The delta model is based on \num{21706} electrofishing data in France, Spain and Portugal and predicts eel presence according to SUDOE area\footnote{Zone for recruitment defined by the project stakeholders during a workshop in Sukarrieta}, country, fishing method, year (factor) per SUDOE area, electrofishing station, wetted area, altitude, distance from Gibraltar, hydraulic density (\si{\per\square\metre})\footnote{For all rivers segments located at a lower or equivalent was calculated: $$\frac{\sum{wetted surface riversegments + wetted surface other}}{\sum{surface basin}}$$}, and downstream drainage wetted surface (an indicator of the presence of habitat in the river basin downstream).\\
+\midrule  
+Reference & Briand C., Beaulaton L., Chapon P., Drouineau H., and Lambert P. 2018. Eel density analysis (EDA 2.2.1). Escapement of silver eels (\textit{Anguilla anguilla}) from French rivers. 2018 report. ONEMA- EPTB Vilaine, La Roche Bernard.\\
+\bottomrule 
+\end{tabular} 
+\end{minipage} 
+\clearpage
+\phantomsection 
+\addcontentsline{toc}{section}{gamma}
+\noindent \textcolor{bluesudo}{\rule{\textwidth}{.3mm}}\\ 
+\vspace*{-5mm} \\ 
+\begin{minipage}{.45\linewidth} 
+\begin{flushleft} 
+{\LARGE\textcolor{navysudo}{gamma}} 
+\end{flushleft} 
+\end{minipage} 
+\begin{minipage}{.45\linewidth} 
+\begin{flushright} 
+Density when eel is present $\widehat{\Gamma}$ (\si{\ind\per\square\meter})
+\end{flushright} 
+\end{minipage} \\ 
+\vspace*{-2mm} 
+\noindent \textcolor{bluesudo}{\rule{\textwidth}{.3mm}}\\ 
+\begin{figure}[H]
+\begin{center} 
+\includegraphics[width=0.8\textwidth]{gamma.png}
+\end{center} 
+\end{figure}
+\begin{minipage}[c]{\textwidth}
+\begin{tabular}{p{3cm}p{12cm}}
+\toprule  
+Description & Prediction of the EDA gamma model ($\widehat{\Gamma}$) of eel abundance. This is a GAM model computed on data with eel presence according to distance to the sea, fishing method, altitude, year (factor) per SUDOE area, distance from Gibraltar, interaction between cumulated height of dams and distance to the sea, hydraulic density (m-2), SUDOE area, cumulated height of dams and the interaction between altitude and distance to the sea.\\
+\midrule  
+Reference & Briand C., Beaulaton L., Chapon P., Drouineau H., and Lambert P. 2018. Eel density analysis (EDA 2.2.1). Escapement of silver eels (\textit{Anguilla anguilla}) from French rivers. 2018 report. ONEMA- EPTB Vilaine, La Roche Bernard.\\
+\bottomrule 
+\end{tabular} 
+\end{minipage} 
+\clearpage
+\phantomsection 
+\addcontentsline{toc}{section}{density}
+\noindent \textcolor{bluesudo}{\rule{\textwidth}{.3mm}}\\ 
+\vspace*{-5mm} \\ 
+\begin{minipage}{.45\linewidth} 
+\begin{flushleft} 
+{\LARGE\textcolor{navysudo}{density}} 
+\end{flushleft} 
+\end{minipage} 
+\begin{minipage}{.45\linewidth} 
+\begin{flushright} 
+Eel density (\si{\ind\per\square\meter})
+\end{flushright} 
+\end{minipage} \\ 
+\vspace*{-2mm} 
+\noindent \textcolor{bluesudo}{\rule{\textwidth}{.3mm}}\\ 
+\begin{figure}[H]
+\begin{center} 
+\includegraphics[width=0.8\textwidth]{density.png}
+\end{center} 
+\end{figure}
+\begin{minipage}[c]{\textwidth}
+\begin{tabular}{p{3cm}p{12cm}}
+\toprule  
+Description & Predicted eel density (\si{\ind\per\square\meter}) on each river segment. The prediction is obtained by multypling the delta and gamma models: $\widehat{d} = \widehat{\Delta}\widehat{\Gamma}$. Eels correspond to the eel standing stock and therefore include both yellow and silver eels.\\
+\midrule  
+Reference & Briand C., Beaulaton L., Chapon P., Drouineau H., and Lambert P. 2018. Eel density analysis (EDA 2.2.1). Escapement of silver eels (\textit{Anguilla anguilla}) from French rivers. 2018 report. ONEMA- EPTB Vilaine, La Roche Bernard.\\
+\bottomrule 
+\end{tabular} 
+\end{minipage} 
+\clearpage
+\phantomsection 
+\addcontentsline{toc}{section}{neel}
+\noindent \textcolor{bluesudo}{\rule{\textwidth}{.3mm}}\\ 
+\vspace*{-5mm} \\ 
+\begin{minipage}{.45\linewidth} 
+\begin{flushleft} 
+{\LARGE\textcolor{navysudo}{neel}} 
+\end{flushleft} 
+\end{minipage} 
+\begin{minipage}{.45\linewidth} 
+\begin{flushright} 
+Number of  eels
+\end{flushright} 
+\end{minipage} \\ 
+\vspace*{-2mm} 
+\noindent \textcolor{bluesudo}{\rule{\textwidth}{.3mm}}\\ 
+\begin{figure}[H]
+\begin{center} 
+\includegraphics[width=0.8\textwidth]{neel.png}
+\end{center} 
+\end{figure}
+\begin{minipage}[c]{\textwidth}
+\begin{tabular}{p{3cm}p{12cm}}
+\toprule  
+Description & Number of eels produced on the river segment and associated waterbodies. It corresponds to the density multiplied by the wetted surface of river segments $S_r$ and the wetted surface of waterbodies (other) $S_o$ in the same unit basin as the river segment: $\widehat{N} = \widehat{d} S_r + \widehat{d} S_o$.  Eels correspond to the eel standing stock and therefore include both yellow and silver eels.\\
+\midrule  
+Reference & Briand C., Beaulaton L., Chapon P., Drouineau H., and Lambert P. 2018. Eel density analysis (EDA 2.2.1). Escapement of silver eels (\textit{Anguilla anguilla}) from French rivers. 2018 report. ONEMA- EPTB Vilaine, La Roche Bernard.\\
+\bottomrule 
+\end{tabular} 
+\end{minipage} 
+\clearpage
+\phantomsection 
+\addcontentsline{toc}{section}{beel}
+\noindent \textcolor{bluesudo}{\rule{\textwidth}{.3mm}}\\ 
+\vspace*{-5mm} \\ 
+\begin{minipage}{.45\linewidth} 
+\begin{flushleft} 
+{\LARGE\textcolor{navysudo}{beel}} 
+\end{flushleft} 
+\end{minipage} 
+\begin{minipage}{.45\linewidth} 
+\begin{flushright} 
+Biomass of eels (\si{\kilogram})
+\end{flushright} 
+\end{minipage} \\ 
+\vspace*{-2mm} 
+\noindent \textcolor{bluesudo}{\rule{\textwidth}{.3mm}}\\ 
+\begin{figure}[H]
+\begin{center} 
+\includegraphics[width=0.8\textwidth]{byellow.png}
+\end{center} 
+\end{figure}
+\begin{minipage}[c]{\textwidth}
+\begin{tabular}{p{3cm}p{12cm}}
+\toprule  
+Description & Biomass of eels (\si{\kilogram}) on the river segment and associated waterbodies. It is calculated by multiplying the number of eels in each size class (<150, 150-300, 300-450, 450-600, 600-750, >750) by the average weight of eel in this size class in the corresponding country. See table in EDA report. Eels correspond to the eel standing stock and therefore include both yellow and silver eels.\\
+\midrule  
+Reference & Mateo M., Beaulaton L., Drouineau H., Díaz E., and Briand C. (2021).  Eel density analysis (EDA 2.3). Escapement of silver eels (\textit{Anguilla anguilla}) from French, Spanish and Portugese rivers. GT4 - deliverable E4.1.1.\\
+\bottomrule 
+\end{tabular} 
+\end{minipage} 
+\clearpage
+\phantomsection 
+\addcontentsline{toc}{section}{p150}
+\noindent \textcolor{bluesudo}{\rule{\textwidth}{.3mm}}\\ 
+\vspace*{-5mm} \\ 
+\begin{minipage}{.45\linewidth} 
+\begin{flushleft} 
+{\LARGE\textcolor{navysudo}{p150}} 
+\end{flushleft} 
+\end{minipage} 
+\begin{minipage}{.45\linewidth} 
+\begin{flushright} 
+Proportion of eel of size < 150 mm
+\end{flushright} 
+\end{minipage} \\ 
+\vspace*{-2mm} 
+\noindent \textcolor{bluesudo}{\rule{\textwidth}{.3mm}}\\ 
+\begin{figure}[H]
+\begin{center} 
+\includegraphics[width=0.8\textwidth]{pyellow150.png}
+\end{center} 
+\end{figure}
+\begin{minipage}[c]{\textwidth}
+\begin{tabular}{p{3cm}p{12cm}}
+\toprule  
+Description & Percentage of eels in < 150 mm size class in a river segment. Eels correspond to the eel standing stock and therefore include both yellow and silver eels that will depart during the year.
+$p_{<150} + p_{150-300} + p_{300-450} + p_{450-600} +p_{600-750}+ p_{>750} = 1$
+The eels of class <150 mm and 150-300 mm are those that colonize the basin. The migration of larger eel is less important but they might continue to colonize the basin.\\
+\midrule  
+Reference & Mateo M., Beaulaton L., Drouineau H., Díaz E., and Briand C. (2021).  Eel density analysis (EDA 2.3). Escapement of silver eels (\textit{Anguilla anguilla}) from French, Spanish and Portugese rivers. GT4 - deliverable E4.1.1.\\
+\bottomrule 
+\end{tabular} 
+\end{minipage} 
+\clearpage
+\phantomsection 
+\addcontentsline{toc}{section}{p150300}
+\noindent \textcolor{bluesudo}{\rule{\textwidth}{.3mm}}\\ 
+\vspace*{-5mm} \\ 
+\begin{minipage}{.45\linewidth} 
+\begin{flushleft} 
+{\LARGE\textcolor{navysudo}{p150300}} 
+\end{flushleft} 
+\end{minipage} 
+\begin{minipage}{.45\linewidth} 
+\begin{flushright} 
+Proportion of eel \\ of size class 150-300 mm
+\end{flushright} 
+\end{minipage} \\ 
+\vspace*{-2mm} 
+\noindent \textcolor{bluesudo}{\rule{\textwidth}{.3mm}}\\ 
+\begin{figure}[H]
+\begin{center} 
+\includegraphics[width=0.8\textwidth]{pyellow150300.png}
+\end{center} 
+\end{figure}
+\begin{minipage}[c]{\textwidth}
+\begin{tabular}{p{3cm}p{12cm}}
+\toprule  
+Description & Percentage of eels in 150-300 mm size class in a river segment. Eels correspond to the eel standing stock and therefore includes both yellow eel and silver eels that will depart during the year.
+$p_{<150} + p_{150-300} + p_{300-450} + p_{450-600} +p_{600-750}+ p_{>750} = 1$
+The eels of class <150 mm and 150-300 mm are those that colonize the basin. The migration of larger eel is less important but they might continue to colonize the basin.\\
+\midrule  
+Reference & Mateo M., Beaulaton L., Drouineau H., Díaz E., and Briand C. (2021).  Eel density analysis (EDA 2.3). Escapement of silver eels (\textit{Anguilla anguilla}) from French, Spanish and Portugese rivers. GT4 - deliverable E4.1.1.\\
+\bottomrule 
+\end{tabular} 
+\end{minipage} 
+\clearpage
+\phantomsection 
+\addcontentsline{toc}{section}{p300450}
+\noindent \textcolor{bluesudo}{\rule{\textwidth}{.3mm}}\\ 
+\vspace*{-5mm} \\ 
+\begin{minipage}{.45\linewidth} 
+\begin{flushleft} 
+{\LARGE\textcolor{navysudo}{p300450}} 
+\end{flushleft} 
+\end{minipage} 
+\begin{minipage}{.45\linewidth} 
+\begin{flushright} 
+Proportion of eel \\ of size class 300-450 mm
+\end{flushright} 
+\end{minipage} \\ 
+\vspace*{-2mm} 
+\noindent \textcolor{bluesudo}{\rule{\textwidth}{.3mm}}\\ 
+\begin{figure}[H]
+\begin{center} 
+\includegraphics[width=0.8\textwidth]{pyellow300450.png}
+\end{center} 
+\end{figure}
+\begin{minipage}[c]{\textwidth}
+\begin{tabular}{p{3cm}p{12cm}}
+\toprule  
+Description & Percentage of yellow eels in 300-450 mm size class in a river segment. Eels correspond to the eel standing stock and therefore includes silver eels that will depart during the year.
+$p_{<150} + p_{150-300} + p_{300-450} + p_{450-600} +p_{600-750}+ p_{>750} = 1$
+The eel of class 300-450 mm are the most numerous, they may mature both as male or female silver eels.\\
+\midrule  
+Reference & Mateo M., Beaulaton L., Drouineau H., Díaz E., and Briand C. (2021).  Eel density analysis (EDA 2.3). Escapement of silver eels (\textit{Anguilla anguilla}) from French, Spanish and Portugese rivers. GT4 - deliverable E4.1.1.\\
+\bottomrule 
+\end{tabular} 
+\end{minipage} 
+\clearpage
+\phantomsection 
+\addcontentsline{toc}{section}{p450600}
+\noindent \textcolor{bluesudo}{\rule{\textwidth}{.3mm}}\\ 
+\vspace*{-5mm} \\ 
+\begin{minipage}{.45\linewidth} 
+\begin{flushleft} 
+{\LARGE\textcolor{navysudo}{p450600}} 
+\end{flushleft} 
+\end{minipage} 
+\begin{minipage}{.45\linewidth} 
+\begin{flushright} 
+Proportion of eel \\ of size class 450-600 mm
+\end{flushright} 
+\end{minipage} \\ 
+\vspace*{-2mm} 
+\noindent \textcolor{bluesudo}{\rule{\textwidth}{.3mm}}\\ 
+\begin{figure}[H]
+\begin{center} 
+\includegraphics[width=0.8\textwidth]{pyellow450600.png}
+\end{center} 
+\end{figure}
+\begin{minipage}[c]{\textwidth}
+\begin{tabular}{p{3cm}p{12cm}}
+\toprule  
+Description & Percentage of eels in 450-600 mm size class in a river segment. Eels correspond to the eel standing stock and therefore include both yellow and silver eels that will depart during the year.
+$p_{<150} + p_{150-300} + p_{300-450} + p_{450-600} +p_{600-750}+ p_{>750} = 1$
+This is the first class of eel that will produce mostly females.\\
+\midrule  
+Reference & Mateo M., Beaulaton L., Drouineau H., Díaz E., and Briand C. (2021).  Eel density analysis (EDA 2.3). Escapement of silver eels (\textit{Anguilla anguilla}) from French, Spanish and Portugese rivers. GT4 - deliverable E4.1.1.\\
+\bottomrule 
+\end{tabular} 
+\end{minipage} 
+\clearpage
+\phantomsection 
+\addcontentsline{toc}{section}{p600750}
+\noindent \textcolor{bluesudo}{\rule{\textwidth}{.3mm}}\\ 
+\vspace*{-5mm} \\ 
+\begin{minipage}{.45\linewidth} 
+\begin{flushleft} 
+{\LARGE\textcolor{navysudo}{p600750}} 
+\end{flushleft} 
+\end{minipage} 
+\begin{minipage}{.45\linewidth} 
+\begin{flushright} 
+Proportion of eel \\ of size class 600-750 mm
+\end{flushright} 
+\end{minipage} \\ 
+\vspace*{-2mm} 
+\noindent \textcolor{bluesudo}{\rule{\textwidth}{.3mm}}\\ 
+\begin{figure}[H]
+\begin{center} 
+\includegraphics[width=0.8\textwidth]{pyellow600750.png}
+\end{center} 
+\end{figure}
+\begin{minipage}[c]{\textwidth}
+\begin{tabular}{p{3cm}p{12cm}}
+\toprule  
+Description & Percentage of eels in 600-750 mm size class in a river segment. Eels correspond to the eel standing stock and therefore include both yellow and silver eels that will depart during the year.
+$p_{<150} + p_{150-300} + p_{300-450} + p_{450-600} +p_{600-750}+ p{>750} = 1$
+Eels larger than 600mm are large eel producing large female silver eels.\\
+\midrule  
+Reference & Mateo M., Beaulaton L., Drouineau H., Díaz E., and Briand C. (2021).  Eel density analysis (EDA 2.3). Escapement of silver eels (\textit{Anguilla anguilla}) from French, Spanish and Portugese rivers. GT4 - deliverable E4.1.1.\\
+\bottomrule 
+\end{tabular} 
+\end{minipage} 
+\clearpage
+\phantomsection 
+\addcontentsline{toc}{section}{p750}
+\noindent \textcolor{bluesudo}{\rule{\textwidth}{.3mm}}\\ 
+\vspace*{-5mm} \\ 
+\begin{minipage}{.45\linewidth} 
+\begin{flushleft} 
+{\LARGE\textcolor{navysudo}{p750}} 
+\end{flushleft} 
+\end{minipage} 
+\begin{minipage}{.45\linewidth} 
+\begin{flushright} 
+Proportion of eel of size > 750 mm
+\end{flushright} 
+\end{minipage} \\ 
+\vspace*{-2mm} 
+\noindent \textcolor{bluesudo}{\rule{\textwidth}{.3mm}}\\ 
+\begin{figure}[H]
+\begin{center} 
+\includegraphics[width=0.8\textwidth]{pyellow750.png}
+\end{center} 
+\end{figure}
+\begin{minipage}[c]{\textwidth}
+\begin{tabular}{p{3cm}p{12cm}}
+\toprule  
+Description & Percentage of eel in > 750 mm size class in a river segment. Eels correspond to the eel standing stock and therefore include both yellow and silver eels that will depart during the year.
+$p_{<150} + p_{150-300} + p_{300-450} + p_{450-600} +p_{600-750}+ p_{>750} = 1$
+The eels of class >750 mm are the largest. They have a high probability to mature as silver eel, and have the largest contribution in term of eeg deposition.\\
+\midrule  
+Reference & Mateo M., Beaulaton L., Drouineau H., Díaz E., and Briand C. (2021).  Eel density analysis (EDA 2.3). Escapement of silver eels (\textit{Anguilla anguilla}) from French, Spanish and Portugese rivers. GT4 - deliverable E4.1.1.\\
+\bottomrule 
+\end{tabular} 
+\end{minipage} 
+\clearpage
+\phantomsection 
+\addcontentsline{toc}{section}{nsilver}
+\noindent \textcolor{bluesudo}{\rule{\textwidth}{.3mm}}\\ 
+\vspace*{-5mm} \\ 
+\begin{minipage}{.45\linewidth} 
+\begin{flushleft} 
+{\LARGE\textcolor{navysudo}{nsilver}} 
+\end{flushleft} 
+\end{minipage} 
+\begin{minipage}{.45\linewidth} 
+\begin{flushright} 
+Number of silver eels
+\end{flushright} 
+\end{minipage} \\ 
+\vspace*{-2mm} 
+\noindent \textcolor{bluesudo}{\rule{\textwidth}{.3mm}}\\ 
+\begin{figure}[H]
+\begin{center} 
+\includegraphics[width=0.8\textwidth]{nsilver.png}
+\end{center} 
+\end{figure}
+\begin{minipage}[c]{\textwidth}
+\begin{tabular}{p{3cm}p{12cm}}
+\toprule  
+Description & Number of silver eels\footnote{At the end of their continental life, yellow eel mature into silver eel, and then migrate downstream during increasing flow event to the sea, where they undertake their long oceanic migration to the spawning grounds.} produced on the river segment and associated waterbodies. This number is produced by calculating the number of eels, splitting it per size class and then using the silver eel model which predicts the percentage of silver male and female eel produced on the river segment per size class. The number of silver eels corresponds to the sum of the number of silver eels per size class.\\
+\midrule  
+Reference & Mateo M., Beaulaton L., Drouineau H., Díaz E., and Briand C. (2021).  Eel density analysis (EDA 2.3). Escapement of silver eels (\textit{Anguilla anguilla}) from French, Spanish and Portugese rivers. GT4 - deliverable E4.1.1.\\
+\bottomrule 
+\end{tabular} 
+\end{minipage} 
+\clearpage
+\phantomsection 
+\addcontentsline{toc}{section}{bsilver}
+\noindent \textcolor{bluesudo}{\rule{\textwidth}{.3mm}}\\ 
+\vspace*{-5mm} \\ 
+\begin{minipage}{.45\linewidth} 
+\begin{flushleft} 
+{\LARGE\textcolor{navysudo}{bsilver}} 
+\end{flushleft} 
+\end{minipage} 
+\begin{minipage}{.45\linewidth} 
+\begin{flushright} 
+Biomass of silver eels (male + female) (\si{\kilogram})
+\end{flushright} 
+\end{minipage} \\ 
+\vspace*{-2mm} 
+\noindent \textcolor{bluesudo}{\rule{\textwidth}{.3mm}}\\ 
+\begin{figure}[H]
+\begin{center} 
+\includegraphics[width=0.8\textwidth]{bsilver.png}
+\end{center} 
+\end{figure}
+\begin{minipage}[c]{\textwidth}
+\begin{tabular}{p{3cm}p{12cm}}
+\toprule  
+Description & Biomass of silver eels (\si{\kilogram})  produced on the river segment and associated waterbodies. It is calculated by multiplying the number of silver eels in each size class by the average weight of silver eel in this size class in the corresponding country.\\
+\midrule  
+Reference & Mateo M., Beaulaton L., Drouineau H., Díaz E., and Briand C. (2021).  Eel density analysis (EDA 2.3). Escapement of silver eels (\textit{Anguilla anguilla}) from French, Spanish and Portugese rivers. GT4 - deliverable E4.1.1.\\
+\bottomrule 
+\end{tabular} 
+\end{minipage} 
+\clearpage
+\phantomsection 
+\addcontentsline{toc}{section}{psilver150300}
+\noindent \textcolor{bluesudo}{\rule{\textwidth}{.3mm}}\\ 
+\vspace*{-5mm} \\ 
+\begin{minipage}{.45\linewidth} 
+\begin{flushleft} 
+{\LARGE\textcolor{navysudo}{psilver150300}} 
+\end{flushleft} 
+\end{minipage} 
+\begin{minipage}{.45\linewidth} 
+\begin{flushright} 
+Proportion of silver eel \\ of size class 150-300 mm
+\end{flushright} 
+\end{minipage} \\ 
+\vspace*{-2mm} 
+\noindent \textcolor{bluesudo}{\rule{\textwidth}{.3mm}}\\ 
+\begin{figure}[H]
+\begin{center} 
+\includegraphics[width=0.8\textwidth]{psilver150300.png}
+\end{center} 
+\end{figure}
+\begin{minipage}[c]{\textwidth}
+\begin{tabular}{p{3cm}p{12cm}}
+\toprule  
+Description & Percentage of silver eels produced from the 150-300 mm class in a river segment. These can only be males.\\
+\midrule  
+Reference & Mateo M., Beaulaton L., Drouineau H., Díaz E., and Briand C. (2021).  Eel density analysis (EDA 2.3). Escapement of silver eels (\textit{Anguilla anguilla}) from French, Spanish and Portugese rivers. GT4 - deliverable E4.1.1.\\
+\bottomrule 
+\end{tabular} 
+\end{minipage} 
+\clearpage
+\phantomsection 
+\addcontentsline{toc}{section}{psilver300450}
+\noindent \textcolor{bluesudo}{\rule{\textwidth}{.3mm}}\\ 
+\vspace*{-5mm} \\ 
+\begin{minipage}{.45\linewidth} 
+\begin{flushleft} 
+{\LARGE\textcolor{navysudo}{psilver300450}} 
+\end{flushleft} 
+\end{minipage} 
+\begin{minipage}{.45\linewidth} 
+\begin{flushright} 
+Proportion of silver eel \\ of size class 300-450 mm
+\end{flushright} 
+\end{minipage} \\ 
+\vspace*{-2mm} 
+\noindent \textcolor{bluesudo}{\rule{\textwidth}{.3mm}}\\ 
+\begin{figure}[H]
+\begin{center} 
+\includegraphics[width=0.8\textwidth]{psilver300450.png}
+\end{center} 
+\end{figure}
+\begin{minipage}[c]{\textwidth}
+\begin{tabular}{p{3cm}p{12cm}}
+\toprule  
+Description & Percentage of silver eels produced from the 300-450 mm class in a river segment . These are mostly males.
+$psilver_{300-450}=pmale_{300-450}+pfemale_{300-450}$\\
+\midrule  
+Reference & Mateo M., Beaulaton L., Drouineau H., Díaz E., and Briand C. (2021).  Eel density analysis (EDA 2.3). Escapement of silver eels (\textit{Anguilla anguilla}) from French, Spanish and Portugese rivers. GT4 - deliverable E4.1.1.\\
+\bottomrule 
+\end{tabular} 
+\end{minipage} 
+\clearpage
+\phantomsection 
+\addcontentsline{toc}{section}{psilver450600}
+\noindent \textcolor{bluesudo}{\rule{\textwidth}{.3mm}}\\ 
+\vspace*{-5mm} \\ 
+\begin{minipage}{.45\linewidth} 
+\begin{flushleft} 
+{\LARGE\textcolor{navysudo}{psilver450600}} 
+\end{flushleft} 
+\end{minipage} 
+\begin{minipage}{.45\linewidth} 
+\begin{flushright} 
+Proportion of silver eel \\ of size class 450-600 mm
+\end{flushright} 
+\end{minipage} \\ 
+\vspace*{-2mm} 
+\noindent \textcolor{bluesudo}{\rule{\textwidth}{.3mm}}\\ 
+\begin{figure}[H]
+\begin{center} 
+\includegraphics[width=0.8\textwidth]{psilver450600.png}
+\end{center} 
+\end{figure}
+\begin{minipage}[c]{\textwidth}
+\begin{tabular}{p{3cm}p{12cm}}
+\toprule  
+Description & Percentage of silver eels produced from the 450-600 mm class in a river segment. These are mostly females. 
+$psilver_{450-600}=pmale_{450-600}+pfemale_{450-600}$\\
+\midrule  
+Reference & Mateo M., Beaulaton L., Drouineau H., Díaz E., and Briand C. (2021).  Eel density analysis (EDA 2.3). Escapement of silver eels (\textit{Anguilla anguilla}) from French, Spanish and Portugese rivers. GT4 - deliverable E4.1.1.\\
+\bottomrule 
+\end{tabular} 
+\end{minipage} 
+\clearpage
+\phantomsection 
+\addcontentsline{toc}{section}{psilver600750}
+\noindent \textcolor{bluesudo}{\rule{\textwidth}{.3mm}}\\ 
+\vspace*{-5mm} \\ 
+\begin{minipage}{.45\linewidth} 
+\begin{flushleft} 
+{\LARGE\textcolor{navysudo}{psilver600750}} 
+\end{flushleft} 
+\end{minipage} 
+\begin{minipage}{.45\linewidth} 
+\begin{flushright} 
+Proportion of silver eel \\ of size class 600-750 mm
+\end{flushright} 
+\end{minipage} \\ 
+\vspace*{-2mm} 
+\noindent \textcolor{bluesudo}{\rule{\textwidth}{.3mm}}\\ 
+\begin{figure}[H]
+\begin{center} 
+\includegraphics[width=0.8\textwidth]{psilver600750.png}
+\end{center} 
+\end{figure}
+\begin{minipage}[c]{\textwidth}
+\begin{tabular}{p{3cm}p{12cm}}
+\toprule  
+Description & Percentage of silver eels produced from the 600-750 mm class in a river segment. These are all females.\\
+\midrule  
+Reference & Mateo M., Beaulaton L., Drouineau H., Díaz E., and Briand C. (2021).  Eel density analysis (EDA 2.3). Escapement of silver eels (\textit{Anguilla anguilla}) from French, Spanish and Portugese rivers. GT4 - deliverable E4.1.1.\\
+\bottomrule 
+\end{tabular} 
+\end{minipage} 
+\clearpage
+\phantomsection 
+\addcontentsline{toc}{section}{psilver750}
+\noindent \textcolor{bluesudo}{\rule{\textwidth}{.3mm}}\\ 
+\vspace*{-5mm} \\ 
+\begin{minipage}{.45\linewidth} 
+\begin{flushleft} 
+{\LARGE\textcolor{navysudo}{psilver750}} 
+\end{flushleft} 
+\end{minipage} 
+\begin{minipage}{.45\linewidth} 
+\begin{flushright} 
+Proportion of silver eel \\ of size >750 mm
+\end{flushright} 
+\end{minipage} \\ 
+\vspace*{-2mm} 
+\noindent \textcolor{bluesudo}{\rule{\textwidth}{.3mm}}\\ 
+\begin{figure}[H]
+\begin{center} 
+\includegraphics[width=0.8\textwidth]{psilver750.png}
+\end{center} 
+\end{figure}
+\begin{minipage}[c]{\textwidth}
+\begin{tabular}{p{3cm}p{12cm}}
+\toprule  
+Description & Percentage of large silver eels produced from the > 750 mm class in a river segment. These are all females.\\
+\midrule  
+Reference & Mateo M., Beaulaton L., Drouineau H., Díaz E., and Briand C. (2021).  Eel density analysis (EDA 2.3). Escapement of silver eels (\textit{Anguilla anguilla}) from French, Spanish and Portugese rivers. GT4 - deliverable E4.1.1.\\
+\bottomrule 
+\end{tabular} 
+\end{minipage} 
+\clearpage
+\phantomsection 
+\addcontentsline{toc}{section}{psilver}
+\noindent \textcolor{bluesudo}{\rule{\textwidth}{.3mm}}\\ 
+\vspace*{-5mm} \\ 
+\begin{minipage}{.45\linewidth} 
+\begin{flushleft} 
+{\LARGE\textcolor{navysudo}{psilver}} 
+\end{flushleft} 
+\end{minipage} 
+\begin{minipage}{.45\linewidth} 
+\begin{flushright} 
+Percentage of silvering
+\end{flushright} 
+\end{minipage} \\ 
+\vspace*{-2mm} 
+\noindent \textcolor{bluesudo}{\rule{\textwidth}{.3mm}}\\ 
+\begin{figure}[H]
+\begin{center} 
+\includegraphics[width=0.8\textwidth]{psilver.png}
+\end{center} 
+\end{figure}
+\begin{minipage}[c]{\textwidth}
+\begin{tabular}{p{3cm}p{12cm}}
+\toprule  
+Description & Proportion of eels that each year undertake silvering.\\
+\midrule  
+Reference & Mateo M., Beaulaton L., Drouineau H., Díaz E., and Briand C. (2021).  Eel density analysis (EDA 2.3). Escapement of silver eels (\textit{Anguilla anguilla}) from French, Spanish and Portugese rivers. GT4 - deliverable E4.1.1.\\
+\bottomrule 
+\end{tabular} 
+\end{minipage} 
+\clearpage
+\phantomsection 
+\addcontentsline{toc}{section}{pmale150300}
+\noindent \textcolor{bluesudo}{\rule{\textwidth}{.3mm}}\\ 
+\vspace*{-5mm} \\ 
+\begin{minipage}{.45\linewidth} 
+\begin{flushleft} 
+{\LARGE\textcolor{navysudo}{pmale150300}} 
+\end{flushleft} 
+\end{minipage} 
+\begin{minipage}{.45\linewidth} 
+\begin{flushright} 
+Proportion of male \\ of size class 150-300 mm
+\end{flushright} 
+\end{minipage} \\ 
+\vspace*{-2mm} 
+\noindent \textcolor{bluesudo}{\rule{\textwidth}{.3mm}}\\ 
+\begin{figure}[H]
+\begin{center} 
+\includegraphics[width=0.8\textwidth]{pmale150300.png}
+\end{center} 
+\end{figure}
+\begin{minipage}[c]{\textwidth}
+\begin{tabular}{p{3cm}p{12cm}}
+\toprule  
+Description & Percentage of males of 150-300 mm class that will undergo a silvering process during the year in a river segment. This percentage is the product of the proportion of eel in this class as predicted by the size structure multinomial model, multiplied by the proportion of silver in this class predicted by the silvering multinomial model.\\
+\midrule  
+Reference & Mateo M., Beaulaton L., Drouineau H., Díaz E., and Briand C. (2021).  Eel density analysis (EDA 2.3). Escapement of silver eels (\textit{Anguilla anguilla}) from French, Spanish and Portugese rivers. GT4 - deliverable E4.1.1.\\
+\bottomrule 
+\end{tabular} 
+\end{minipage} 
+\clearpage
+\phantomsection 
+\addcontentsline{toc}{section}{pmale300450}
+\noindent \textcolor{bluesudo}{\rule{\textwidth}{.3mm}}\\ 
+\vspace*{-5mm} \\ 
+\begin{minipage}{.45\linewidth} 
+\begin{flushleft} 
+{\LARGE\textcolor{navysudo}{pmale300450}} 
+\end{flushleft} 
+\end{minipage} 
+\begin{minipage}{.45\linewidth} 
+\begin{flushright} 
+Proportion of male \\ of size class 300-450 mm
+\end{flushright} 
+\end{minipage} \\ 
+\vspace*{-2mm} 
+\noindent \textcolor{bluesudo}{\rule{\textwidth}{.3mm}}\\ 
+\begin{figure}[H]
+\begin{center} 
+\includegraphics[width=0.8\textwidth]{pmale300450.png}
+\end{center} 
+\end{figure}
+\begin{minipage}[c]{\textwidth}
+\begin{tabular}{p{3cm}p{12cm}}
+\toprule  
+Description & Percentage of males of 300-450 mm class that will undergo a silvering process during the year in a river segment. This percentage is the product of the proportion of eel in this class as predicted by the size structure multinomial model, multiplied by the proportion of silver in this class predicted by the silvering multinomial model.\\
+\midrule  
+Reference & Mateo M., Beaulaton L., Drouineau H., Díaz E., and Briand C. (2021).  Eel density analysis (EDA 2.3). Escapement of silver eels (\textit{Anguilla anguilla}) from French, Spanish and Portugese rivers. GT4 - deliverable E4.1.1.\\
+\bottomrule 
+\end{tabular} 
+\end{minipage} 
+\clearpage
+\phantomsection 
+\addcontentsline{toc}{section}{pmale450600}
+\noindent \textcolor{bluesudo}{\rule{\textwidth}{.3mm}}\\ 
+\vspace*{-5mm} \\ 
+\begin{minipage}{.45\linewidth} 
+\begin{flushleft} 
+{\LARGE\textcolor{navysudo}{pmale450600}} 
+\end{flushleft} 
+\end{minipage} 
+\begin{minipage}{.45\linewidth} 
+\begin{flushright} 
+Proportion of male \\ of size class 450- 600 mm
+\end{flushright} 
+\end{minipage} \\ 
+\vspace*{-2mm} 
+\noindent \textcolor{bluesudo}{\rule{\textwidth}{.3mm}}\\ 
+\begin{figure}[H]
+\begin{center} 
+\includegraphics[width=0.8\textwidth]{pmale450600.png}
+\end{center} 
+\end{figure}
+\begin{minipage}[c]{\textwidth}
+\begin{tabular}{p{3cm}p{12cm}}
+\toprule  
+Description & Percentage of males of 450-600 mm class that will undergo a silvering process during the year in a river segment. This percentage is the product of the proportion of eel in this class as predicted by the size structure multinomial model, multiplied by the proportion of silver in this class predicted by the silvering multinomial model.\\
+\midrule  
+Reference & Mateo M., Beaulaton L., Drouineau H., Díaz E., and Briand C. (2021).  Eel density analysis (EDA 2.3). Escapement of silver eels (\textit{Anguilla anguilla}) from French, Spanish and Portugese rivers. GT4 - deliverable E4.1.1.\\
+\bottomrule 
+\end{tabular} 
+\end{minipage} 
+\clearpage
+\phantomsection 
+\addcontentsline{toc}{section}{pfemale300450}
+\noindent \textcolor{bluesudo}{\rule{\textwidth}{.3mm}}\\ 
+\vspace*{-5mm} \\ 
+\begin{minipage}{.45\linewidth} 
+\begin{flushleft} 
+{\LARGE\textcolor{navysudo}{pfemale300450}} 
+\end{flushleft} 
+\end{minipage} 
+\begin{minipage}{.45\linewidth} 
+\begin{flushright} 
+Proportion of female \\ of size class 300-450 mm
+\end{flushright} 
+\end{minipage} \\ 
+\vspace*{-2mm} 
+\noindent \textcolor{bluesudo}{\rule{\textwidth}{.3mm}}\\ 
+\begin{figure}[H]
+\begin{center} 
+\includegraphics[width=0.8\textwidth]{pfemale300450.png}
+\end{center} 
+\end{figure}
+\begin{minipage}[c]{\textwidth}
+\begin{tabular}{p{3cm}p{12cm}}
+\toprule  
+Description & Percentage of females of 300-450 mm class that will undergo a silvering process during the year in a river segment. This percentage is the product of the proportion of eel in this class as predicted by the size structure multinomial model, multiplied by the proportion of silver in this class predicted by the silvering multinomial model.\\
+\midrule  
+Reference & Mateo M., Beaulaton L., Drouineau H., Díaz E., and Briand C. (2021).  Eel density analysis (EDA 2.3). Escapement of silver eels (\textit{Anguilla anguilla}) from French, Spanish and Portugese rivers. GT4 - deliverable E4.1.1.\\
+\bottomrule 
+\end{tabular} 
+\end{minipage} 
+\clearpage
+\phantomsection 
+\addcontentsline{toc}{section}{pfemale450600}
+\noindent \textcolor{bluesudo}{\rule{\textwidth}{.3mm}}\\ 
+\vspace*{-5mm} \\ 
+\begin{minipage}{.45\linewidth} 
+\begin{flushleft} 
+{\LARGE\textcolor{navysudo}{pfemale450600}} 
+\end{flushleft} 
+\end{minipage} 
+\begin{minipage}{.45\linewidth} 
+\begin{flushright} 
+Proportion of female \\ of size class 450-600 mm
+\end{flushright} 
+\end{minipage} \\ 
+\vspace*{-2mm} 
+\noindent \textcolor{bluesudo}{\rule{\textwidth}{.3mm}}\\ 
+\begin{figure}[H]
+\begin{center} 
+\includegraphics[width=0.8\textwidth]{pfemale450600.png}
+\end{center} 
+\end{figure}
+\begin{minipage}[c]{\textwidth}
+\begin{tabular}{p{3cm}p{12cm}}
+\toprule  
+Description & Percentage of females of 450-600 mm class that will undergo a silvering process during the year in a river segment. This percentage is the product of the proportion of eel in this class as predicted by the size structure multinomial model, multiplied by the proportion of silver in this class predicted by the silvering multinomial model.\\
+\midrule  
+Reference & Mateo M., Beaulaton L., Drouineau H., Díaz E., and Briand C. (2021).  Eel density analysis (EDA 2.3). Escapement of silver eels (\textit{Anguilla anguilla}) from French, Spanish and Portugese rivers. GT4 - deliverable E4.1.1.\\
+\bottomrule 
+\end{tabular} 
+\end{minipage} 
+\clearpage
+\phantomsection 
+\addcontentsline{toc}{section}{pfemale600750}
+\noindent \textcolor{bluesudo}{\rule{\textwidth}{.3mm}}\\ 
+\vspace*{-5mm} \\ 
+\begin{minipage}{.45\linewidth} 
+\begin{flushleft} 
+{\LARGE\textcolor{navysudo}{pfemale600750}} 
+\end{flushleft} 
+\end{minipage} 
+\begin{minipage}{.45\linewidth} 
+\begin{flushright} 
+Proportion of female \\ of size class 600-750 mm
+\end{flushright} 
+\end{minipage} \\ 
+\vspace*{-2mm} 
+\noindent \textcolor{bluesudo}{\rule{\textwidth}{.3mm}}\\ 
+\begin{figure}[H]
+\begin{center} 
+\includegraphics[width=0.8\textwidth]{pfemale600750.png}
+\end{center} 
+\end{figure}
+\begin{minipage}[c]{\textwidth}
+\begin{tabular}{p{3cm}p{12cm}}
+\toprule  
+Description & Percentage of females of 600-750 mm class that will undergo a silvering process during the year in a river segment. This percentage is the product of the proportion of eel in this class as predicted by the size structure multinomial model, multiplied by the proportion of silver in this class predicted by the silvering multinomial model.\\
+\midrule  
+Reference & Mateo M., Beaulaton L., Drouineau H., Díaz E., and Briand C. (2021).  Eel density analysis (EDA 2.3). Escapement of silver eels (\textit{Anguilla anguilla}) from French, Spanish and Portugese rivers. GT4 - deliverable E4.1.1.\\
+\bottomrule 
+\end{tabular} 
+\end{minipage} 
+\clearpage
+\phantomsection 
+\addcontentsline{toc}{section}{pfemale750}
+\noindent \textcolor{bluesudo}{\rule{\textwidth}{.3mm}}\\ 
+\vspace*{-5mm} \\ 
+\begin{minipage}{.45\linewidth} 
+\begin{flushleft} 
+{\LARGE\textcolor{navysudo}{pfemale750}} 
+\end{flushleft} 
+\end{minipage} 
+\begin{minipage}{.45\linewidth} 
+\begin{flushright} 
+Proportion of female \\ of size >750 mm
+\end{flushright} 
+\end{minipage} \\ 
+\vspace*{-2mm} 
+\noindent \textcolor{bluesudo}{\rule{\textwidth}{.3mm}}\\ 
+\begin{figure}[H]
+\begin{center} 
+\includegraphics[width=0.8\textwidth]{pfemale750.png}
+\end{center} 
+\end{figure}
+\begin{minipage}[c]{\textwidth}
+\begin{tabular}{p{3cm}p{12cm}}
+\toprule  
+Description & Percentage of females of 750 mm class that will undergo a silvering process during the year in a river segment. This percentage is the product of the proportion of eel in this class as predicted by the size structure multinomial model, multiplied by the proportion of silver in this class predicted by the silvering multinomial model.\\
+\midrule  
+Reference & Mateo M., Beaulaton L., Drouineau H., Díaz E., and Briand C. (2021).  Eel density analysis (EDA 2.3). Escapement of silver eels (\textit{Anguilla anguilla}) from French, Spanish and Portugese rivers. GT4 - deliverable E4.1.1.\\
+\bottomrule 
+\end{tabular} 
+\end{minipage} 
+\clearpage
+\phantomsection 
+\addcontentsline{toc}{section}{pmale}
+\noindent \textcolor{bluesudo}{\rule{\textwidth}{.3mm}}\\ 
+\vspace*{-5mm} \\ 
+\begin{minipage}{.45\linewidth} 
+\begin{flushleft} 
+{\LARGE\textcolor{navysudo}{pmale}} 
+\end{flushleft} 
+\end{minipage} 
+\begin{minipage}{.45\linewidth} 
+\begin{flushright} 
+Proportion of males among silver eel
+\end{flushright} 
+\end{minipage} \\ 
+\vspace*{-2mm} 
+\noindent \textcolor{bluesudo}{\rule{\textwidth}{.3mm}}\\ 
+\begin{figure}[H]
+\begin{center} 
+\includegraphics[width=0.8\textwidth]{pmale.png}
+\end{center} 
+\end{figure}
+\begin{minipage}[c]{\textwidth}
+\begin{tabular}{p{3cm}p{12cm}}
+\toprule  
+Description & Percentage of males among silver eels predicted by the model. To avoid confusion, the percentage from the model (yellow/male/female) has been corrected to only account for silver eels. So: $pmale=1-pfemale$\\
+\midrule  
+Reference & Mateo M., Beaulaton L., Drouineau H., Díaz E., and Briand C. (2021).  Eel density analysis (EDA 2.3). Escapement of silver eels (\textit{Anguilla anguilla}) from French, Spanish and Portugese rivers. GT4 - deliverable E4.1.1.\\
+\bottomrule 
+\end{tabular} 
+\end{minipage} 
+\clearpage
+\phantomsection 
+\addcontentsline{toc}{section}{sex ratio}
+\noindent \textcolor{bluesudo}{\rule{\textwidth}{.3mm}}\\ 
+\vspace*{-5mm} \\ 
+\begin{minipage}{.45\linewidth} 
+\begin{flushleft} 
+{\LARGE\textcolor{navysudo}{sex\_ratio}} 
+\end{flushleft} 
+\end{minipage} 
+\begin{minipage}{.45\linewidth} 
+\begin{flushright} 
+Male sex ratio
+\end{flushright} 
+\end{minipage} \\ 
+\vspace*{-2mm} 
+\noindent \textcolor{bluesudo}{\rule{\textwidth}{.3mm}}\\ 
+\begin{figure}[H]
+\begin{center} 
+\includegraphics[width=0.8\textwidth]{sex_ratio.png}
+\end{center} 
+\end{figure}
+\begin{minipage}[c]{\textwidth}
+\begin{tabular}{p{3cm}p{12cm}}
+\toprule  
+Description & Ratio of silver male on females in the predicted population in a river segment $\frac{N_{male}}{N_{female}}$.\\
+\midrule  
+Reference & Mateo M., Beaulaton L., Drouineau H., Díaz E., and Briand C. (2021).  Eel density analysis (EDA 2.3). Escapement of silver eels (\textit{Anguilla anguilla}) from French, Spanish and Portugese rivers. GT4 - deliverable E4.1.1.\\
+\bottomrule 
+\end{tabular} 
+\end{minipage} 
+\clearpage
+\phantomsection 
+\addcontentsline{toc}{section}{cnfemaleXX}
+\noindent \textcolor{bluesudo}{\rule{\textwidth}{.3mm}}\\ 
+\vspace*{-5mm} \\ 
+\begin{minipage}{.45\linewidth} 
+\begin{flushleft} 
+{\LARGE\textcolor{navysudo}{cnfemaleXX}} 
+\end{flushleft} 
+\end{minipage} 
+\begin{minipage}{.45\linewidth} 
+\begin{flushright} 
+$\sum_{upstream}female_{300-450}$ \\$\sum_{upstream}female_{450-600}$ \\$\sum_{upstream}female_{450-600}$ \\$\sum_{upstream}female_{600-750}$ \\$\sum_{upstream}female_{>750}$
+\end{flushright} 
+\end{minipage} \\ 
+\vspace*{-2mm} 
+\noindent \textcolor{bluesudo}{\rule{\textwidth}{.3mm}}\\ 
+\begin{figure}[H]
+\begin{center} 
+\includegraphics[width=0.8\textwidth]{cnfemale450600.png}
+\end{center} 
+\end{figure}
+\begin{minipage}[c]{\textwidth}
+\begin{tabular}{p{3cm}p{12cm}}
+\toprule  
+Description & Cumulated number of females (silver eel) per size class produced in the basin located upstream from the current river segment. This is used to calculate turbine mortality according to size and sex. Columns: $cnfemale300450$, $cnfemale450600$, $cnfemale600750$, $cnfemale750$.\\
+\midrule  
+Reference & Mateo M., Beaulaton L., Drouineau H., Díaz E., and Briand C. (2021).  Eel density analysis (EDA 2.3). Escapement of silver eels (\textit{Anguilla anguilla}) from French, Spanish and Portugese rivers. GT4 - deliverable E4.1.1.\\
+\bottomrule 
+\end{tabular} 
+\end{minipage} 
+\clearpage
+\phantomsection 
+\addcontentsline{toc}{section}{cnmaleXX}
+\noindent \textcolor{bluesudo}{\rule{\textwidth}{.3mm}}\\ 
+\vspace*{-5mm} \\ 
+\begin{minipage}{.45\linewidth} 
+\begin{flushleft} 
+{\LARGE\textcolor{navysudo}{cnmaleXX}} 
+\end{flushleft} 
+\end{minipage} 
+\begin{minipage}{.45\linewidth} 
+\begin{flushright} 
+$\sum_{upstream}male_{150-300}$
+\\$\sum_{upstream}male_{300-450}$ 
+\\$\sum_{upstream}male_{300-450}$
+\end{flushright} 
+\end{minipage} \\ 
+\vspace*{-2mm} 
+\noindent \textcolor{bluesudo}{\rule{\textwidth}{.3mm}}\\ 
+\begin{figure}[H]
+\begin{center} 
+\includegraphics[width=0.8\textwidth]{cnmale300450.png}
+\end{center} 
+\end{figure}
+\begin{minipage}[c]{\textwidth}
+\begin{tabular}{p{3cm}p{12cm}}
+\toprule  
+Description & Cumulated number of males (silver eel) per size class produced in the basin located upstream from the current river segment. This is used to calculate turbine mortality according to size and sex. Columns: $cn_male150300$, $cnmale300450$, $cnmale450600$.\\
+\midrule  
+Reference & Mateo M., Beaulaton L., Drouineau H., Díaz E., and Briand C. (2021).  Eel density analysis (EDA 2.3). Escapement of silver eels (\textit{Anguilla anguilla}) from French, Spanish and Portugese rivers. GT4 - deliverable E4.1.1.\\
+\bottomrule 
+\end{tabular} 
+\end{minipage} 
+\clearpage
+\phantomsection 
+\addcontentsline{toc}{section}{cnsilverXX}
+\noindent \textcolor{bluesudo}{\rule{\textwidth}{.3mm}}\\ 
+\vspace*{-5mm} \\ 
+\begin{minipage}{.45\linewidth} 
+\begin{flushleft} 
+{\LARGE\textcolor{navysudo}{cnsilverXX}} 
+\end{flushleft} 
+\end{minipage} 
+\begin{minipage}{.45\linewidth} 
+\begin{flushright} 
+$\sum_{upstream}silver_{150-300}$ 
+\\$\sum_{upstream}silver_{300-450}$
+\\$\sum_{upstream}silver_{450-600}$
+\\$\sum_{upstream}silver_{600-750}$
+\\$\sum_{upstream}silver_{>750}$
+\end{flushright} 
+\end{minipage} \\ 
+\vspace*{-2mm} 
+\noindent \textcolor{bluesudo}{\rule{\textwidth}{.3mm}}\\ 
+\begin{figure}[H]
+\begin{center} 
+\includegraphics[width=0.8\textwidth]{cnsilver300450.png}
+\end{center} 
+\end{figure}
+\begin{minipage}[c]{\textwidth}
+\begin{tabular}{p{3cm}p{12cm}}
+\toprule  
+Description & Cumulated number of silver eel per size class produced in the basin located upstream from the current river segment. This is used to calculate turbine mortality according to the silver eel size structure upstream from turbines.\\
+\midrule  
+Reference & Mateo M., Beaulaton L., Drouineau H., Díaz E., and Briand C. (2021).  Eel density analysis (EDA 2.3). Escapement of silver eels (\textit{Anguilla anguilla}) from French, Spanish and Portugese rivers. GT4 - deliverable E4.1.1.\\
+\bottomrule 
+\end{tabular} 
+\end{minipage} 
+\clearpage
+\phantomsection 
+\addcontentsline{toc}{section}{cnsilver}
+\noindent \textcolor{bluesudo}{\rule{\textwidth}{.3mm}}\\ 
+\vspace*{-5mm} \\ 
+\begin{minipage}{.45\linewidth} 
+\begin{flushleft} 
+{\LARGE\textcolor{navysudo}{cnsilver}} 
+\end{flushleft} 
+\end{minipage} 
+\begin{minipage}{.45\linewidth} 
+\begin{flushright} 
+$\sum_{upstream}\sum_{\tau}silver_{\tau}$
+\end{flushright} 
+\end{minipage} \\ 
+\vspace*{-2mm} 
+\noindent \textcolor{bluesudo}{\rule{\textwidth}{.3mm}}\\ 
+\begin{figure}[H]
+\begin{center} 
+\includegraphics[width=0.8\textwidth]{cnsilver.png}
+\end{center} 
+\end{figure}
+\begin{minipage}[c]{\textwidth}
+\begin{tabular}{p{3cm}p{12cm}}
+\toprule  
+Description & Cumulated number of silver eels produced in the basin located upstream from the current river segment. Columns: \hfill 
+$cnsilver150300=cnmale150300$, \hfill 
+$cnsilver300450=cnmale300450$ + cnfemale300450$, \hfill 
+$cnsilver450600= cnmale450600 + cnfemale450600$, \hfill 
+$cnsilver600750=cnfemale600750$, \hfill 
+$cnsilver750=cnfemale750$.\\
+\midrule  
+Reference & Mateo M., Beaulaton L., Drouineau H., Díaz E., and Briand C. (2021).  Eel density analysis (EDA 2.3). Escapement of silver eels (\textit{Anguilla anguilla}) from French, Spanish and Portugese rivers. GT4 - deliverable E4.1.1.\\
+\bottomrule 
+\end{tabular} 
+\end{minipage} 
+\clearpage
+\phantomsection 
+\addcontentsline{toc}{section}{delta tr}
+\noindent \textcolor{bluesudo}{\rule{\textwidth}{.3mm}}\\ 
+\vspace*{-5mm} \\ 
+\begin{minipage}{.45\linewidth} 
+\begin{flushleft} 
+{\LARGE\textcolor{navysudo}{delta\_tr}} 
+\end{flushleft} 
+\end{minipage} 
+\begin{minipage}{.45\linewidth} 
+\begin{flushright} 
+Probability of presence \\ of eels ($\widehat{\Delta}$) transported
+\end{flushright} 
+\end{minipage} \\ 
+\vspace*{-2mm} 
+\noindent \textcolor{bluesudo}{\rule{\textwidth}{.3mm}}\\ 
+\begin{figure}[H]
+\begin{center} 
+\includegraphics[width=0.8\textwidth]{delta_tr.png}
+\end{center} 
+\end{figure}
+\begin{minipage}[c]{\textwidth}
+\begin{tabular}{p{3cm}p{12cm}}
+\toprule  
+Description & Prediction of the delta model for the presence of eels transported from other basins or river segments. Presence probability fitted by the mixed model delta for transport: \hfill
+$d>0 \sim ef\_wetted\_area + ef\_fishingmethod + (1|sec tor)$.\\
+\midrule  
+Reference & Mateo M., Beaulaton L., Drouineau H., Díaz E., and Briand C. (2021).  Eel density analysis (EDA 2.3). Escapement of silver eels (\textit{Anguilla anguilla}) from French, Spanish and Portugese rivers. GT4 - deliverable E4.1.1.\\
+\bottomrule 
+\end{tabular} 
+\end{minipage} 
+\clearpage
+\phantomsection 
+\addcontentsline{toc}{section}{gamma tr}
+\noindent \textcolor{bluesudo}{\rule{\textwidth}{.3mm}}\\ 
+\vspace*{-5mm} \\ 
+\begin{minipage}{.45\linewidth} 
+\begin{flushleft} 
+{\LARGE\textcolor{navysudo}{gamma\_tr}} 
+\end{flushleft} 
+\end{minipage} 
+\begin{minipage}{.45\linewidth} 
+\begin{flushright} 
+Density when eel is present $\Gamma$ transported (\si{\ind\per\square\meter})
+\end{flushright} 
+\end{minipage} \\ 
+\vspace*{-2mm} 
+\noindent \textcolor{bluesudo}{\rule{\textwidth}{.3mm}}\\ 
+\begin{figure}[H]
+\begin{center} 
+\includegraphics[width=0.8\textwidth]{gamma_tr.png}
+\end{center} 
+\end{figure}
+\begin{minipage}[c]{\textwidth}
+\begin{tabular}{p{3cm}p{12cm}}
+\toprule  
+Description & Prediction of the gamma model for the density of eels transported when present (\si{\ind\per\square\meter}) from other basins or river segments. Positive presence values fitted with a mixed model for transported areas: \hfill
+$d \sim ef\_wetted\_area + (1|sec tor)$.\\
+\midrule  
+Reference & Mateo M., Beaulaton L., Drouineau H., Díaz E., and Briand C. (2021).  Eel density analysis (EDA 2.3). Escapement of silver eels (\textit{Anguilla anguilla}) from French, Spanish and Portugese rivers. GT4 - deliverable E4.1.1.\\
+\bottomrule 
+\end{tabular} 
+\end{minipage} 
+\clearpage
+\phantomsection 
+\addcontentsline{toc}{section}{density tr}
+\noindent \textcolor{bluesudo}{\rule{\textwidth}{.3mm}}\\ 
+\vspace*{-5mm} \\ 
+\begin{minipage}{.45\linewidth} 
+\begin{flushleft} 
+{\LARGE\textcolor{navysudo}{density\_tr}} 
+\end{flushleft} 
+\end{minipage} 
+\begin{minipage}{.45\linewidth} 
+\begin{flushright} 
+Density of eels transported (\si{\ind\per\square\meter})
+\end{flushright} 
+\end{minipage} \\ 
+\vspace*{-2mm} 
+\noindent \textcolor{bluesudo}{\rule{\textwidth}{.3mm}}\\ 
+\begin{figure}[H]
+\begin{center} 
+\includegraphics[width=0.8\textwidth]{density_tr.png}
+\end{center} 
+\end{figure}
+\begin{minipage}[c]{\textwidth}
+\begin{tabular}{p{3cm}p{12cm}}
+\toprule  
+Description & Density of eels (\si{\ind\per\square\meter}) transported from other basins or river segments predicted by the delta-gamma models. Density (\si{\eel\per\square\metre}) from the transport model: $densitytr = delta\_tr * gamma\_tr$.\\
+\midrule  
+Reference & Mateo M., Beaulaton L., Drouineau H., Díaz E., and Briand C. (2021).  Eel density analysis (EDA 2.3). Escapement of silver eels (\textit{Anguilla anguilla}) from French, Spanish and Portugese rivers. GT4 - deliverable E4.1.1.\\
+\bottomrule 
+\end{tabular} 
+\end{minipage} 
+\clearpage
+\phantomsection 
+\addcontentsline{toc}{section}{density pmax tr}
+\noindent \textcolor{bluesudo}{\rule{\textwidth}{.3mm}}\\ 
+\vspace*{-5mm} \\ 
+\begin{minipage}{.45\linewidth} 
+\begin{flushleft} 
+{\LARGE\textcolor{navysudo}{density\_pmax\_tr}} 
+\end{flushleft} 
+\end{minipage} 
+\begin{minipage}{.45\linewidth} 
+\begin{flushright} 
+Density max - transport \\ and EDA model  (\si{\ind\per\square\meter})
+\end{flushright} 
+\end{minipage} \\ 
+\vspace*{-2mm} 
+\noindent \textcolor{bluesudo}{\rule{\textwidth}{.3mm}}\\ 
+\begin{figure}[H]
+\begin{center} 
+\includegraphics[width=0.8\textwidth]{density_pmax_tr.png}
+\end{center} 
+\end{figure}
+\begin{minipage}[c]{\textwidth}
+\begin{tabular}{p{3cm}p{12cm}}
+\toprule  
+Description & Density set as the maximum of $density\_tr$ (density from transport model) and density (density from EDA model). If a river segment is near the sea, then it will have a high density and this value will be selected. Far upstream, the predicted density will be low, and the results from the transport model will be larger than "natural" density, so this value will be selected.\\
+\midrule  
+Reference & Mateo M., Beaulaton L., Drouineau H., Díaz E., and Briand C. (2021).  Eel density analysis (EDA 2.3). Escapement of silver eels (\textit{Anguilla anguilla}) from French, Spanish and Portugese rivers. GT4 - deliverable E4.1.1.\\
+\bottomrule 
+\end{tabular} 
+\end{minipage} 
+\clearpage
+\phantomsection 
+\addcontentsline{toc}{section}{neel pmax tr}
+\noindent \textcolor{bluesudo}{\rule{\textwidth}{.3mm}}\\ 
+\vspace*{-5mm} \\ 
+\begin{minipage}{.45\linewidth} 
+\begin{flushleft} 
+{\LARGE\textcolor{navysudo}{neel\_pmax\_tr}} 
+\end{flushleft} 
+\end{minipage} 
+\begin{minipage}{.45\linewidth} 
+\begin{flushright} 
+Number of eel (max) - tranport \\ and EDA model
+\end{flushright} 
+\end{minipage} \\ 
+\vspace*{-2mm} 
+\noindent \textcolor{bluesudo}{\rule{\textwidth}{.3mm}}\\ 
+\begin{figure}[H]
+\begin{center} 
+\includegraphics[width=0.8\textwidth]{nyellow_pmax_tr.png}
+\end{center} 
+\end{figure}
+\begin{minipage}[c]{\textwidth}
+\begin{tabular}{p{3cm}p{12cm}}
+\toprule  
+Description & Number of eel calculated from $density\_pmax\_tr$.\\
+\midrule  
+Reference & Mateo M., Beaulaton L., Drouineau H., Díaz E., and Briand C. (2021).  Eel density analysis (EDA 2.3). Escapement of silver eels (\textit{Anguilla anguilla}) from French, Spanish and Portugese rivers. GT4 - deliverable E4.1.1.\\
+\bottomrule 
+\end{tabular} 
+\end{minipage} 
+\clearpage
+\phantomsection 
+\addcontentsline{toc}{section}{nsilver pmax tr}
+\noindent \textcolor{bluesudo}{\rule{\textwidth}{.3mm}}\\ 
+\vspace*{-5mm} \\ 
+\begin{minipage}{.45\linewidth} 
+\begin{flushleft} 
+{\LARGE\textcolor{navysudo}{nsilver\_pmax\_tr}} 
+\end{flushleft} 
+\end{minipage} 
+\begin{minipage}{.45\linewidth} 
+\begin{flushright} 
+Number of silver (max) - tranport \\ and EDA model
+\end{flushright} 
+\end{minipage} \\ 
+\vspace*{-2mm} 
+\noindent \textcolor{bluesudo}{\rule{\textwidth}{.3mm}}\\ 
+\begin{figure}[H]
+\begin{center} 
+\includegraphics[width=0.8\textwidth]{nsilver_pmax_tr.png}
+\end{center} 
+\end{figure}
+\begin{minipage}[c]{\textwidth}
+\begin{tabular}{p{3cm}p{12cm}}
+\toprule  
+Description & Number of silver eel using $density\_pmax\_transport$ to compute silver eel biomass. The number will be higher in upper sectors, or above dams where natural density will be low, but we will then use the average density predicted by the transport model for that sector.\\
+\midrule  
+Reference & Mateo M., Beaulaton L., Drouineau H., Díaz E., and Briand C. (2021).  Eel density analysis (EDA 2.3). Escapement of silver eels (\textit{Anguilla anguilla}) from French, Spanish and Portugese rivers. GT4 - deliverable E4.1.1.\\
+\bottomrule 
+\end{tabular} 
+\end{minipage} 
+\clearpage
+\phantomsection 
+\addcontentsline{toc}{section}{sector tr}
+\noindent \textcolor{bluesudo}{\rule{\textwidth}{.3mm}}\\ 
+\vspace*{-5mm} \\ 
+\begin{minipage}{.45\linewidth} 
+\begin{flushleft} 
+{\LARGE\textcolor{navysudo}{sector\_tr}} 
+\end{flushleft} 
+\end{minipage} 
+\begin{minipage}{.45\linewidth} 
+\begin{flushright} 
+Name of the sector with transport
+\end{flushright} 
+\end{minipage} \\ 
+\vspace*{-2mm} 
+\noindent \textcolor{bluesudo}{\rule{\textwidth}{.3mm}}\\ 
+\begin{figure}[H]
+\begin{center} 
+\includegraphics[width=0.8\textwidth]{sector_tr.png}
+\end{center} 
+\end{figure}
+\begin{minipage}[c]{\textwidth}
+\begin{tabular}{p{3cm}p{12cm}}
+\toprule  
+Description & Name of the transport sector identified during the data selection process. Transport sector corresponds to basins upstream or around the transport sector, where either a glass transport operation has been reported, or where several eel catches indicate that eels have been transported in sectors far upstream (in general > 150 \si{\meter} of cumulated height of dams).The value corresponds to the name of the sector or other for remaining points where eels are found above 150 \si{\meter} cumulated height of dams. In the case of "other" correspond then to single river segment. A column $year\_tr$ included in the RNE table but not displayed in this Atlas gives the information on the year of transport when available.\\
+\midrule  
+Reference & Mateo M., Beaulaton L., Drouineau H., Díaz E., and Briand C. (2021).  Eel density analysis (EDA 2.3). Escapement of silver eels (\textit{Anguilla anguilla}) from French, Spanish and Portugese rivers. GT4 - deliverable E4.1.1.\\
+\bottomrule 
+\end{tabular} 
+\end{minipage} 
+\clearpage
+\phantomsection 
+\addcontentsline{toc}{section}{neel wd}
+\noindent \textcolor{bluesudo}{\rule{\textwidth}{.3mm}}\\ 
+\vspace*{-5mm} \\ 
+\begin{minipage}{.45\linewidth} 
+\begin{flushleft} 
+{\LARGE\textcolor{navysudo}{neel\_wd}} 
+\end{flushleft} 
+\end{minipage} 
+\begin{minipage}{.45\linewidth} 
+\begin{flushright} 
+Number of eels \\ prediction without dam
+\end{flushright} 
+\end{minipage} \\ 
+\vspace*{-2mm} 
+\noindent \textcolor{bluesudo}{\rule{\textwidth}{.3mm}}\\ 
+\begin{figure}[H]
+\begin{center} 
+\includegraphics[width=0.8\textwidth]{nyellow_wd.png}
+\end{center} 
+\end{figure}
+\begin{minipage}[c]{\textwidth}
+\begin{tabular}{p{3cm}p{12cm}}
+\toprule  
+Description & Number of eels predicted by the EDA model assuming that: \hfill
+1) there would have been no dam (without dam-wd) and \hfill 
+2) the year of prediction is the same as other predictions (2015). \hfill
+Eels correspond to the eel standing stock and therefore include both yellow and silver eels.\\
+\midrule  
+Reference & Mateo M., Beaulaton L., Drouineau H., Díaz E., and Briand C. (2021).  Eel density analysis (EDA 2.3). Escapement of silver eels (\textit{Anguilla anguilla}) from French, Spanish and Portugese rivers. GT4 - deliverable E4.1.1.\\
+\bottomrule 
+\end{tabular} 
+\end{minipage} 
+\clearpage
+\phantomsection 
+\addcontentsline{toc}{section}{beel wd}
+\noindent \textcolor{bluesudo}{\rule{\textwidth}{.3mm}}\\ 
+\vspace*{-5mm} \\ 
+\begin{minipage}{.45\linewidth} 
+\begin{flushleft} 
+{\LARGE\textcolor{navysudo}{beel\_wd}} 
+\end{flushleft} 
+\end{minipage} 
+\begin{minipage}{.45\linewidth} 
+\begin{flushright} 
+Biomass of eels \\ prediction without dam (\si{\kilogram})
+\end{flushright} 
+\end{minipage} \\ 
+\vspace*{-2mm} 
+\noindent \textcolor{bluesudo}{\rule{\textwidth}{.3mm}}\\ 
+\begin{figure}[H]
+\begin{center} 
+\includegraphics[width=0.8\textwidth]{byellow_wd.png}
+\end{center} 
+\end{figure}
+\begin{minipage}[c]{\textwidth}
+\begin{tabular}{p{3cm}p{12cm}}
+\toprule  
+Description & Biomass of eels (\si{\kilogram}) predicted by the EDA model assuming that: \hfill 
+1) there would have been no dam (without dam - wd) and \hfill 
+2) that stock would have been at its maximum (1985). \hfill
+Eels correspond to the eel standing stock and therefore include both yellow and silver eels.\\
+\midrule  
+Reference & Mateo M., Beaulaton L., Drouineau H., Díaz E., and Briand C. (2021).  Eel density analysis (EDA 2.3). Escapement of silver eels (\textit{Anguilla anguilla}) from French, Spanish and Portugese rivers. GT4 - deliverable E4.1.1.\\
+\bottomrule 
+\end{tabular} 
+\end{minipage} 
+\clearpage
+\phantomsection 
+\addcontentsline{toc}{section}{nsilver wd}
+\noindent \textcolor{bluesudo}{\rule{\textwidth}{.3mm}}\\ 
+\vspace*{-5mm} \\ 
+\begin{minipage}{.45\linewidth} 
+\begin{flushleft} 
+{\LARGE\textcolor{navysudo}{nsilver\_wd}} 
+\end{flushleft} 
+\end{minipage} 
+\begin{minipage}{.45\linewidth} 
+\begin{flushright} 
+Number of silver eels \\ prediction without dam
+\end{flushright} 
+\end{minipage} \\ 
+\vspace*{-2mm} 
+\noindent \textcolor{bluesudo}{\rule{\textwidth}{.3mm}}\\ 
+\begin{figure}[H]
+\begin{center} 
+\includegraphics[width=0.8\textwidth]{nsilver_wd.png}
+\end{center} 
+\end{figure}
+\begin{minipage}[c]{\textwidth}
+\begin{tabular}{p{3cm}p{12cm}}
+\toprule  
+Description & Number of silver eels predicted by EDA without dams (wd). The model calibrated for this version of EDA (2.3) is run by setting dam heights to zero. This number represents the potential eel spatial distribution. It might not accurately describe the production of eels in the basins as reopening migration access might lower the density in the downstream sectors.\\
+\midrule  
+Reference & Mateo M., Beaulaton L., Drouineau H., Díaz E., and Briand C. (2021).  Eel density analysis (EDA 2.3). Escapement of silver eels (\textit{Anguilla anguilla}) from French, Spanish and Portugese rivers. GT4 - deliverable E4.1.1.\\
+\bottomrule 
+\end{tabular} 
+\end{minipage} 
+\clearpage
+\phantomsection 
+\addcontentsline{toc}{section}{bsilver wd}
+\noindent \textcolor{bluesudo}{\rule{\textwidth}{.3mm}}\\ 
+\vspace*{-5mm} \\ 
+\begin{minipage}{.45\linewidth} 
+\begin{flushleft} 
+{\LARGE\textcolor{navysudo}{bsilver\_wd}} 
+\end{flushleft} 
+\end{minipage} 
+\begin{minipage}{.45\linewidth} 
+\begin{flushright} 
+Biomass of silver eels \\ prediction without dams (\si{\kilogram})
+\end{flushright} 
+\end{minipage} \\ 
+\vspace*{-2mm} 
+\noindent \textcolor{bluesudo}{\rule{\textwidth}{.3mm}}\\ 
+\begin{figure}[H]
+\begin{center} 
+\includegraphics[width=0.8\textwidth]{bsilver_wd.png}
+\end{center} 
+\end{figure}
+\begin{minipage}[c]{\textwidth}
+\begin{tabular}{p{3cm}p{12cm}}
+\toprule  
+Description & Biomass of silver eels (\si{\kilogram})predicted by the EDA model assuming that: \hfill
+1) there would have been no dam (without dam - wd) and \hfill
+2) that stock would have been at its maximum (1985).\\
+\midrule  
+Reference & Mateo M., Beaulaton L., Drouineau H., Díaz E., and Briand C. (2021).  Eel density analysis (EDA 2.3). Escapement of silver eels (\textit{Anguilla anguilla}) from French, Spanish and Portugese rivers. GT4 - deliverable E4.1.1.\\
+\bottomrule 
+\end{tabular} 
+\end{minipage} 
+\clearpage
+\phantomsection 
+\addcontentsline{toc}{section}{is current distribution area}
+\noindent \textcolor{bluesudo}{\rule{\textwidth}{.3mm}}\\ 
+\vspace*{-5mm} \\ 
+\begin{minipage}{.45\linewidth} 
+\begin{flushleft} 
+{\LARGE\textcolor{navysudo}{is\_current\_distribution\_area}} 
+\end{flushleft} 
+\end{minipage} 
+\begin{minipage}{.45\linewidth} 
+\begin{flushright} 
+Current distribution area
+\end{flushright} 
+\end{minipage} \\ 
+\vspace*{-2mm} 
+\noindent \textcolor{bluesudo}{\rule{\textwidth}{.3mm}}\\ 
+\begin{figure}[H]
+\begin{center} 
+\includegraphics[width=0.8\textwidth]{is_current_distribution_area.png}
+\end{center} 
+\end{figure}
+\begin{minipage}[c]{\textwidth}
+\begin{tabular}{p{3cm}p{12cm}}
+\toprule  
+Description & If there are eels in a river segment, the river segment is part of the current eel distribution area ($is_current_distribution_area=TRUE$). The limit is fixed to river segments where delta model (probability to find a eel in an electrofishing event) $delta$ is lower than 1 \%. Use delta>0.01 to get that result. These data have been made available to the \href{http://www.fao.org/gfcm/news/detail/en/c/1294637/}{eel GFCM research project}.\\
+\midrule  
+Reference & Mateo M., Beaulaton L., Drouineau H., Díaz E., and Briand C. (2021).  Eel density analysis (EDA 2.3). Escapement of silver eels (\textit{Anguilla anguilla}) from French, Spanish and Portugese rivers. GT4 - deliverable E4.1.1.\\
+\bottomrule 
+\end{tabular} 
+\end{minipage} 
+\clearpage
+\phantomsection 
+\addcontentsline{toc}{section}{is pristine distribution area 1985}
+\noindent \textcolor{bluesudo}{\rule{\textwidth}{.3mm}}\\ 
+\vspace*{-5mm} \\ 
+\begin{minipage}{.45\linewidth} 
+\begin{flushleft} 
+{\LARGE\textcolor{navysudo}{is\_pristine\_distribution\_area\_1985}} 
+\end{flushleft} 
+\end{minipage} 
+\begin{minipage}{.45\linewidth} 
+\begin{flushright} 
+Pristine habitat
+\end{flushright} 
+\end{minipage} \\ 
+\vspace*{-2mm} 
+\noindent \textcolor{bluesudo}{\rule{\textwidth}{.3mm}}\\ 
+\begin{figure}[H]
+\begin{center} 
+\includegraphics[width=0.8\textwidth]{is_pristine_distribution_area_1985.png}
+\end{center} 
+\end{figure}
+\begin{minipage}[c]{\textwidth}
+\begin{tabular}{p{3cm}p{12cm}}
+\toprule  
+Description & If the river segment is part of the putative pristine distribution area. An arbitrary choice was made to use the delta prediction without dam in 1985. As for the current distribution, the limit has been fixed to $delta$ is lower than 1 \%. This fits the distribution predicted by Clavero and Hermoso (2015), using historical data. Some of the missing parts are just streams currently disconnected from the river network. These data have been made available to the \href{http://www.fao.org/gfcm/news/detail/en/c/1294637/}{eel GFCM research project}.\\
+\midrule  
+Reference & Clavero M., and Hermoso V. 2015. Historical data to plan the recovery of the European eel. Journal of Applied Ecology, 52): 960-968 pp.\\
+\bottomrule 
+\end{tabular} 
+\end{minipage} 
+
+\end{document}
+

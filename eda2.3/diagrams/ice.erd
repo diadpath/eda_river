@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<diagram version="1" name="ice.erd" time="201910150956">
+	<entities>
+		<data-source id="postgres-jdbc-161945da597-4c06b64296e77a6f">
+			<entity id="1" name="structure_obstacle" fq-name="ice.structure_obstacle" order="0" x="454" y="190">
+				<path name="ice"/>
+				<path name="eda2.3"/>
+			</entity>
+			<entity id="2" name="turbine_usine_hydrolelectrique" fq-name="ice.turbine_usine_hydrolelectrique" order="1" x="416" y="660">
+				<path name="ice"/>
+				<path name="eda2.3"/>
+			</entity>
+			<entity id="3" name="turbine" fq-name="ice.turbine" order="2" x="661" y="817">
+				<path name="ice"/>
+				<path name="eda2.3"/>
+			</entity>
+			<entity id="4" name="prise_eau" fq-name="ice.prise_eau" order="3" x="82" y="246">
+				<path name="ice"/>
+				<path name="eda2.3"/>
+			</entity>
+			<entity id="5" name="obstacle_operation_ice" fq-name="ice.obstacle_operation_ice" order="4" x="795" y="71">
+				<path name="ice"/>
+				<path name="eda2.3"/>
+			</entity>
+			<entity id="6" name="operation_ice" fq-name="ice.operation_ice" order="5" x="1132" y="75">
+				<path name="ice"/>
+				<path name="eda2.3"/>
+			</entity>
+		</data-source>
+	</entities>
+	<notes/>
+	<relations>
+		<relation name="fk_prise_eau_structure_obstacle" fq-name="ice.prise_eau.fk_prise_eau_structure_obstacle" type="fk" pk-ref="1" fk-ref="4"/>
+		<relation name="fk_turbine_usine_hydroelectrique_turbine" fq-name="ice.turbine_usine_hydrolelectrique.fk_turbine_usine_hydroelectrique_turbine" type="fk" pk-ref="3" fk-ref="2"/>
+		<relation name="fk_turbine_usine_hydroelectrique_prise_eau" fq-name="ice.turbine_usine_hydrolelectrique.fk_turbine_usine_hydroelectrique_prise_eau" type="fk" pk-ref="4" fk-ref="2"/>
+		<relation name="fk_operation_ice_obstacle_operation_ice" fq-name="ice.operation_ice.fk_operation_ice_obstacle_operation_ice" type="fk" pk-ref="5" fk-ref="6"/>
+	</relations>
+</diagram>

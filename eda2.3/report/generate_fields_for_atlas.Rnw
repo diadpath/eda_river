@@ -1,0 +1,879 @@
+% this document must be run using knitr + latex
+% it writes (for the beginning of work) then reads the fileds3.xlsx file to build the river Atlas
+\documentclass[pdftex,12pt,a4paper,svgnames]{report}
+\usepackage[UTF8]{inputenc} %encodage du fichier source
+\usepackage[T1]{fontenc}  %gestion des accents (pour les pdf) 
+\usepackage{lmodern} %
+\usepackage[pdftex]{graphicx}
+%\addto\captionsfrench{\def\tablename{Tableau}}
+\usepackage{float}
+%h	Place the float here, i.e., approximately at the same point it occurs in the source text (however, not exactly at the spot)
+%t	Position at the top of the page.
+%b	Position at the bottom of the page.
+%p	Put on a special page for floats only.
+%!	Override internal parameters LaTeX uses for determining "good" float positions.
+%H	Places the float at precisely the location in the LaTeX code. Requires the float package,[1] e.g., \usepackage{float}. This is somewhat equivalent to h!.
+%\renewcommand{\headrulewidth}{0pt}
+% http://texblog.org/2011/01/27/add-your-logo-to-the-title-page/ Specifier	Permission
+\usepackage[section]{placeins} %The placeins package provides the command \FloatBarrier
+\usepackage{wrapfig}
+\usepackage{rotating}
+\usepackage[table,usenames,dvipsnames]{xcolor}
+\usepackage{booktabs}
+\usepackage{color}
+\usepackage[font={it}]{caption} % pour des legendes en italique
+\usepackage{tcolorbox} % pour la page de titres
+\usepackage{adjustbox} % within table pictures
+% definiton de couleurs "custom"
+\definecolor{graysudo}{RGB}{45,47,44}
+\definecolor{bleu}{RGB}{16,18,138}
+\definecolor{navysudo}{RGB}{23,45,147}
+\definecolor{orangesudo}{RGB}{219,87,24}
+\definecolor{orangesudolight}{RGB}{243,191,149}
+\definecolor{bluesudo}{RGB}{0,184,205}
+\definecolor{bluesudolight}{RGB}{115,228,255}
+\definecolor{bluesudodeep}{RGB}{0,134,166}
+\definecolor{greensudo}{RGB}{146,194,0}
+\definecolor{grisbleu}{RGB}{62,59,132}
+\definecolor{lightgray}{gray}{0.95}
+\usepackage[left=3cm, right=3cm, top=2cm, bottom=2cm]{geometry}
+\geometry{dvips,a4paper,hmargin=2.5cm,vmargin=2.5cm}
+\setcounter{secnumdepth}{10}
+\usepackage{hyperref} %gestion des hyperliens
+\usepackage{glossaries}
+%\deftranslation{Glossary}{Glossaire} % remove for english version
+\renewcommand*{\glstextformat}[1]{\textcolor{grisbleu}{#1}}
+\newcommand{\HRule}{\rule{\linewidth}{0.5mm}} % cette commande est pour creer un ligne il faut la preceder de noident
+% recommended,[toc]=> glossary in the table of contents
+%\hypersetup{pdfstartview <- XYZ} %zoom par d�faut
+\hypersetup{
+     backref =  true,    %permet d'ajouter des liens dans...
+     pagebackref = true,%...les bibliographies
+     hyperindex = true, %ajoute des liens dans les index.
+     colorlinks = true, %colorise les liens
+     breaklinks = true, %permet le retour a la ligne dans les liens trop longs
+     urlcolor= grisbleu,  %couleur des hyperliens
+     linkcolor= navysudo, %couleur des liens internes(change box color with
+     % linkbordercolor)
+     filecolor = magenta,      % color of file links 
+     citecolor =  grisbleu,
+     bookmarks =  true,  %cr�� des signets pour Acrobat
+     bookmarksopen =  true,            %si les signets Acrobat sont crees,
+                                    %les afficher compl�tement.
+     pdftitle =  {Atlas of European Eel Distribution \textit{(Anguilla
+     anguilla)} in Portugal, Spain and France},
+     %informations apparaissant dans
+     pdfauthor =  {M. Mateo, H. Drouineau, H. Pella, L. Beaulaton, E. Amilhat,
+     A. Bardonnet, I. Domingos, C. Fernández-Delgado, R. J. De Miguel Rubio, M.
+     Herrera, M. Korta, L. Zamora, E. Diaz, C. Briand},
+     %dans les informations du document
+     pdfsubject =  {SUDOANG EU project GT1 Product 1.1},          %sous Acrobat
+     pdfkeywords =  {"eel,atlas,distribution"}
+}
+
+
+\usepackage{siunitx}
+\sisetup{
+round-mode = places, % nombre de décimales apres la virgule
+round-precision = 3
+}%
+\DeclareSIUnit{\silver}{Silver}
+\DeclareSIUnit{\yellow}{Yellow}
+\DeclareSIUnit{\eel}{eel}
+\DeclareSIUnit{\ind}{Ind.}
+\graphicspath{{../../EDAdata/report2.3/images/}}
+
+\usepackage{caption} % pour les subfigures http://en.wikibooks.org/wiki/LaTeX/Floats,_Figures_and_Captions
+\usepackage{subcaption} % pour les subfigures
+\addto{\captionsfrench}{\renewcommand{\abstractname}{Executive Summary}}
+\usepackage[abs]{overpic}
+\usepackage{relsize} % pour pouvoir utiliser \\relsize{-2} pour des subscripts dans les captions
+
+\newcommand{\HRule}{\rule{\linewidth}{0.5mm}} % cette commande est pour créer un ligne il faut la précéder de noident
+
+\usepackage{tikz}
+\usetikzlibrary{shapes,arrows}
+\usepackage{textcomp} % commercial R
+
+%\usepackage{transparent} % pour avoir des couleurs transparentes dans les
+
+%\newcommand*\chapterlabel{}
+%\titleformat{\chapter}
+%  {\gdef\chapterlabel{}
+%   \normalfont\sffamily\Large\bfseries\scshape}
+%  {\gdef\chapterlabel{\thechapter\ }}{0pt}
+%  {\begin{tikzpicture}[remember picture,overlay]
+%    \node[yshift =  -3cm] at (current page.north west)
+%      {\begin{tikzpicture}[remember picture, overlay]
+%        \draw[fill=LightSkyBlue] (0,0) rectangle
+%          (\paperwidth,8cm);
+%        \node[anchor=east,xshift=.8\paperwidth,rectangle,
+%              rounded corners=10pt,inner sep=11pt,
+%              fill=bluesudolight]
+%              {\color{white}\chapterlabel#1};
+%       \end{tikzpicture}
+%      };
+%   \end{tikzpicture}
+%  }
+%\titlespacing*{\chapter}{0pt}{50pt}{-30pt}
+%\addto{\captionsfrench}{\renewcommand{\bibname}{R�f�rences bibliographiques}}
+%\addto{\captionsfrench}{\renewcommand{\abstractname}{R�sum�}}
+%\addto{\captionsfrench}{\renewcommand{\glossaryname}{Glossaire}}
+%\addto{\captionsfrench}{\renewcommand{\tablename}{Tableau}}
+% to set the width of figures by default
+%\setkeys{Gin}{width=0.8\textwidth}{}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%\usepackage{fancyhdr}
+%\renewcommand{\headrulewidth}{0.4pt}
+%\thispagestyle{fancyplain}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% FIN DU CHARGEMENT DES PACKAGE
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\input{../report2.3/EDA_glossary.tex}
+\makeglossaries
+\begin{document}
+%\SweaveOpts{concordance=TRUE}
+
+% title page of the report
+\begin{titlepage}
+\pagecolor{graysudo}
+\newgeometry{margin=0cm}
+
+%\addtolength{\oddsidemargin}{0cm}
+%\addtolength{\evensidemargin}{0cm}
+\hspace*{-0.5cm}
+\includegraphics[width=\paperwidth]{rn2.jpg};
+
+%\vspace*{0cm}
+
+%\textcolor{white}{\HRule}\\
+\begin{center}
+\begin{minipage}{0.8\textwidth}
+\begin{tcolorbox}[arc=1ex, colback=bluesudodeep, colframe=greensudo,
+left=1.5pt,right=1.5pt, top=1.5pt, bottom=1.5pt]
+\begin{center}
+ \vspace{4mm}
+ \Huge
+\textcolor{graysudo}{\textbf{Atlas of European Eel Distribution
+\\\textit{(Anguilla anguilla)}} \\in Portugal, Spain and France}\\
+\Large {\color{greensudo}{GT1 Product 1.1\\}}
+ \vspace{4mm}
+\end{center}
+\end{tcolorbox}
+\end{minipage}
+%\textcolor{white}{\HRule}%
+\\[2.7cm]
+
+
+
+{\begin{tikzpicture}[remember picture, overlay]
+      \node[inner sep=0, opacity=0.9] (image) at (1cm,0cm) % X Y from center (as
+      % we are in centered env) node here on the left first letter
+      {\includegraphics[width=10cm]{mondego.png}}; 
+      \end{tikzpicture}} 
+{\begin{tikzpicture}[remember picture, overlay]
+      \node[anchor=south west,inner sep=0,opacity=1] (image) at (-2cm,-1cm) % -2cm (to the left of center)
+      {\includegraphics[width=3cm]{logoSUDOANG.png}}; 
+      \end{tikzpicture}}\\
+\vfill
+\begin{center}
+\begin{minipage}{0.8\textwidth}
+\large{
+\color{bluesudolight}{\itshape{M. Mateo (1), H. Drouineau (2), H. Pella (2),
+L. Beaulaton (2, 3), E. Amilhat (4), A. Bardonnet
+(2),I. Domingos (5), C. Fernández-Delgado (6), R. J.
+De Miguel Rubio (6), M. Herrera (6), M. Korta (1), L. Zamora (7),
+E. Díaz (1), C. Briand (8)\\}}}
+\color{greensudo}{(1) AZTI, (2) INRAe, (3) OFB, (4) University of Perpignan,
+(5) FCUL/MARE, (6) University of Córdoba, (7) University of Girona, (8)
+EPTB-Vilaine}%
+\end{minipage}
+\end{center}
+\\[0.5cm]
+
+
+\color{orangesudolight}\LARGE{{May 2021- EDA2.3.0}}
+\end{center}
+\vspace*{1cm}
+\restoregeometry
+\end{titlepage}
+\pagebreak
+\restoregeometry
+\pagecolor{white}
+\tableofcontents
+\pagebreak
+
+<<launch, echo=FALSE, include=FALSE>>=
+require(knitr)
+opts_knit$set(base.dir="C:/workspace/EDAdata/report2.3/images/")
+#opts_knit$set(message=FALSE, warnings=FALSE, error=FALSE)
+
+
+options(sqldf.RPostgreSQL.user = "postgres", 
+		sqldf.RPostgreSQL.password = passwordlocal,
+		sqldf.RPostgreSQL.dbname = "eda2.3",
+		sqldf.RPostgreSQL.host = "localhost",#  1.100.1.6
+		sqldf.RPostgreSQL.port = 5432)
+
+library("tidyverse")
+library("RPostgreSQL")
+library("sqldf")
+library("readxl")
+library("writexl")
+library("kableExtra")
+library("pander")
+
+ddatawd <- "C:/workspace/EDAdata/report2.3/data/"
+
+
+#str <- "~!@#$%^&*(){}_+:<>?\r\n,./;'[]-\\"
+# sanitize(str)
+sanitize <- function(str) {
+	str <- gsub("\\r\\n","",str)
+#	str <- stringi::stri_replace_all_fixed(str, c("\\"),
+#			c("\\\\"),vectorize_all=FALSE)	
+	
+#	str <- stringi::stri_replace_all_fixed(str, c("{","}"),
+#			c("\\{","\\}"),vectorize_all=FALSE)	
+	str <- stringi::stri_replace_all_fixed(str, c("#","$","%","&","~","_","^"),
+			c("\\#","\\$","\\%","\\&","\\~{}","\\_","\\^{}"),vectorize_all=FALSE)
+	return(str)
+}
+
+
+@
+
+  
+
+
+<<fields_generate, echo=FALSE, include=FALSE, eval=FALSE>>=
+# first we will generate a list of columns with four fields
+
+#field
+#order
+#name
+#description
+
+
+fields <- sqldf("select * from dbeel_rivers.rn_rna limit 1")
+colnames(fields)
+df <- data.frame("field"=colnames(fields),order=1:ncol(fields),name=colnames(fields), description="insert description here",image=str_c(colnames(fields),".png"))
+
+write_xlsx(df, str_c(ddatawd,"fields.xlsx"))
+
+@
+
+<<read_fields, echo=FALSE, include=FALSE>>=
+# fields3
+fields2 <- read_excel(str_c(ddatawd,"fields3.xlsx"))
+stopifnot(!any(duplicated(fields2$order)))
+fields2 <- fields2[order(fields2$order),]
+fields2$reference[!is.na(fields2$reference)]<- sanitize(fields2$reference[!is.na(fields2$reference)])
+fields2$reference2[!is.na(fields2$reference2)]<- fields2$reference2[!is.na(fields2$reference2)]
+fields2$reference[is.na(fields2$reference)]<- "$$"
+
+@
+
+% Introduction page -------------------------------------
+
+\arrayrulecolor{greensudo}
+\renewcommand{\arraystretch}{1.5} % Default value: 1
+\begin{center}
+\Huge\textsc{\textbv{Introduction}}\\
+\end{center}
+\vspace*{5cm}
+
+The SUDOANG project aims at providing common tools to managers to support eel
+conservation in the SUDOE area (Spain, France and Portugal). VISUANG is the
+SUDOANG Interactive Web Application that will host all these tools. The
+application consists of an eel distribution atlas (GT1), assessments of
+mortalities caused by turbines and an atlas showing obstacles to migration
+(GT2), estimates of recruitment and exploitation rate (GT3) and
+escapement (chosen as a target by the EC for the Eel Management Plans) (GT4).
+In addition, it will include an interactive map showing sampling results from
+the pilot basin network produced by GT6.
+
+The eel abundance for the eel atlas and escapement has been obtained using
+the Eel Density Analysis model (EDA, GT4's product). EDA extrapolates the
+abundance of eel in sampled river segments to other segments taking into
+account how the abundance, sex and size of the eels change depending on
+different parameters
+\href{https://www.youtube.com/watch?v=uS5sehcH7Uc&ab_channel=SUDOANG}{(model
+summary)}. Thus, EDA requires two main data sources: those related to the river
+characteristics and those related to eel abundance and characteristics.
+
+However, in both cases, data availability was uneven in the SUDOE area. In
+addition, this information was dispersed among several managers and in
+different formats due to different sampling sources: Water Framework Directive
+(WFD), Community Framework for the Collection, Management and Use of Data in
+the Fisheries Sector (EUMAP), Eel Management Plans, research groups, scientific
+papers and technical reports. Therefore, the first step towards having eel
+abundance estimations including the whole SUDOE area, was to have a joint river
+and eel database. In this report we will describe the database corresponding
+to the river’s characteristics in the SUDOE area and the eel abundances and
+their characteristics.
+
+In the case of rivers, two types of information has been collected: 
+\begin{itemize}
+\item \textbf{River topology (RN table)}: a compilation of data on rivers and
+their topological and hydrographic characteristics in the three countries.
+\item \textbf{River attributes (RNA table)}: contains physical attributes that
+have fed the SUDOANG models.
+\end{itemize}
+
+The estimation of eel abundance and characteristic (size, biomass, sex-ratio and
+silver) distribution at different scales (river segment, basin, Eel Management Unit
+(EMU), and country) in the SUDOE area obtained with the implementation of the
+EDA2.3 model has been compiled in \textbf{the RNE table (eel predictions)}.
+
+For each dataset (RN, RNA, RNE), a table has been developed and is
+described in this report.
+
+\clearpage
+
+
+%---------------------------------------------------------------
+% header page of the report (RN) 
+%----------------------------------------------------------------
+\pagecolor{graysudo}
+\newgeometry{margin=0cm}
+%\addtolength{\oddsidemargin}{0cm}
+%\addtolength{\evensidemargin}{0cm}
+\hspace*{-0.7cm}
+\includegraphics[width=\paperwidth]{RN.jpg};
+\vspace*{0cm}%
+%\textcolor{white}{\HRule}\\
+\begin{center}
+\begin{minipage}{0.8\textwidth}
+\begin{tcolorbox}[arc=1ex, colback=bluesudodeep, colframe=greensudo,
+left=2pt,right=2pt, top=2pt, bottom=2pt]
+\begin{center}
+ \vspace{8mm}
+ \Huge
+\textcolor{graysudo}{\textbf{River network}} \textcolor{greensudo}{\textbf{RN}}
+\textcolor{graysudo}{\textbf{table}}\\
+\huge {\color{greensudo}{Part 1 - river topology\\}}
+ \vspace{8mm}
+ \end{center}
+\end{tcolorbox}
+\end{minipage}
+\end{center}
+%\textcolor{white}{\HRule}%
+\vspace*{5cm}
+\begin{center}
+{\begin{tikzpicture}[remember picture, overlay]
+      \node[inner sep=0,opacity=0.9] (image) at (1cm,0cm) % X Y from center (as we are in centered env)
+      % node here on the left first letter
+      {\includegraphics[width=10cm]{mondego.png}}; 
+      \end{tikzpicture}} 
+{\begin{tikzpicture}[remember picture, overlay]
+      \node[anchor=south west,inner sep=0,opacity=1] (image) at (-2cm,-1cm) % -2cm (to the left of center)
+      {\includegraphics[width=5cm]{logoSUDOANG.png}}; 
+      \end{tikzpicture}}
+\vfill
+\vspace*{5cm}
+\end{center}
+\pagebreak
+
+
+\restoregeometry
+\pagecolor{white}
+
+% --- starting automated table
+
+
+
+\arrayrulecolor{greensudo}
+\renewcommand{\arraystretch}{1.5} % Default value: 1
+
+% RN -------------------------------------
+\begin{center}
+\Huge\textsc{\textbv{The RN table: River topology}}\\
+\phantomsection \label{RN}
+\addcontentsline{toc}{part}{The RN table}
+\end{center}
+\vspace*{5cm}
+
+EDA 2.3 extrapolates the abundance of eel in sampled river
+segments to other segments taking into account how the abundance, sex and size
+of the eels change depending on different parameters. Thus EDA extrapolations
+rely heavily in geographical data (topological and hydrographic
+characteristics) and this information has been compiled in the RN table.
+
+The previous EDA 2.0 version was based on the Catchment Characterisation and
+Modelling (CCM), a database that contains information on rivers on a European
+scale (Vogt et al., 2007)\footnote{Vogt, J., Soille, P., de Jager, A.,
+Rimaviciute, E., Mehl, W., Foisneau, S., Bodis, K., Dusart, J., Paracchini, M.,
+Haastrup, P., and Bamps, C. 2007. A pan-European river and catchment database.
+Technical report, Joint Research Celanntre-Institute for Environment and
+Sustainability, Luxembourg.}, which can be very useful to implement a common
+model in different countries. However,
+its resolution leaves a lot of eel habitat out. So for this new implementation
+of EDA it was decided to use other layers as they had several advantages.
+The European Directive for Infrastructure for Spatial Information in
+Europe (INSPIRE)
+\href{https://eur-lex.europa.eu/legal-content/EN/TXT/PDF/?uri=CELEX:32007L0002&from=EN}{(Directive
+2007/2/EC)} lays down the mandatory general rules for the establishment of an
+Infrastructure for Spatial Information in the European Community based on the
+infrastructure of the Member States. To ensure that the spatial data
+infrastructures of the Member States are compatible and interoperable in a
+community and cross-border context, the Directive requires the adoption of
+common implementing rules specific for data, metadata and services. The
+\href{https://data.europa.eu/euodp/en/data/dataset/jrc-10109-layer)}{INSPIRE
+layer register} contains all the harmonised layers, as defined in the
+"COMMISSION REGULATION (EU) No 1089/2010 of 23 November 2010 implementing the
+INSPIRE Directive. Accordingly, in Spain
+\href{https://sig.mapama.gob.es/Docs/PDFServiciosProd2/RiosPfafs.pdf}{(MAPAMA,
+2017)} and Portugal
+\href{https://sniambgeoportal.apambiente.pt/geoportal/catalog/search/resource/details.page?uuid={613E780E-052A-4183-99E5-6100D5663081}}{(APA,
+2019)} the river network developed for INPSPIRE was used. For France, it was
+decided to rely on the Theoretical Hidrographic Network (RHT) developed by
+Pella et al. (2012)\footnote{Pella, H., Lejot J., Lamouroux N., and Snelder T.
+2012. Le Réseau Hydrographique Théorique (RHT) Français et Ses Attributs
+Environnementaux (the Theoretical Hydrographical Network (RHT) for France and
+Its Environmental Attributes). Géomorphologie : Relief, Processus,
+Environnement. 18(3): 317-336 pp.} based in the hydrographic database proposed
+for INSPIRE Directive in France
+\href{http://www.geoinformations.developpement-durable.gouv.fr/bd-carthage-r363.html}{(Base
+de Données sur la CARtographie THématique des AGences de l’eau et du ministère
+chargé de l’environnement, BD Carthage ®, 2013)} because it provides many useful
+tools: a fully chained network, and most importantly the estimated flow which
+in turn allows to model flow at dam level and turbine mortality (see GT2 on
+estimation barrier-related mortality).
+
+However, in this river network layers the international rivers showed
+discontinuities between countries, so it was necessary to link the French,
+Portugese and Spanish river networks and chain them together (Figure
+\ref{figure:river_chain}).
+
+%==========================================================================
+\begin{figure}[htbp]
+  \begin{center}
+  \includegraphics[width=0.6\textwidth]{river_chain.png}
+  \caption[River network chain]{Example of a problem between the Spanish and
+  Portuguese river networks at the border. The Spanish (id1 and
+  id2) and Portuguese (target node) rivers were not linked.}
+  \label{figure:river_chain}
+  \end{center}
+\end{figure}
+%==========================================================================
+
+The RN table follows a hierarchical structure in which the data are organised
+into a tree-like structure, i.e. data are related in a parent-child manner, with
+the "parent table" as a single table in the database and "child tables" act as
+the branches flowing from the "parent table". The RN table is first created in
+the $dbeel\_rivers$ schema (which represents the logical configuration of the
+database and is supported by the database management system) and then "child
+tables" are created in schemas $france$, $spain$ and $portugal$ inheriting the
+the table structure from the $dbeel\_rivers$ schema (Figure
+\ref{figure:dbeel_rivers_rn}).
+
+%==========================================================================
+\begin{figure}[htbp]
+  \begin{center}
+  \includegraphics[width=0.6\textwidth]{dbeel_rivers_rn.png}
+  \caption[Hierarchical structure of database]{All data within the $france$,
+  $spain$ and $portugal$ schemas are also available at higer level in the
+  $dbeel\_rivers$ schema.}
+  \label{figure:dbeel_rivers_rn}
+  \end{center}
+\end{figure}
+%==========================================================================
+
+The result of this database structure is that even though intensive GIS
+calculations (e.g. search for the path between two river segments in the same
+basin) and corrections are made on each of the "child table" (that comes from
+schemas $france$, $spain$ and $portugal$), the EDA model connects directly to
+the 'parent' table of the $dbeel\_rivers$ schema to obtain data at the
+international level.
+
+Some useful spatial tools (e.g. a function calculating the distance between two
+river segments) are built on this dataset and described in
+\href{http://185.135.126.250/traceda/wiki/recipes\%20for\%20sudoang\%20database}{recipe
+for SUDOANG database}. They use the hierarchical structure to calculate rapidly
+the segments that are located upstream or downstream from one river segment.
+
+This document describes the main features of the RN table, and the names to
+which fields the column relate to in the original table.
+
+\vspace{2cm}
+
+<<rn_document,  echo=FALSE , results='asis'>>=
+
+for (i in 1:14){ # #nrow(fields2)
+	cat("\\clearpage\n")
+	cat(paste0("\\phantomsection \\n"))
+    cat(paste0("\\addcontentsline{toc}{section}{",sanitize(fields2$section[i]),"}\n"))
+	cat("\\noindent \\textcolor{greensudo}{\\rule{\\textwidth}{.3mm}}\\\\ \n")
+	cat("\\vspace*{-5mm} \\\\ \n")
+	cat(paste0(
+			"\\begin{minipage}{.45\\linewidth} \n",
+			"\\begin{flushleft} \n",	
+			"{\\LARGE\\textcolor{navysudo}{",sanitize(fields2$field[i]),"}} \n",
+			"\\end{flushleft} \n",
+			"\\end{minipage} \n",
+			"\\begin{minipage}{.45\\linewidth} \n",
+			"\\begin{flushright} \n",		
+			fields2$name[i],"\n",
+			"\\end{flushright} \n",
+			"\\end{minipage} \\\\ \n"
+	))
+    cat("\\vspace*{-2mm} \n")
+	cat("\\noindent \\textcolor{greensudo}{\\rule{\\textwidth}{.3mm}}\\\\ \n")
+	if (!is.na(fields2$image[i])){
+	cat(paste0("\\begin{figure}[H]\n",
+					"\\begin{center} \n",
+					"\\includegraphics[width=0.8\\textwidth]{",fields2$image[i],"}\n",
+					"\\end{center} \n",
+					"\\end{figure}\n"))
+}
+	# minipage with table inside for text
+	cat( paste0(	"\\begin{minipage}[c]{\\textwidth}\n",						
+						"\\begin{tabular}{p{3cm}p{12cm}}\n",
+						"\\toprule  \n",
+						"Description & ",fields2$description[i],"\\\\", "\n",
+						"\\midrule  \n",
+						"Reference & ",fields2$reference[i],"\\\\", "\n",
+						"\\bottomrule \n",						
+                        "\\end{tabular} \n",
+                        "\\end{minipage} \n"
+			))
+	
+}
+@
+\clearpage 
+%-------------------------------------------------------------------------
+%                        RNA 
+%-------------------------------------------------------------------------
+\pagecolor{graysudo}
+\newgeometry{margin=0cm}
+%\addtolength{\oddsidemargin}{0cm}
+%\addtolength{\evensidemargin}{0cm}
+\hspace*{-0.7cm}
+\includegraphics[width=\paperwidth]{rna.jpg};
+\vspace*{0cm}
+%\textcolor{white}{\HRule}\\
+\begin{center}
+\begin{minipage}{0.8\textwidth}
+\begin{tcolorbox}[arc=1ex, colback=bluesudodeep, colframe=orangesudolight,
+left=2pt,right=2pt, top=2pt, bottom=2pt]
+\begin{center}
+ \vspace{8mm}
+ \Huge
+ \textcolor{graysudo}{\textbf{River network attributes}} \\
+ \textcolor{orangesudolight}{\textbf{RNA}} \textcolor{graysudo}{\textbf{table}}\\
+\huge {\color{orangesudolight}{Part 2 - river physical characteristics \\}}
+ \vspace{8mm}
+\end{center}
+\end{tcolorbox}
+\end{minipage}
+\end{center}
+%\textcolor{white}{\HRule}%
+\vspace*{5cm}
+\begin{center}
+{\begin{tikzpicture}[remember picture, overlay]
+      \node[inner sep=0,opacity=0.9] (image) at (1cm,0cm) % X Y from center (as we are in centered env)
+      % node here on the left first letter
+      {\includegraphics[width=10cm]{mondego.png}}; 
+      \end{tikzpicture}} 
+{\begin{tikzpicture}[remember picture, overlay]
+      \node[anchor=south west,inner sep=0,opacity=1] (image) at (-2cm,-1cm) % -2cm (to the left of center)
+      {\includegraphics[width=5cm]{logoSUDOANG.png}}; 
+      \end{tikzpicture}}
+\vfill
+\vspace*{5cm}
+\end{center}
+
+\pagebreak
+\restoregeometry
+\pagecolor{white}
+\arrayrulecolor{orangesudo}
+\renewcommand{\arraystretch}{1.5} % Default value: 1
+
+
+
+\begin{center}
+\Huge\textsc{\textbv{The RNA table: River attributes}}\\
+\phantomsection \label{RNA}
+\addcontentsline{toc}{part}{The RNA table}
+\end{center}
+
+In addition to the geographical information compiled in the RN table,
+ physical parameters are needed to predict the eel distribution and
+abundance using the EDA model. The RNA table compiles these physical attributes.
+
+In the RNA table, information from different sources has been collected. However
+this variety of data source implies that these might in some cases difficult to
+compare among countries. More information can be gained in dataset like
+CCM (Vogt et al., 2007)\footnote{Vogt, J., Soille, P., de Jager, A., Rimaviciute, E., Mehl, W.,
+Foisneau, S., Bodis, K., Dusart, J., Paracchini, M., Haastrup, P., and Bamps,
+C. 2007. A pan-European river and catchment database. Technical report, Joint
+Research Centre-Institute for Environment and Sustainability, Luxembourg.} or
+the HydroATLAS (Linke et al., 2019)\footnote{Linke, S., Lehner, B., Ouellet
+Dallaire, C., Ariwi, J., Grill, G., Anand, M., Beames, P., Burchard-Levine, V.,
+Maxwell, S., Moidu, H., Tan, F., Thieme, M. 2019. Global hydro-environmental
+sub-basin and river reach characteristics at high spatial resolution. Scientific
+Data, 6: 283. DOI: 10.1038/s41597-019-0300-6}.\\
+
+In addition to collected parameters, the RNA table also contains estimated
+parameters:
+
+\begin{itemize}
+\item As the RNA table  allows chaining the rivers several cumulated variables are calculated
+starting from each estuary (cumulated height of dams
+$cumheightdam$, cumulated number of dams $cumnbdams$, distance to the sea $distanceseam$), 
+or from the source (upstream basin surface: $surfacebvm2$, $shreeve$ rank,
+$strahler$ rank, distance to the source: $distancesourcem$). 
+The modelling approach is described in the
+\href{http://185.135.126.250/traceda/wiki/recipes\%20for\%20sudoang\%20database}{EDA
+trac}.
+\item EDA extrapolates eel density from the electrofishing surveys to produce
+number of eels in the whole catchment. For this reason,
+it is necessary to estimate the surface of waters. We have developped methods in
+each national context to estimate river surface using
+\href{http://185.135.126.250/traceda/browser/eda/EDA_Rios/river_width.Rmd}{river
+width} and join these surface with those of 
+\href{http://185.135.126.250/traceda/browser/eda/EDA_Rios/water_surface.Rmd}{associated waterbodies}.
+\end{itemize}
+
+A special attention has been brought to dams because of their impact on
+migration and habitat available for eel. As a consequence, some of the
+information gathered in this project is similar to that compiled in 
+\href{https://amber.international/}{AMBER}, a project with which SUDOANG had a
+great
+\href{https://amber.international/amber-collaborates-with-european-project-sudoang/}{collaboration}.
+However, in SUDOANG it has been necessary to validate other types of obstacles
+(e.g. penstock pipes have been identified) and the associated heights to
+estimate the effect of obstacles on eel distribution. In addition, a consistent 
+and validated dataset on cumulated effect of dams in France
+has been compiled from three pre-existing different database (referential of
+flow obstacles:
+\href{https://www.data.gouv.fr/fr/datasets/les-referentiels-des-obstacles-a-lecoulement-sur-les-cours-deau-roe/}{ROE},
+information of ecological continuity:
+\href{https://professionnels.ofb.fr/en/node/731}{ICE} and flow
+obstruction database:
+\href{https://www.data.gouv.fr/es/datasets/obstacles-a-lecoulement-metropole/}{BDOE}).\\
+
+Finally, some data concerning dry rivers have been collated to the best of our
+knowledge with information at hand (data from the Spanish Ministry for
+ecological transition (MITECO) and satellite image data). During the project
+when computing width we realised that many streams were not actual rivers or
+flowing, and thus cannot be defined as habitat for eel. The very detailed
+dataset of basins in Spain relies on altitude to define river course, but a
+close examination revealed that most head stream did not contain any river
+path, even dry. Rivers located upstream from dry river segments have been
+considered as no habitat for eel. A river by river expertise has been
+carried in the Spanish Mediterranean by University of Cordoba. Still devising a
+database of "true" rivers and their temporal status for the whole Iberian
+Peninsula remains a challenge for the future.
+	
+
+<<rna_document,  echo=FALSE , results='asis'>>=
+# below I've tried to avoid page breaks by surrounding by a minipage... now we have page breaks before and
+# after which is not much better
+for (i in 15:41){ 
+	cat("\\clearpage\n")
+	cat(paste0("\\phantomsection\n"))
+	cat(paste0("\\addcontentsline{toc}{section}{",sanitize(fields2$section[i]),"}\n"))
+	cat("\\begin{minipage}[c]{\\textwidth}\n")		
+	cat("\\noindent \\textcolor{orangesudo}{\\rule{\\textwidth}{.3mm}}\\\\ \n")
+	cat("\\vspace*{-5mm} \\\\ \n")
+	cat(paste0(
+			"\\begin{minipage}{.45\\linewidth} \n",
+			"\\begin{flushleft} \n",	
+			"{\\LARGE\\textcolor{navysudo}{",sanitize(fields2$field[i]),"}} \n",
+			"\\end{flushleft} \n",
+			"\\end{minipage} \n",
+			"\\begin{minipage}{.45\\linewidth} \n",
+			"\\begin{flushright} \n",		
+			fields2$name[i],"\n",
+			"\\end{flushright} \n",
+			"\\end{minipage} \\\\ \n"
+	))
+    cat("\\vspace*{-2mm} \n")
+	cat("\\noindent \\textcolor{orangesudo}{\\rule{\\textwidth}{.3mm}}\\\\ \n")
+	if (!is.na(fields2$image[i])){
+	cat(paste0("\\begin{figure}[H]\n",
+					"\\begin{center} \n",
+					"\\includegraphics[width=0.8\\textwidth]{",fields2$image[i],"}\n",
+					"\\end{center} \n",
+					"\\end{figure}\n"))
+}
+	# minipage with table inside for text
+	# second line of reference
+	if (!is.na(fields2$reference2[i])){
+	second_reference <- str_c(
+						" & ",fields2$reference2[i],"\\\\", "\n")
+					} else {
+	second_reference <- ""						
+					}
+	
+	
+	cat( paste0(	"\\begin{minipage}[c]{\\textwidth}\n",						
+						"\\begin{tabular}{p{3cm}p{12cm}}\n",
+						"\\toprule  \n",
+						"Description & ",fields2$description[i],"\\\\", "\n",
+						"\\midrule  \n",
+						"Reference & ",sanitize(fields2$reference[i]),"\\\\", "\n",
+						second_reference,
+						"\\bottomrule \n",						
+                        "\\end{tabular} \n",
+                        "\\end{minipage} \n"
+			))
+	cat("\\end{minipage}\n")	
+	
+}
+@
+
+\clearpage 
+%-------------------------------------------------------------------------
+%                        RNE 
+%-------------------------------------------------------------------------
+\pagecolor{graysudo}
+\newgeometry{margin=0cm}
+%\addtolength{\oddsidemargin}{0cm}
+%\addtolength{\evensidemargin}{0cm}
+\hspace*{-0.7cm}
+\includegraphics[width=\paperwidth]{rne.jpg};
+\vspace*{0cm}
+%\textcolor{white}{\HRule}\\
+\begin{center}
+\begin{minipage}{0.8\textwidth}
+\begin{tcolorbox}[arc=1ex, colback=bluesudodeep, colframe=bluesudolight,
+left=2pt,right=2pt, top=2pt, bottom=2pt]
+\begin{center}
+ \vspace{8mm}
+ \Huge
+ \textcolor{graysudo}{\textbf{River network for eel}} \\
+ \textcolor{bluesudolight}{\textbf{RNE}} \textcolor{graysudo}{\textbf{table}}\\
+\huge {\color{bluesudolight}{Part 3 - eel predictions \\}}
+ \vspace{8mm}
+\end{center}
+\end{tcolorbox}
+\end{minipage}
+\end{center}
+%\textcolor{white}{\HRule}%
+\vspace*{5cm}
+\begin{center}
+{\begin{tikzpicture}[remember picture, overlay]
+      \node[inner sep=0,opacity=0.9] (image) at (1cm,0cm) % X Y from center (as we are in centered env)
+      % node here on the left first letter
+      {\includegraphics[width=10cm]{mondego.png}}; 
+      \end{tikzpicture}} 
+{\begin{tikzpicture}[remember picture, overlay]
+      \node[anchor=south west,inner sep=0,opacity=1] (image) at (-2cm,-1cm) % -2cm (to the left of center)
+      {\includegraphics[width=5cm]{logoSUDOANG.png}}; 
+      \end{tikzpicture}}
+\vfill
+\vspace*{5cm}
+\end{center}
+
+\pagebreak
+\restoregeometry
+\pagecolor{white}
+\arrayrulecolor{bluesudo}
+\renewcommand{\arraystretch}{1.5} % Default value: 1
+
+
+\begin{center}
+\Huge\textsc{\textbv{The RNE table: eel predictions}}\\
+\phantomsection \label{RNE}
+\addcontentsline{toc}{part}{The RNE table: eel predictions}
+\end{center}
+
+48.929 electrofishing operations have been compiled, 36.053 containing
+size data and 1.690 with silvering information.
+Electrofishing stations have been projected using the RN spatial table.
+Finally EDA2.3 has been implemented. It uses a model to extrapolate the eel
+characteristics collected from electrofishing operations to the
+rest of the basin taking into account the variables listed in the RN and RNA
+tables. The RNE table details the estimates of eel abundance and
+characteristics at the river segment level for the
+reference year 2015, in three different data subsets:
+\begin{itemize}
+\item Eel presence and density data. EDA2.3 model multiplies a delta $\Delta$
+model (a presence absence model) by a gamma $\Gamma$ model (which calculates
+densities for positive presence values) to estimate density: $\widehat{d_{i}}$
+in a given river segment ($i$). From these models, the number of eel
+($\widehat{N_i}$) estimated per river segment corresponds to the product of
+density, river water surface $\Psi_i$ and temporal status of the rivers $T_i$
+($T_i=0$ for temporal rivers).
+$$ \widehat{N}_{i} = \Delta_{i} \Gamma_{i} \Psi_i T_i = \widehat{d_{i}}\Psi_i T_i $$
+\item Data relative to size structure of eel ($\tau$ size class of eels).
+Following the number per size class for eel, EDA 2.3 predicts the proportion of
+each size class $\widehat{P_\tau}$ using a multinomial model:
+$$\widehat{N_{\tau,i}} = \widehat{N_{i}} \widehat{P_\tau} \\$$
+\item Data relative to the silver eels. EDA2.3 predicts the percentage of
+silver eel per sex and size class using a multinomial model considering that eel
+fall in the following categories: $\varsigma$ silver male, silver female or
+yellow eel. The proportion of silver eel ( $P_{i \varsigma}$) also depends on
+the size class $\Pi_{\varsigma,\tau,i}$, a small eel has a larger chance to
+become a male, and a larger eel will always silver as a female. Thus the number
+of silver eels per size class per sex is estimaded as follows:
+$$ \widehat{Ns}_{\tau,\varsigma, i}=\widehat{\Pi_{\varsigma,\tau,i}} \widehat{d_{\tau,i}} $$
+\item Data relative to the cumulated number of silver eels upstream from any
+given river segment j. Using the prediction of the number of silver eel, per
+sex, per size class it is possible to use river chaining to calculate the number of
+silver eels produced in the basin upstream from the segment
+$$
+\widehat{Ns}_{\tau,\varsigma, j}=\sum_{i\in j}\widehat{Ns}_{\tau,\varsigma, i}$$
+\item Other data, including the predictions without dams, the predictions using
+a separated model for places where eel have been translocated
+\end{itemize}
+
+
+<<rne_document,  echo=FALSE , results='asis'>>=
+
+for (i in 42:nrow(fields2)){ # #nrow(fields2)
+	cat("\\clearpage\n")
+	cat(paste0("\\phantomsection \n"))
+	cat(paste0("\\addcontentsline{toc}{section}{",sanitize(fields2$section[i]),"}\n"))
+	cat("\\noindent \\textcolor{bluesudo}{\\rule{\\textwidth}{.3mm}}\\\\ \n")
+	cat("\\vspace*{-5mm} \\\\ \n")
+	cat(paste0(
+			"\\begin{minipage}{.45\\linewidth} \n",
+			"\\begin{flushleft} \n",	
+			"{\\LARGE\\textcolor{navysudo}{",sanitize(fields2$field[i]),"}} \n",
+			"\\end{flushleft} \n",
+			"\\end{minipage} \n",
+			"\\begin{minipage}{.45\\linewidth} \n",
+			"\\begin{flushright} \n",		
+			fields2$name[i],"\n",
+			"\\end{flushright} \n",
+			"\\end{minipage} \\\\ \n"
+	))
+    cat("\\vspace*{-2mm} \n")
+	cat("\\noindent \\textcolor{bluesudo}{\\rule{\\textwidth}{.3mm}}\\\\ \n")
+	if (!is.na(fields2$image[i])){
+	cat(paste0("\\begin{figure}[H]\n",
+					"\\begin{center} \n",
+					"\\includegraphics[width=0.8\\textwidth]{",fields2$image[i],"}\n",
+					"\\end{center} \n",
+					"\\end{figure}\n"))
+}
+	# minipage with table inside for text
+	# second line of reference
+	if (!is.na(fields2$reference2[i])){
+	second_reference <- str_c(
+						" & ",sanitize(fields2$reference2[i]),"\\\\", "\n")
+					} else {
+	second_reference <- ""						
+					}
+	
+	
+	cat( paste0(	"\\begin{minipage}[c]{\\textwidth}\n",						
+						"\\begin{tabular}{p{3cm}p{12cm}}\n",
+						"\\toprule  \n",
+						"Description & ",fields2$description[i],"\\\\", "\n",
+						"\\midrule  \n",
+						"Reference & ",fields2$reference[i],"\\\\", "\n",
+						second_reference,
+						"\\bottomrule \n",						
+                        "\\end{tabular} \n",
+                        "\\end{minipage} \n"
+			))
+	
+}
+@
+\end{document}
+

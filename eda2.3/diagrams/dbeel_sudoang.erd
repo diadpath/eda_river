@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<diagram version="1" name="dbeel_sudoang.erd">
+	<entities>
+		<data-source id="postgres-jdbc-161945da597-4c06b64296e77a6f">
+			<entity id="1" name="observation_places" fq-name="dbeel.observation_places" order="0" color-bg="0,128,128" x="167" y="109">
+				<path name="dbeel"/>
+				<path name="eda2.3"/>
+			</entity>
+			<entity id="2" name="electrofishing" fq-name="dbeel.electrofishing" order="1" color-bg="64,128,128" x="155" y="339">
+				<path name="dbeel"/>
+				<path name="eda2.3"/>
+			</entity>
+			<entity id="3" name="biological_characteristic" fq-name="dbeel.biological_characteristic" order="2" color-bg="64,128,128" x="144" y="1036">
+				<path name="dbeel"/>
+				<path name="eda2.3"/>
+			</entity>
+			<entity id="4" name="batch" fq-name="dbeel.batch" order="3" color-bg="64,128,128" x="81" y="685">
+				<path name="dbeel"/>
+				<path name="eda2.3"/>
+			</entity>
+			<entity id="5" name="dbeel_batch_fish" fq-name="sudoang.dbeel_batch_fish" order="4" color-bg="0,0,160" x="615" y="688">
+				<path name="sudoang"/>
+				<path name="eda2.3"/>
+			</entity>
+			<entity id="6" name="dbeel_batch_ope" fq-name="sudoang.dbeel_batch_ope" order="5" color-bg="0,0,160" x="363" y="693">
+				<path name="sudoang"/>
+				<path name="eda2.3"/>
+			</entity>
+			<entity id="7" name="dbeel_electrofishing" fq-name="sudoang.dbeel_electrofishing" order="6" color-bg="0,0,160" x="617" y="348">
+				<path name="sudoang"/>
+				<path name="eda2.3"/>
+			</entity>
+			<entity id="8" name="dbeel_station" fq-name="sudoang.dbeel_station" order="7" color-bg="0,0,160" x="623" y="22">
+				<path name="sudoang"/>
+				<path name="eda2.3"/>
+			</entity>
+			<entity id="9" name="dbeel_mensurationindiv_biol_charac" fq-name="sudoang.dbeel_mensurationindiv_biol_charac" order="8" color-bg="0,0,160" x="496" y="1028">
+				<path name="sudoang"/>
+				<path name="eda2.3"/>
+			</entity>
+			<entity id="10" name="gt6_station" fq-name="sudoang.gt6_station" order="9" border-width="3" x="1071" y="544">
+				<path name="sudoang"/>
+				<path name="eda2.3"/>
+			</entity>
+		</data-source>
+	</entities>
+	<relations>
+		<relation name="sudoang.dbeel_station-&gt;dbeel.observation_places" fq-name="sudoang.dbeel_station.&quot;sudoang.dbeel_station-&gt;dbeel.observation_places&quot;" type="inheritance" pk-ref="1" fk-ref="8"/>
+		<relation name="sudoang.dbeel_electrofishing-&gt;dbeel.electrofishing" fq-name="sudoang.dbeel_electrofishing.&quot;sudoang.dbeel_electrofishing-&gt;dbeel.electrofishing&quot;" type="inheritance" pk-ref="2" fk-ref="7"/>
+		<relation name="dbeel.electrofishing-&gt;dbeel.observations" fq-name="dbeel.electrofishing.&quot;dbeel.electrofishing-&gt;dbeel.observations&quot;" type="inheritance" pk-ref="2" fk-ref="2">
+			<bend type="rel" x="372" y="602"/>
+			<bend type="rel" x="241" y="668"/>
+		</relation>
+		<relation name="sudoang.dbeel_mensurationindiv_biol_charac-&gt;dbeel.biological_characteristic" fq-name="sudoang.dbeel_mensurationindiv_biol_charac.&quot;sudoang.dbeel_mensurationindiv_biol_charac-&gt;dbeel.biological_characteristic&quot;" type="inheritance" pk-ref="3" fk-ref="9"/>
+		<relation name="sudoang.dbeel_batch_fish-&gt;dbeel.batch" fq-name="sudoang.dbeel_batch_fish.&quot;sudoang.dbeel_batch_fish-&gt;dbeel.batch&quot;" type="inheritance" pk-ref="4" fk-ref="5"/>
+		<relation name="sudoang.dbeel_batch_ope-&gt;dbeel.batch" fq-name="sudoang.dbeel_batch_ope.&quot;sudoang.dbeel_batch_ope-&gt;dbeel.batch&quot;" type="inheritance" pk-ref="4" fk-ref="6"/>
+		<relation name="fk_mensindivbiocho_bc_ba_id" fq-name="sudoang.dbeel_mensurationindiv_biol_charac.fk_mensindivbiocho_bc_ba_id" type="fk" pk-ref="5" fk-ref="9"/>
+		<relation name="c_fk_fi_ob_id" fq-name="sudoang.dbeel_batch_fish.c_fk_fi_ob_id" type="fk" pk-ref="7" fk-ref="5"/>
+		<relation name="c_fk_ba_ob_id" fq-name="sudoang.dbeel_batch_ope.c_fk_ba_ob_id" type="fk" pk-ref="7" fk-ref="6"/>
+		<relation name="fk_oo_op_id" fq-name="sudoang.dbeel_electrofishing.fk_oo_op_id" type="fk" pk-ref="8" fk-ref="7"/>
+	</relations>
+</diagram>

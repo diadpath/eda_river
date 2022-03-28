@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<diagram version="1" name="dbeel_sudoang-1.erd" time="201905111402">
+	<entities>
+		<data-source id="postgres-jdbc-1698ccd7f80-4a210a2b368ef128">
+			<entity id="1" name="dbeel_batch_fish" fq-name="sudoang.dbeel_batch_fish" order="0" x="454" y="199">
+				<path name="sudoang"/>
+				<path name="eda2.3"/>
+			</entity>
+			<entity id="2" name="dbeel_batch_ope" fq-name="sudoang.dbeel_batch_ope" order="1" x="433" y="473">
+				<path name="sudoang"/>
+				<path name="eda2.3"/>
+			</entity>
+			<entity id="3" name="dbeel_bypass" fq-name="sudoang.dbeel_bypass" order="2" x="167" y="98">
+				<path name="sudoang"/>
+				<path name="eda2.3"/>
+			</entity>
+			<entity id="4" name="dbeel_electrofishing" fq-name="sudoang.dbeel_electrofishing" order="3" x="674" y="330">
+				<path name="sudoang"/>
+				<path name="eda2.3"/>
+			</entity>
+			<entity id="5" name="dbeel_hpp" fq-name="sudoang.dbeel_hpp" order="4" x="323" y="64">
+				<path name="sudoang"/>
+				<path name="eda2.3"/>
+			</entity>
+			<entity id="6" name="dbeel_mensurationindiv_biol_charac" fq-name="sudoang.dbeel_mensurationindiv_biol_charac" order="5" x="71" y="187">
+				<path name="sudoang"/>
+				<path name="eda2.3"/>
+			</entity>
+			<entity id="7" name="dbeel_obstruction_place" fq-name="sudoang.dbeel_obstruction_place" order="6" x="930" y="40">
+				<path name="sudoang"/>
+				<path name="eda2.3"/>
+			</entity>
+			<entity id="8" name="dbeel_physical_obstruction" fq-name="sudoang.dbeel_physical_obstruction" order="7" x="631" y="19">
+				<path name="sudoang"/>
+				<path name="eda2.3"/>
+			</entity>
+			<entity id="9" name="dbeel_station" fq-name="sudoang.dbeel_station" order="8" x="946" y="224">
+				<path name="sudoang"/>
+				<path name="eda2.3"/>
+			</entity>
+			<entity id="10" name="dbeel_turbine" fq-name="sudoang.dbeel_turbine" order="9" x="164" y="27">
+				<path name="sudoang"/>
+				<path name="eda2.3"/>
+			</entity>
+		</data-source>
+	</entities>
+	<relations>
+		<relation name="fk_mensindivbiocho_bc_ba_id" fq-name="sudoang.dbeel_mensurationindiv_biol_charac.fk_mensindivbiocho_bc_ba_id" type="fk" pk-ref="1" fk-ref="6"/>
+		<relation name="c_fk_fi_ob_id" fq-name="sudoang.dbeel_batch_fish.c_fk_fi_ob_id" type="fk" pk-ref="4" fk-ref="1"/>
+		<relation name="c_fk_ba_ob_id" fq-name="sudoang.dbeel_batch_ope.c_fk_ba_ob_id" type="fk" pk-ref="4" fk-ref="2"/>
+		<relation name="dbeel_turbine -&gt; dbeel_hpp" type="erdkey" pk-ref="5" fk-ref="10"/>
+		<relation name="dbeel_bypass -&gt; dbeel_hpp" type="erdkey" pk-ref="5" fk-ref="3"/>
+		<relation name="c_fk_ob_op_id" fq-name="sudoang.dbeel_physical_obstruction.c_fk_ob_op_id" type="fk" pk-ref="7" fk-ref="8"/>
+		<relation name="c_fk_hpp_ob_id" fq-name="sudoang.dbeel_hpp.c_fk_hpp_ob_id" type="fk" pk-ref="8" fk-ref="5"/>
+		<relation name="fk_oo_op_id" fq-name="sudoang.dbeel_electrofishing.fk_oo_op_id" type="fk" pk-ref="9" fk-ref="4"/>
+	</relations>
+	<notes/>
+</diagram>

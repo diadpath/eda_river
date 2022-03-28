@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+
+<meta charset="utf-8" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="pandoc" />
+
+
+
+
+<title>slope</title>
+
+
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css">
+  pre:not([class]) {
+    background-color: white;
+  }
+</style>
+<script type="text/javascript">
+if (window.hljs) {
+  hljs.configure({languages: []});
+  hljs.initHighlightingOnLoad();
+  if (document.readyState && document.readyState === "complete") {
+    window.setTimeout(function() { hljs.initHighlighting(); }, 0);
+  }
+}
+</script>
+
+
+
+<style type="text/css">
+h1 {
+  font-size: 34px;
+}
+h1.title {
+  font-size: 38px;
+}
+h2 {
+  font-size: 30px;
+}
+h3 {
+  font-size: 24px;
+}
+h4 {
+  font-size: 18px;
+}
+h5 {
+  font-size: 16px;
+}
+h6 {
+  font-size: 12px;
+}
+.table th:not([align]) {
+  text-align: left;
+}
+</style>
+
+
+</head>
+
+<body>
+
+<style type="text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+code {
+  color: inherit;
+  background-color: rgba(0, 0, 0, 0.04);
+}
+img {
+  max-width:100%;
+  height: auto;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+.html-widget {
+  margin-bottom: 20px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+summary {
+  display: list-item;
+}
+</style>
+
+
+
+<div class="container-fluid main-container">
+
+<!-- tabsets -->
+
+<style type="text/css">
+.tabset-dropdown > .nav-tabs {
+  display: inline-table;
+  max-height: 500px;
+  min-height: 44px;
+  overflow-y: auto;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs > li.active:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li.active:before {
+  content: "";
+  border: none;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs > li.active {
+  display: block;
+}
+
+.tabset-dropdown > .nav-tabs > li > a,
+.tabset-dropdown > .nav-tabs > li > a:focus,
+.tabset-dropdown > .nav-tabs > li > a:hover {
+  border: none;
+  display: inline-block;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li {
+  display: block;
+  float: none;
+}
+
+.tabset-dropdown > .nav-tabs > li {
+  display: none;
+}
+</style>
+
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+
+$(document).ready(function () {
+  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+    $(this).parent().toggleClass('nav-tabs-open')
+  });
+});
+</script>
+
+<!-- code folding -->
+
+
+
+
+
+<div class="fluid-row" id="header">
+
+
+
+
+</div>
+
+
+<div id="section" class="section level1">
+<h1>—</h1>
+<p>title: “slope analysis” author: “Cedric and Maria and Mathilde” date: “03/03/2020” output: html_document: number_sections: true —</p>
+<pre class="r"><code>slope &lt;- sqldf(&quot;SELECT slope, country from dbeel_rivers.rn_rna&quot;)
+# this slope is indicated as per mille by Pella et al (2012)
+ggplot(slope)+ geom_density(aes(x=slope, fill=country), alpha=0.5)+ scale_x_continuous(limits=c(0,1))</code></pre>
+<pre><code>## Warning: Removed 52451 rows containing non-finite values (stat_density).</code></pre>
+<div class="figure">
+<img src="data:image/png;base64,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" alt="plot of chunk test" />
+<p class="caption">plot of chunk test</p>
+</div>
+<pre class="r"><code>tapply(slope$slope,slope$country,summary)</code></pre>
+<pre><code>## $FR
+##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max.    NA's 
+## 0.00000 0.00230 0.00700 0.01879 0.01710 0.91240      87 
+## 
+## $PT
+##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max.    NA's 
+##    0.00    0.03    0.07    0.09    0.12    0.41   49333 
+## 
+## $SP
+##     Min.  1st Qu.   Median     Mean  3rd Qu.     Max.     NA's 
+##  0.00000  0.05575  0.11393  0.17702  0.22226 10.00000        1</code></pre>
+<pre class="r"><code>summary(slope_france)</code></pre>
+<pre><code>##      slope        
+##  Min.   :0.00000  
+##  1st Qu.:0.00230  
+##  Median :0.00700  
+##  Mean   :0.01879  
+##  3rd Qu.:0.01710  
+##  Max.   :0.91240  
+##  NA's   :87</code></pre>
+</div>
+
+
+
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.header').parent('thead').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>
