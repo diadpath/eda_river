@@ -1,4 +1,5 @@
 
+
 -- sweden.rn definition
 
 -- Drop table
@@ -90,6 +91,9 @@ geom,
 isendoreic, 
 isinternational, 
 country)
+
+
+WITH rn0 AS (
 SELECT  
 w.fictitious fictitious,
 w.innetwork innetwork,
@@ -100,7 +104,21 @@ w.ogc_fid gid,
 'SW' || w.localid idsegment, 
 s.ogc_fid as source,
 e.ogc_fid as target,
-w."length" lengthm,
+w."length" lengthm
+FROM watercourselink w 
+JOIN  hydronode s on startnode=s.gml_id 
+JOIN hydronode e on endnode=e.gml_id
+)
+--SELECT * FROM rn0
+
+SELECT
+down."idsegment" as nextdownidsegment 
+from rn0 up
+left join rn0 down on down."source"=up.target;
+
+
+
+,
 null nextdownidsegment, 
 null "path", 
 null isfrontier, 
