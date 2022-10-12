@@ -744,6 +744,21 @@ geom FROM temp_ingril;--10
 
  */
 
-	
-* 
-*/
+/*
+ *  Production des lagunes méditerranéenes
+ */
+
+SELECT * FROM france.waterbody_unitbv wu 
+JOIN france.tr_lagunes l ON l.lag_id=wu.lag_id
+JOIN france.rne ON wu.ubv_idsegment = rne.idsegment
+
+
+
+
+WITH jj AS (
+SELECT DISTINCT ON (ubv_idsegment) neel, beel, nsilver,bsilver,lag_complexepeche  FROM france.waterbody_unitbv wu 
+JOIN france.tr_lagunes l ON l.lag_id=wu.lag_id
+JOIN france.rne ON wu.ubv_idsegment = rne.idsegment)
+SELECT  lag_complexepeche, round(sum(neel)) neel, round(sum(beel)) beel, round(sum(nsilver)) nsilver, round(sum(bsilver)) bsilver 
+FROM jj
+GROUP BY lag_complexepeche;

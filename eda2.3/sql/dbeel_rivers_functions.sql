@@ -1,11 +1,7 @@
-﻿
-
-
-/*
-get_path provides the path between two idsegments of the same basin
-*/
-  
- CREATE OR REPLACE FUNCTION dbeel_rivers.get_path(_from integer, _to integer, _country character varying)                           
+﻿/*
+* get_path provides the path between two idsegments of the same basin
+*/  
+CREATE OR REPLACE FUNCTION dbeel_rivers.get_path(_from integer, _to integer, _country character varying)                           
   RETURNS SETOF ltree                                                                                                               
   LANGUAGE plpgsql                                                                                                                  
  AS $function$                                                                                                                    
@@ -21,7 +17,7 @@ get_path provides the path between two idsegments of the same basin
  JOIN dbeel_rivers.rn r ON pt.edge = r.gid where r.country = _country order by seq) sub;                                          
                                                                                                                                   
  END                                                                                                                              
- $function$      
+ $function$;      
  
  
  -- EXAMPLE OF USE
@@ -55,8 +51,6 @@ $BODY$
   LANGUAGE plpgsql VOLATILE
   COST 100
   ROWS 1000;
-ALTER FUNCTION france.get_path(integer, integer)
-  OWNER TO postgres;
 
  -- DROP FUNCTION portugal.get_path(integer, integer);
 
@@ -81,8 +75,7 @@ $BODY$
   LANGUAGE plpgsql VOLATILE
   COST 100
   ROWS 1000;
-ALTER FUNCTION portugal.get_path(integer, integer)
-  OWNER TO postgres;
+
 
 
 
@@ -117,7 +110,7 @@ If you don't have to search an international basin, is best run in the rn.france
                  ON  parcours.idsegment = r1.nextdownidsegment)                                                                   
            SELECT idsegment FROM parcours;                                                                                        
  END                                                                                                                              
- $function$   
+ $function$;   
 COMMENT ON FUNCTION dbeel_rivers.upstream_segments_rn(text) IS 'Function to calculate upstream segments idsegment,
 attention this function is slower than national counterparts, check in schema spain portugal and france for quicker functions';
 
@@ -156,7 +149,7 @@ later use of routing functions (like get path) which require source and target
                  ON  parcours.source = r1.target)                                                                                 
            SELECT * FROM parcours;                                                                                                
  END                                                                                                                              
- $function$       
+ $function$;       
 
 /*
  dbeel_rivers.downstream_segments_rn_sti(TEXT) takes an upstream segment and a TABLE with idsegment, target, source, this in more convenient for
@@ -177,7 +170,7 @@ later use of routing functions (like get path) which require source and target
                          SELECT $1 )                                                                                              
            SELECT * FROM parcoursdown;                                                                                            
  END                                                                                                                              
- $function$   
+ $function$ ;  
  COMMENT ON FUNCTION dbeel_rivers.downstream_segments_rn(text) IS 'Function to calculate downstream segments idsegment';
 
 -- EXAMPLE 
@@ -201,7 +194,7 @@ later use of routing functions (like get path) which require source and target
                          SELECT $1 )                                                                                              
            SELECT * FROM parcoursdown;                                                                                            
  END                                                                                                                              
- $function$  
+ $function$ ; 
  
 
 
@@ -230,14 +223,14 @@ FROM (SELECT idsegment,lengthm FROM pgr_dijkstra(
 JOIN dbeel_rivers.rn r ON pt.edge = r.gid where r.country = _country order by seq) sub);
 END
 $BODY$
-  LANGUAGE plpgsql VOLATILE
+LANGUAGE plpgsql VOLATILE;
 
   
 -- EXAMPLES
-select  dbeel_rivers.get_distance (113670,114115,'FR'); --12669
+-- select  dbeel_rivers.get_distance (113670,114115,'FR'); --12669
  -- THE SAME WITH VECTORS
- with source as (select source from france.rn_rna where basin ='la sarthe de sa source au loir (nc) [M0]' limit 10)
-SELECT dbeel_rivers.get_distance(203073, source.source, 'FR') from source
+-- with source as (select source from france.rn_rna where basin ='la sarthe de sa source au loir (nc) [M0]' limit 10)
+-- SELECT dbeel_rivers.get_distance(203073, source.source, 'FR') from source
 
 
 

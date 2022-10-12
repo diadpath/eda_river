@@ -1,0 +1,1 @@
+select idwbu, w.ubv_idsegment, ubv_sudoang_category, density from france.waterbody_unitbv w JOIN france.rn_rna_rne r ON r.idsegment = w.ubv_idsegment
