@@ -442,4 +442,10 @@ GROUP BY gerem_zone_4);
 
 SELECT st_geometrytype(geom) FROM  eda_gerem.assoc_dbeel_rivers;
 
- 
+
+CREATE TABLE dbeel_rivers.rn_rivermouth AS SELECT * FROM eda_gerem.assoc_dbeel_rivers;
+--ALTER TABLE dbeel_rivers.rnrivermouth RENAME TO  rn_rivermouth;
+CREATE UNIQUE INDEX seaidsegment_pk ON dbeel_rivers.rn_rivermouth USING btree (seaidsegment);
+ALTER TABLE dbeel_rivers.rn_rivermouth ADD CONSTRAINT rivermouth_seaidsegment_pk PRIMARY KEY (seaidsegment);
+-- not possible to set foreign keys as nothing is in rn....
+

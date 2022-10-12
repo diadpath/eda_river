@@ -21,7 +21,7 @@ gdal_translate -a_nodata 0 -of GTiff F:\eda\shape\MERIT_hydro\selected\n35e000_w
 
 
 
--- attention ci dessous fonctionne dans une console dos pas dans powershell
+-- below works in dos console not powershell
 
 
 cd C:\workspace\EDAdata\dataEDAccm\shape\MERIT\
@@ -32,14 +32,14 @@ set PGPASSWORD=postgres
 set PGDATABASE=eda2.3
 raster2pgsql -s 4326 -t 6000x6000 -I -C -M *.tif raster_width.merit_width15x15 | psql
 */
+
+-- first checks and tests
+/*
 SELECT st_NumBands(rast) from raster_width.merit_width15x15
 SELECT * from raster_width.merit_width15x15 limit 10
 SELECT rast from raster_width.merit_width15x15 rr limit 10
 
 
-/* 
-premier test
-*/
 WITH selection as (
 SELECT * from spain.rn where idsegment='SP227983'),
 
@@ -51,13 +51,13 @@ select idsegment, st_value(rast,geom) as val FROM raster_width.merit_width15x15
 JOIN segmentized
 ON ST_Intersects(rast,geom)
 where st_value(rast,geom) >0)
-
+*/
 /*
-Ci dessous segmentized decoupe le tronçon suivant les points, mais je vois pas trop l'effet de max_segment_length
-renvoit toujours 57 lignes
+Below segmentized cut the segment according to length, but I don't really understand the effect of max_segment_length
+always returns 57 lines
 Returns a modified geometry having no segment longer than the given max_segment_length.
 Je prends la taille de pixel du raster  ?
-*/
+
 
 WITH selection as (
 SELECT * from spain.rn where idsegment='SP227983'),
@@ -67,10 +67,8 @@ SELECT * from spain.rn where idsegment='SP227983'),
 select * from segmentized
 
 
-/*
-en prenant tout
-*/
 
+-- using all => does not work
 CREATE TABLE raster_width.rnsubset as (
 
 WITH 	segmentized as (
@@ -83,7 +81,8 @@ WITH 	segmentized as (
 		where st_value(rast,geom) >0)
 
 	select idsegment, avg(val) AS width from joined GROUP BY idsegment
-); -- marche pas
+); 
+*/
 
 
 DROP TABLE IF EXISTs raster_width.rnsubset;
