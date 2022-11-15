@@ -1,101 +1,116 @@
 
--- segments that belong to watecourselinksequences 
-drop table if exists temp_downsegment;
-create table temp_downsegment as
-select w.centrelinegeometry , w.idsegment 
-from
-watercourselink w 
-left join
-watercourselink w2 on w.endnode_localid = w2.startnode_localid
-left join
-join_watercourse_link_sequence jwls on w.idsegment = jwls.idsegment
-left join 
-join_watercourse_link_sequence jwls2 on w2.idsegment = jwls2.idsegment
-where jwls.idsequence=jwls2.idsequence
 
--- attached those segements that do not have a nextidsegment in the same sequence
-drop table if exists missing_downsegment;
-create table missing_downsegment as
-with segments as (
-select a.idsegment  
+
+
+
+
+select count(*)
+from
+(SELECT array_agg(localid) over (partition by geometry order by geometry) all_localid, dense_rank() over (order by geometry) node
+FROM hydronode) a
+group by array_length(a.all_localid,1)
+
+/*
+|ogc_fid|gml_id|beginlifespanversion|localid|namespace|innetwork|hydronodecategory|geometry|node_id|all_localids|
+|-------|------|--------------------|-------|---------|---------|-----------------|--------|-------|------------|
+|287336|SE.LM.HY.f85f134f-df36-0032-8569-432f009e2d48|2015-12-04T07:49:15+01:00|f85f134f-df36-0032-8569-432f009e2d48|SE.LM.HY|||POINT (304139.889 6519233.771)|1187838|{f85f134f-df36-0032-8569-432f009e2d48}|
+|287331|SE.LM.HY.61237f14-26c5-5e84-3cd5-402fba5f8757|2015-04-27T13:18:56+02:00|61237f14-26c5-5e84-3cd5-402fba5f8757|SE.LM.HY|||POINT (304253.976 6518053.509)|1187841|{61237f14-26c5-5e84-3cd5-402fba5f8757}|
+|287301|SE.LM.HY.6b6bd385-2308-6fe9-80e9-01b37f9faca2|2015-04-27T13:18:56+02:00|6b6bd385-2308-6fe9-80e9-01b37f9faca2|SE.LM.HY|||POINT (304203.6 6513345.106)|1187858|{6b6bd385-2308-6fe9-80e9-01b37f9faca2}|
+*/
+select max(node_id), count(*)
+from 
+hydronode
+
+select idsegment, nextdownidsegment 
+from 
+segments_within_linksequence swl 
+union
+select idsegment, nextdownidsegment 
+from 
+segments_connecting_linksequences scl
+where nextdownidsegment is not null
+union
+select idsegment, nextdownidsegment 
+from 
+segments_connected_multiple_hydronode scmh
+
+select count(*)
+from 
+segments_within_linksequence swl 
+union
+select count(*) 
+from 
+segments_connecting_linksequences scl
+where nextdownidsegment is not null
+union
+select count(*) 
+from 
+segments_connected_multiple_hydronode scmh
+
+select count(*)
+from 
+segments_connecting_linksequences scl
+group by(streaming_rank)
+
+select count(*)  
 from (
 select 
 w3.idsegment
 from
 watercourselink w3
 except 
-select w.idsegment
+select idsegment
 from
-watercourselink w 
-left join
-watercourselink w2 on w.endnode_localid = w2.startnode_localid
-left join
-join_watercourse_link_sequence jwls on w.idsegment = jwls.idsegment
-left join 
-join_watercourse_link_sequence jwls2 on w2.idsegment = jwls2.idsegment
-where jwls.idsequence=jwls2.idsequence) a 
-)
-select distinct on (s.idsegment) *
-from
-(select 
-w5.centrelinegeometry, w5.idsegment idsegment, w6.idsegment nextdownidsegment
-from
-segments
-left join watercourselink w5 on segments.idsegment = w5.idsegment
-left join watercourselink w6 on w5.endnode_localid = w6.startnode_localid) s 
-order by s.idsegment; 
+segments_within_linksequence) a 
 
--- check how many of the missing_downsegment are null (676)
-select count(*)
-from missing_downsegment md 
-where nextdownidsegment is null
+select * from
+nextsegment_not_in_seq
+left join watercourselink w5 on nextsegment_not_in_seq.idsegment = w5.idsegment
+left join watercourselink w6 on w5.endnode_localid = w6.startnode_localid;
 
--- attach nextdownidsegments where startnode and endnode can be part of multiple hydronodes
-with S as
-(select *
-from
-(select idsegment 
-from missing_downsegment md 
-where nextdownidsegment is null) f
-left join watercourselink w on f.idsegment=w.idsegment 
-left join (select * from hydronode h where array_length(all_localids,1)>1) b on w.endnode_localid = any(b.all_localids))
-select count(*)--w2.idsegment 
-from
-S
-left join watercourselink w2 on w2.startnode_localid =any(S.all_localids)
-where w2.idsegment is not null
-;
 
-drop table if exists duplicate_nodes;
-create table duplicate_nodes as
-select w.centrelinegeometry geom_upstream, h.geometry geom_node, w2.centrelinegeometry geom_downstream, w.idsegment id_upstream, w2.idsegment id_downstream 
+select count(*) 
+from (
+select 
+w3.idsegment
 from
-(select idsegment 
-from missing_downsegment md 
-where nextdownidsegment is null) f
-left join watercourselink w on f.idsegment=w.idsegment 
-left join hydronode h on w.endnode_localid = h.localid 
-left join watercourselink w2 on w2.startnode_localid=any(h.all_localids)
-where array_length(h.all_localids,1)>1; 
+watercourselink w3
+except 
+select swl.idsegment
+from
+segments_within_linksequence swl
+except
+select scl.idsegment
+from
+segments_connecting_linksequences scl) a
+group by idsegment having(count(*) >=1)
 
-drop table if exists duplicate_nodes2;
-create table duplicate_nodes2 as
+select count(*) -- (1111129)
+from segments_within_linksequence swl 
+
+select count(*) -- (360 340)
+from segments_connecting_linksequences scl 
+
+select count(*) -- (1471469)
+from watercourselink w  
+
+select idsegment
+from (select idsegment, nextdownidsegment 
+from segments_within_linksequence swl
+union all
+select idsegment, nextdownidsegment
+from segments_connecting_linksequences scl) W
+group by idsegment having(count(*) >1)
+
+WITH groups AS (
+SELECT rank() over (partition by idsegment order by st_length(nextgeometry)) as rownb,
+*
+from segments_connected_multiple_hydronode scmh)
+select *
+from groups
+where rownb=1;
+
 select count(*)
 from
-(select h.geometry, array_agg(h.localid) 
-  from hydronode h 
-  left join hydronode h2 on ST_DWithin(h.geometry , h2.geometry, 1)
-group by h.geometry) a
-
--- Selection of groups of localids
-select array(select unnest(a.temp_localid) order by 1) as all_localid, row_number() over() node_id
-from
-(select
-array_agg(h2.localid) temp_localid
-FROM hydronode h
-join hydronode h2 on ST_DWithin(h.geometry,h2.geometry,10)
-group by h.localid) a
-group by all_localid;
-
-select max(node_id), count(*)
-from hydronode h 
+worksweden.rn w
+where w.idsegment 
