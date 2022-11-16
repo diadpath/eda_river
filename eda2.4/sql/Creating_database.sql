@@ -86,17 +86,11 @@ endnode text,
 startnode text
 )
 INHERITS (dbeel_rivers.rn);
-CREATE INDEX indexcountry ON worksweden.rn USING btree (country);
-CREATE INDEX indexidsegmentrrn ON worksweden.rn USING btree (idsegment);
-CREATE INDEX indexnextdownidsegmentrrn ON worksweden.rn USING btree (nextdownidsegment);
-CREATE INDEX indexsourcern ON worksweden.rn USING btree (source);
-CREATE INDEX indextargetrn ON worksweden.rn USING btree (target);
-CREATE INDEX rn_geom_ix ON worksweden.rn USING gist (geom);
-alter table worksweden.rn add constraint c_pk_idsegment primary key(idsegment);
 
 ----------------------------------
 -- populate worksweden.rn table --
 ----------------------------------
+
 
 -- populate worksweden.rn 
 insert into worksweden.rn (
@@ -107,10 +101,18 @@ endnode,
 startnode,
 gid,
 idsegment,
-nextdownidsegment 
---"source", 
---target 
---lengthm
+"source", 
+target, 
+nextdownidsegment, 
+--"path", 
+isfrontier 
+issource, 
+--seaidsegment, 
+--issea, 
+--geom, 
+--isendoreic, 
+--isinternational, 
+--country
 )
 select  
 w.fictitious,
@@ -120,14 +122,28 @@ w.endnode_localid,
 w.startnode_localid,
 w.ogc_fid,
 w.idsegment,
-tn.nextdownidsegment
---w."length"
+hm1.node_id,
+hm2.node_id,
+tn.nextdownidsegment,
+--w."length",
+wsf.isfrontier
 from 
 watercourselink w
 left join temp_nextdownidsegment tn on w.idsegment=tn.idsegment
+left join worksweden.frontier wsf on w.idsegment=wsf.idsegment
+left join hydronode_merged hm1 on w.startnode_localid=any(hm1.all_localid) 
+left join hydronode_merged hm2 on w.endnode_localid=any(hm2.all_localid) 
 --left JOIN  hydronode s on w.startnode_localid=s.localid 
 --left JOIN  hydronode s2 on w.endnode_localid=s2.localid;
 
+-- Add indexes and constraints on worksweden.rn 
+CREATE INDEX indexcountry ON worksweden.rn USING btree (country);
+CREATE INDEX indexidsegmentrrn ON worksweden.rn USING btree (idsegment);
+CREATE INDEX indexnextdownidsegmentrrn ON worksweden.rn USING btree (nextdownidsegment);
+CREATE INDEX indexsourcern ON worksweden.rn USING btree (source);
+CREATE INDEX indextargetrn ON worksweden.rn USING btree (target);
+CREATE INDEX rn_geom_ix ON worksweden.rn USING gist (geom);
+alter table worksweden.rn add constraint c_pk_idsegment primary key(idsegment);
 
 
 ---------------------------
@@ -380,8 +396,8 @@ from watercourselink w;
 -- obtain isfrontier --
 -----------------------
 drop table if exists worksweden.frontier;
-create table worksweden.frontier(country text, nextcountry text, isfrontier boolean, centerlinegeometry geometry);
-insert into worksweden.frontier(country, nextcountry, isfrontier, centerlinegeometry)
+create table worksweden.frontier(idsegment text, country text, nextcountry text, isfrontier boolean, centerlinegeometry geometry);
+insert into worksweden.frontier(idsegment, country, nextcountry, isfrontier, centerlinegeometry)
 with tt as (select  
 case 
 when w."namespace" = 'SE.LM.HY.NVE' then 'NO'
@@ -393,23 +409,103 @@ when w2."namespace" = 'SE.LM.HY.NVE' then 'NO'
 when w2."namespace" = 'SE.LM.HY.SYKE' then 'FI'
 when w2."namespace" = 'SE.LM.HY' then 'SW' 
 end as nextcountry,
-w.centrelinegeometry
+w.centrelinegeometry,
+w.idsegment 
 from 
 watercourselink w
 left JOIN  watercourselink w2 on w.endnode_localid =w2.startnode_localid)
 select 
+idsegment,
 country, 
 nextcountry, 
 country <> nextcountry as isfrontier,
 centrelinegeometry
 from tt
-where country<>nextcountry;
-
+where country <> nextcountry;
 -----------------------------
 ------------------------------
 
 
-------------
--- obtain --
--------------
+-------------------------------------
+-- obtain source  and target nodes --
+-------------------------------------
+--
+-- Use table hydronode_merged and watercourselink to find source and target
+drop table if exists temp_source_target;
+create table temp_source_target as
+with sourcenode as( -- find all sourcenodes from hydronode_merged and watercourselink
+select hm2.node_id, w2.idsegment, hm2.all_localid, w2.startnode_localid  
+from
+watercourselink w2, hydronode_merged hm2 
+where w2.startnode_localid = any(hm2.all_localid)), targetnode as ( -- find all targetnodes from hydronode_merged and watercourselink
+select hm2.node_id, w2.idsegment, hm2.all_localid, w2.startnode_localid  
+from
+watercourselink w2, hydronode_merged hm2 
+where w2.endnode_localid = any(hm2.all_localid)
+)
+select -- select idsegments, "source" and target from watercource link and temporary tables sourcenode and endnode. 
+w.idsegment, 
+s.node_id as "source", 
+t.node_id as target, 
+w.centrelinegeometry as sourcegeom
+from 
+watercourselink w
+left join sourcenode s on w.idsegment = s.idsegment
+left join targetnode t on w.idsegment = t.idsegment;
+
+---------------------
+-- obtain issource --
+---------------------
+--
+-- Use the difference in subsets of sourcenodes and targetnodes to find issource (the sources of the rivernetwork) 
+drop table if exists temp_issource;
+create table temp_issource as 
+select t.idsegment is not null issource --, sourcegeom
+from
+(select "source"
+from temp_source_target
+except
+select target
+from temp_source_target) a -- subset of sourcenodes that are not in the targetnode subset.
+left join
+temp_source_target t on a."source"=t."source"
+right join 
+watercourselink w on t.idsegment=w.idsegment;
+
+-------------------------
+-- obtain seaidsegment --
+-------------------------
+--
+-- Find segments connected to the sea. 
+-- These segments are found by connecting coastlines from Topografi 10(Lantmäteriet) spatially
+-- with segments in watercourse link. First create temporary table temp_coastline. Second,
+-- make a spatial join between endnodes of segments from watercourselink and linestrings from 
+-- temp_coastline.  
+drop table if exists temp_coastline; -- temporary coastline table
+create table temp_coastline as
+select *
+from 
+markkantlinje m
+where objekttyp in ('Strandlinje, hav','Stängning mot hav');
+CREATE INDEX geom_coast_idx ON temp_coastline USING gist (geom);
+
+
+drop table if exists temp_isseasegm; -- table including most downstream segments
+create table temp_isseasegm as
+select
+w2.idsegment,
+w2.centrelinegeometry, 
+isseasegments.idsegment is not null
+from watercourselink w2
+left join
+(select distinct
+w.idsegment 
+from
+watercourselink w
+inner join temp_coastline tc
+on ST_DWithin(ST_EndPoint(w.centrelinegeometry),tc.geom,0.5)) isseasegments 
+on w2.idsegment = isseasegments.idsegment
+where isseasegments.idsegment is not null;
+
+
 

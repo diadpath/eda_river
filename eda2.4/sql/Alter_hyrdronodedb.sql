@@ -49,11 +49,11 @@ order by merged_localids.node_id;
 ALTER TABLE hydronode_merged add primary key (node_id);
 create index idx_node_id on hydronode_merged(node_id);
 CREATE INDEX geom_idx ON hydronode_merged USING GIST (geometry);
+CREATE INDEX all_local_idx ON hydronode_merged(all_localid);
 
 -- create index
 create index idx_startnode_localid on watercourselink(startnode_localid);
 create index idx_endnode_localid on watercourselink(endnode_localid);
-
 
 
 ALTER TABLE watercourselink  ADD column startnode_localid varchar(50);
