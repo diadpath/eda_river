@@ -150,7 +150,7 @@ alter table worksweden.rn add constraint c_pk_idsegment primary key(idsegment);
 ---------------------------
 -- obtain nextdownidsegment 
 --
--- The hydrographic network forks both upstream and downstream. The dbeel.rivernetwork is branched only from the sea to the source.
+-- The hydrographic network forks both upstream and downstream. The dbeel.rivernetwork branches only from the sea to the source.
 -- Therefore, we create a network which branches upstreams only. To this end, we create three subtables and merge them:
 -- 1. segments_within_linksequence - segments where both upstream and downstream segments belong to the same sequence. 
 -- 2. segments_connecting_linksequences - selects shortest downstream segment of all possible downstream segments from a given segment that is not part of segments_within_linksequence
@@ -165,11 +165,11 @@ alter table worksweden.rn add constraint c_pk_idsegment primary key(idsegment);
 -- Unfortunately, for some of the raw data (watercourselink and watercourselinksequence) there
 -- are rounding differences in those two tables. Therefore, we can not simply join those two tables
 -- using a spatial join (ST_Intersection). Geometries are therefore rounded as a first step. 
-create table temp_watercourselink as
+create temporary table temp_watercourselink as
 select w.*, ST_ReducePrecision(centrelinegeometry, 0.1) round_geom
-from watercourselink w;
+from watercourselink_altered w;
 
-create table temp_watercourselinksequence as
+create temporary table temp_watercourselinksequence as
 select w.*, ST_ReducePrecision(wkb_geometry, 0.1) round_geom
 from watercourselinksequence  w;
 
@@ -179,7 +179,7 @@ CREATE index round_geom_WLS_idx on temp_watercourselinksequence using gist (roun
 
 -- create a table that links watercourse link and watercourse link sequence, i.e. which links are withing sequences.
 drop table if exists join_watercourse_link_sequence; 
-Create table join_watercourse_link_sequence AS
+Create temporary table join_watercourse_link_sequence AS
 select w.idsegment idsegment, w2.ogc_fid idsequence --  w2.centrelinegeometry segment, w.wkb_geometry "sequence", 
 from 
 temp_watercourselink w
@@ -193,7 +193,7 @@ CREATE INDEX on join_watercourse_link_sequence(idsequence);
 select idsegment, count(*)
 from join_watercourse_link_sequence jwls 
 group by idsegment
-HAVING count(*) > 1
+HAVING count(*) > 1;
 
 -- remove one watercourselinksequence which contains another watercourselinksequence(idsequence=304949)[this is error in the raw data]
 delete from
@@ -202,16 +202,18 @@ where idsequence =304949
 returning *;
 
 -- investigate segments where idsequences are null
-create table tempor as
+drop table if exists tempor;
+create temporary table tempor as
 select centrelinegeometry, w.idsegment 
 from 
-watercourselink w 
+watercourselink_altered w 
 left join
 join_watercourse_link_sequence jwls
 on w.idsegment = jwls.idsegment
 where jwls.idsequence is null;
 
 -- connect segments and sequences where there is a mismatch (Note! there is no watercourselinksequence associated to segment SW1313372)
+drop table if exists updated_watercourselinksequences;
 create table updated_watercourselinksequences as
 with A as(
 select *, st_length(st_intersection(t.centrelinegeometry,w.wkb_geometry)) L
@@ -230,14 +232,14 @@ set idsequence = uw.ogc_fid
 from updated_watercourselinksequences uw
 where jwls.idsegment = uw.idsegment; 
 
--- Find segments that belong to watecourselinksequences(1111130 segments) 
+-- Find segments that belong to watecourselinksequences(1098749 segments) 
 drop table if exists segments_within_linksequence;
 create table segments_within_linksequence as
 select w.centrelinegeometry , w.idsegment, w2.idsegment nextdownidsegment 
 from
-watercourselink w 
+watercourselink_altered w 
 left join
-watercourselink w2 on w.endnode_localid = w2.startnode_localid
+watercourselink_altered w2 on w.endnode_localid = w2.startnode_localid
 left join
 join_watercourse_link_sequence jwls on w.idsegment = jwls.idsegment
 left join 
@@ -256,13 +258,13 @@ where nextdownidsegment ='SW1313717';
 
 -- creat temporary table 1
 drop table if exists nextsegment_not_in_seq;
-create table nextsegment_not_in_seq as
+create temporary table nextsegment_not_in_seq as
 select a.idsegment  
 from (
 select 
 w3.idsegment
 from
-watercourselink w3
+watercourselink_altered w3
 except 
 select idsegment
 from
@@ -272,7 +274,7 @@ create index idx_idsegment on nextsegment_not_in_seq(idsegment); -- add index to
 
 -- creat temporary table 2
 drop table if exists joined_data;
-create table joined_data as
+create temporary table joined_data as
 select 
 w5.idsegment, 
 w6.idsegment nextdownidsegment,
@@ -281,15 +283,15 @@ w6.centrelinegeometry nextdowngeometry,
 w6."length" 
 from
 nextsegment_not_in_seq
-left join watercourselink w5 on nextsegment_not_in_seq.idsegment = w5.idsegment
-left join watercourselink w6 on w5.endnode_localid = w6.startnode_localid;
+left join watercourselink_altered w5 on nextsegment_not_in_seq.idsegment = w5.idsegment
+left join watercourselink_altered w6 on w5.target_node = w6.source_node;
 
 create index idx_idsegment_jd on joined_data(idsegment); -- add index to speed up data base
 create index idx_nextdownidsegment on joined_data(nextdownidsegment); -- add index to speed up data base
  
 -- Find segments where segments don´t belong to the same sequence (choose the shortest downstream segment)
 drop table if exists segments_connecting_linksequences;
-create table segments_connecting_linksequences as
+create temporary table segments_connecting_linksequences as
 WITH groups AS (
 SELECT idsegment,
 nextdownidsegment,
@@ -303,6 +305,14 @@ nextdownidsegment,
 SELECT * FROM groups
 WHERE groups.rownb = 1;
 
+select count(*)
+from segments_connecting_linksequences s
+where s.nextdownidsegment is null;
+
+select count(*)
+from segments_within_linksequence s
+where s.nextdownidsegment is not null;
+
 -----------------------------------------------------------
 -- Create subtable segments_connected_multiple_hydronode --
 -----------------------------------------------------------
@@ -310,16 +320,18 @@ WHERE groups.rownb = 1;
 -- This subtable includes all cases where nextdownidsegment in subtable segments_connecting_linksequences is null. 
 -- For some of these cases startnode_localid and endnode_localid belongs to multiple hydronodes that are located 
 -- in the same geographical position. Those cases are included in this table.   
+
+/*
 drop table if exists segments_connected_multiple_hydronode;
-create table segments_connected_multiple_hydronode as
+create temporary table segments_connected_multiple_hydronode as
 with segm_nodes as -- connect multiple hydronodes to nextdown idsegments from segments_connecting_linksequences that are null
 (select w.idsegment, w.centrelinegeometry,  multiple_nodes.all_localid
 from
 (select idsegment 
 from segments_connecting_linksequences 
 where nextdownidsegment is null) f -- idsegments where nextdownidsegment is null
-left join watercourselink w on f.idsegment=w.idsegment 
-left join (select * from hydronode_merged h where array_length(all_localid,1)>1) multiple_nodes 
+left join watercourselink_altered w on f.idsegment=w.idsegment 
+left join (select * from hydronode_altered h where array_length(all_localid,1)>1) multiple_nodes 
 on w.endnode_localid = any(multiple_nodes.all_localid)
 ), 
 segm_nodes_nextsegment as ( -- attach nextdownidsegments from watercourse link
@@ -331,11 +343,12 @@ segm_nodes.idsegment,
 w2.idsegment nextdownidsegment
 from
 segm_nodes
-left join watercourselink w2 on w2.startnode_localid =any(segm_nodes.all_localid)
+left join watercourselink_altered w2 on w2.startnode_localid =any(segm_nodes.all_localid)
 )
 select * -- select the shortest nextdownidsegments
 from segm_nodes_nextsegment
 where rownb=1;
+*/
 
 ----------------------------------------------------------------------------------------
 -- Merge temporary tables and insert nextdownidsegment in worksweden.rn               -- 
@@ -343,26 +356,31 @@ where rownb=1;
 ----------------------------------------------------------------------------------------
 drop table if exists temp_nextdownidsegment;
 create table temp_nextdownidsegment as
-select idsegment, nextdownidsegment 
+select idsegments_seq.*, wa.centrelinegeometry idseg_geom, wa2.centrelinegeometry nextidseg_geom 
+from
+(select idsegment, nextdownidsegment 
 from 
 segments_within_linksequence swl 
 union
-select idsegment, nextdownidsegment 
-from 
-(select * 
-from segments_connecting_linksequences
-where nextdownidsegment is not null) notnull_nextdownidsegments
-union
-select idsegment, nextdownidsegment 
-from 
-segments_connected_multiple_hydronode scmh;
+select idsegment, nextdownidsegment   
+from segments_connecting_linksequences) idsegments_seq
+left join watercourselink_altered wa on idsegments_seq.idsegment=wa.idsegment
+left join watercourselink_altered wa2 on idsegments_seq.nextdownidsegment=wa2.idsegment;  
 create index temp_idsegmentidx on temp_nextdownidsegment(idsegment);
-update worksweden.rn
+update worksweden.rn ws
 set nextdownidsegment = tn.nextdownidsegment 
-FROM worksweden.rn ws, temp_nextdownidsegment tn 
+FROM temp_nextdownidsegment tn 
 where  ws.idsegment=tn.idsegment
 ;
+ 
+select count(*) 
+from 
+temp_nextdownidsegment tn 
+group by idsegment having(count(*) >1)
 
+select count(*)
+from
+temp_isseasegm ti 
 -- delete all temporary tables from database
 -- We do not want an overabundance of tables in the database
 drop table temp_watercourselink;
@@ -412,8 +430,8 @@ end as nextcountry,
 w.centrelinegeometry,
 w.idsegment 
 from 
-watercourselink w
-left JOIN  watercourselink w2 on w.endnode_localid =w2.startnode_localid)
+watercourselink_altered w
+left JOIN  watercourselink_altered w2 on w.endnode_localid =w2.startnode_localid)
 select 
 idsegment,
 country, 
@@ -426,33 +444,6 @@ where country <> nextcountry;
 ------------------------------
 
 
--------------------------------------
--- obtain source  and target nodes --
--------------------------------------
---
--- Use table hydronode_merged and watercourselink to find source and target
-drop table if exists temp_source_target;
-create table temp_source_target as
-with sourcenode as( -- find all sourcenodes from hydronode_merged and watercourselink
-select hm2.node_id, w2.idsegment, hm2.all_localid, w2.startnode_localid  
-from
-watercourselink w2, hydronode_merged hm2 
-where w2.startnode_localid = any(hm2.all_localid)), targetnode as ( -- find all targetnodes from hydronode_merged and watercourselink
-select hm2.node_id, w2.idsegment, hm2.all_localid, w2.startnode_localid  
-from
-watercourselink w2, hydronode_merged hm2 
-where w2.endnode_localid = any(hm2.all_localid)
-)
-select -- select idsegments, "source" and target from watercource link and temporary tables sourcenode and endnode. 
-w.idsegment, 
-s.node_id as "source", 
-t.node_id as target, 
-w.centrelinegeometry as sourcegeom
-from 
-watercourselink w
-left join sourcenode s on w.idsegment = s.idsegment
-left join targetnode t on w.idsegment = t.idsegment;
-
 ---------------------
 -- obtain issource --
 ---------------------
@@ -460,17 +451,15 @@ left join targetnode t on w.idsegment = t.idsegment;
 -- Use the difference in subsets of sourcenodes and targetnodes to find issource (the sources of the rivernetwork) 
 drop table if exists temp_issource;
 create table temp_issource as 
-select t.idsegment is not null issource --, sourcegeom
+select wa3.*
 from
-(select "source"
-from temp_source_target
+(select source_node
+from watercourselink_altered wa 
 except
-select target
-from temp_source_target) a -- subset of sourcenodes that are not in the targetnode subset.
+select target_node
+from watercourselink_altered wa2) a -- subset of sourcenodes that are not in the targetnode subset.
 left join
-temp_source_target t on a."source"=t."source"
-right join 
-watercourselink w on t.idsegment=w.idsegment;
+watercourselink_altered wa3 on a.source_node=wa3.source_node;
 
 -------------------------
 -- obtain seaidsegment --
@@ -496,12 +485,12 @@ select
 w2.idsegment,
 w2.centrelinegeometry, 
 isseasegments.idsegment is not null
-from watercourselink w2
+from watercourselink_altered w2
 left join
 (select distinct
 w.idsegment 
 from
-watercourselink w
+watercourselink_altered w
 inner join temp_coastline tc
 on ST_DWithin(ST_EndPoint(w.centrelinegeometry),tc.geom,0.5)) isseasegments 
 on w2.idsegment = isseasegments.idsegment
