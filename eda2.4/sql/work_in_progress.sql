@@ -1,5 +1,6 @@
 
-
+select count(*) from 
+lst_obstacles lo 
 
 
 
@@ -52,16 +53,30 @@ from
 segments_connecting_linksequences scl
 group by(streaming_rank)
 
-select count(*)  
-from (
-select 
-w3.idsegment
-from
-watercourselink w3
-except 
-select idsegment
-from
-segments_within_linksequence) a 
+select objekttyp, count(*)
+from 
+markkantlinje m
+group by objekttyp;
+/*
+|objekttyp|count|
+|---------|-----|
+|Bebyggelseområdesgräns|143100|
+|Begränsningslinje, ej karterat område|2754|
+|Glaciärgräns|434|
+|Industri- och handelsbebyggelsegräns|29782|
+|Odlingsmarksgräns|2483267|
+|Skogsmarksgräns|120504|
+|Strandlinje, anlagt vatten|1845|
+|Strandlinje, hav|186891|
+|Strandlinje, sjö|1305815|
+|Strandlinje, vattendragsyta|333503|
+|Stängning|27828|
+|Stängning mot hav|388|
+|Öppen markgräns|3815408|
+*/
+
+
+
 
 select * from
 nextsegment_not_in_seq
@@ -110,7 +125,159 @@ select *
 from groups
 where rownb=1;
 
+select *
+from
+mark
+where objekttyp='Hav'
+
+select count(*), max(node_id)
+from hydronode_altered ha 
+
+
 select count(*)
 from
-worksweden.rn w
-where w.idsegment 
+(select source_node
+from watercourselink_altered wa 
+except
+select target_node
+from watercourselink_altered wa2) a -- subset of sourcenodes that are not in the targetnode subset.
+left join
+watercourselink_altered wa3 on a.source_node=wa3.source_node;
+
+select wa.idsegment, wa.source_node = unique_source_nodes.source_node is not null issource 
+from watercourselink_altered wa 
+left join 
+(select source_node
+from watercourselink_altered wa 
+except
+select target_node
+from watercourselink_altered wa2) unique_source_nodes on wa.source_node=unique_source_nodes.source_node;
+
+
+select
+w2.idsegment,
+isseasegments.idsegment is not null
+from watercourselink_altered w2
+left join
+(select distinct
+w.idsegment 
+from
+watercourselink_altered w
+inner join temp_coastline tc
+on ST_DWithin(ST_EndPoint(w.centrelinegeometry),tc.geom,0.5)) isseasegments 
+on w2.idsegment = isseasegments.idsegment
+
+
+select w.innetwork=1 
+from watercourselink w
+group by innetwo 
+
+CREATE extension IF NOT EXISTS pgrouting
+    WITH SCHEMA worksweden;
+
+CREATE OR REPLACE FUNCTION worksweden.get_path(_from integer, _to integer, _country character varying)                           
+  RETURNS SETOF ltree                                                                                                               
+  LANGUAGE plpgsql                                                                                                                  
+ AS $function$                                                                                                                    
+ BEGIN                                                                                                                            
+ RETURN QUERY                                                                                                                     
+ SELECT text2ltree(string_agg(idsegment::text, '.')) AS gid_list                                                                  
+ FROM (SELECT idsegment FROM pgr_dijkstra(                                                                                        
+    'SELECT gid as id, source, target, st_length(geom) as cost FROM worksweden.rn where country='||quote_literal(_country),     
+    _from,                                                                                                                        
+    _to,                                                                                                                          
+   FALSE                                                                                                                          
+ )  pt                                                                                                                            
+ JOIN worksweden.rn r ON pt.edge = r.gid where r.country = _country order by seq) sub;                                          
+                                                                                                                                  
+ END                                                                                                                              
+ $function$;      
+
+
+CREATE OR REPLACE FUNCTION worksweden.get_path(_from integer, _to integer)                           
+  RETURNS SETOF ltree                                                                                                               
+  LANGUAGE plpgsql                                                                                                                  
+ AS $function$                                                                                                                    
+ BEGIN                                                                                                                            
+ RETURN QUERY                                                                                                                     
+ SELECT text2ltree(string_agg(idsegment::text, '.')) AS gid_list                                                                  
+ FROM (SELECT idsegment FROM pgr_dijkstra(                                                                                        
+    'SELECT gid as id, source, target, lengthm as cost FROM worksweden.rn ',     
+    _from,                                                                                                                        
+    _to,                                                                                                                          
+   TRUE                                                                                                                          
+ )  pt                                                                                                                            
+ JOIN worksweden.rn r ON pt.edge = r.gid order by seq) sub;                                          
+                                                                                                                                  
+ END                                                                                                                              
+ $function$;      
+
+
+
+/*
+SELECT * FROM pgr_dijkstra(
+  'select gid as id, source, target, lengthm as cost from worksweden.rn',
+  702734, 1143560, true)
+*/
+
+ -- EXAMPLE OF USE
+-- select worksweden.get_path (702734, 1143560),'SW')
+-- SW1282915.SW1286283.SW1285130.SW1287839
+
+CREATE OR REPLACE FUNCTION worksweden.upstream_segments_rn(text)
+ RETURNS TABLE(_idsegment text)
+ LANGUAGE plpgsql
+AS $function$
+BEGIN
+RETURN QUERY
+	WITH RECURSIVE parcours AS(
+		SELECT
+			r0.idsegment,
+			r0.nextdownidsegment
+		FROM
+			worksweden.rn r0  
+		WHERE
+			r0.idsegment = $1
+	       
+	       
+	       UNION SELECT
+	           r1.idsegment,
+	           r1.nextdownidsegment
+		       
+		FROM
+			parcours
+		JOIN worksweden.rn r1 
+		ON  parcours.idsegment = r1.nextdownidsegment)
+          SELECT idsegment FROM parcours;
+END
+$function$
+;
+
+drop table if exists temp_table;
+create table temp_table as
+--with temp_seaidsegment as (
+select worksweden.upstream_segments_rn(isseaidsegment.idsegment) idsegment, isseaidsegment.idsegment isseaidsegment
+from (select idsegment  
+from worksweden.rn rn0
+where issea) isseaidsegment;
+--select wa.*
+--from watercourselink_altered wa
+--left join temp_seaidsegment ts on wa.idsegment = ts.idsegment 
+--where ts.idsegment is null
+
+select count(*)
+from worksweden.rn;
+select *
+from temp_table;
+
+select *
+from watercourselink w
+where st_length(centrelinegeometry)< 0.5; 
+
+select *
+from
+worksweden.rn;
+
+select st_startpoint(geom)
+from worksweden.rn r
+where idsegment ='SW1427968'

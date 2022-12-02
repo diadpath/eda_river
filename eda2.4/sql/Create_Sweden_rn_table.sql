@@ -10,11 +10,10 @@
  Creation of the sweden.rn table 
  */
 
+/*
+drop table if exists sweden.rn;
 CREATE TABLE sweden.rn (fictitious boolean,
 innetwork int4,
-relatedhydroobject varchar NULL,
-endnode text,
-startnode text,
 	CONSTRAINT c_pk_rnidsegment PRIMARY KEY (idsegment)
 )
 INHERITS (dbeel_rivers.rn);
@@ -24,127 +23,7 @@ CREATE INDEX indexnextdownidsegmentrrn ON sweden.rn USING btree (nextdownidsegme
 CREATE INDEX indexsourcern ON sweden.rn USING btree (source);
 CREATE INDEX indextargetrn ON sweden.rn USING btree (target);
 CREATE INDEX rn_geom_ix ON sweden.rn USING gist (geom);
-
-/*
- Use tables public.hydronode and watercourselink to create start and end node ids  
- */
-
-SELECT  
-w.ogc_fid gid,
-'SW' || w.localid idsegment, 
-s.ogc_fid as source,
-e.ogc_fid as target,
-'SW' country
-FROM watercourselink w 
-JOIN  hydronode s on startnode=s.gml_id 
-JOIN hydronode e on endnode=e.gml_id 
-LIMIT 100;
-
-/*
- * populate worksweden
- */
-
-/*
-insert into 
-worksweden.rn(
-fictitious,
-innetwork,
-relatedhydroobject,
-endnode,
-startnode,
-gid, 
-idsegment, 
-"source", 
-target, 
-lengthm, 
-nextdownidsegment, 
---"path", 
-isfrontier, 
-issource, 
-seaidsegment, 
-issea, 
-geom, 
-isendoreic, 
-isinternational, 
-country)
 */
-
---------------------------------
--- create worksweden.rn table --
---------------------------------
-drop schema 
-worksweden
-cascade; 
-
-create schema worksweden;
-
-DROP TABLE IF EXISTS worksweden.rn;
-CREATE TABLE worksweden.rn (fictitious boolean,
-innetwork int4,
-relatedhydroobject varchar NULL,
-endnode text,
-startnode text
-)
-INHERITS (dbeel_rivers.rn);
-
-----------------------------------
--- populate worksweden.rn table --
-----------------------------------
-
-
--- populate worksweden.rn 
-insert into worksweden.rn (
-fictitious,
-innetwork,
-relatedhydroobject,
-endnode,
-startnode,
-gid,
-idsegment,
-"source", 
-target, 
-nextdownidsegment, 
---"path", 
-isfrontier 
-issource, 
---seaidsegment, 
---issea, 
---geom, 
---isendoreic, 
---isinternational, 
---country
-)
-select  
-w.fictitious,
-w.innetwork,
-w.relatedhydroobject,
-w.endnode_localid,
-w.startnode_localid,
-w.ogc_fid,
-w.idsegment,
-hm1.node_id,
-hm2.node_id,
-tn.nextdownidsegment,
---w."length",
-wsf.isfrontier
-from 
-watercourselink w
-left join temp_nextdownidsegment tn on w.idsegment=tn.idsegment
-left join worksweden.frontier wsf on w.idsegment=wsf.idsegment
-left join hydronode_merged hm1 on w.startnode_localid=any(hm1.all_localid) 
-left join hydronode_merged hm2 on w.endnode_localid=any(hm2.all_localid) 
---left JOIN  hydronode s on w.startnode_localid=s.localid 
---left JOIN  hydronode s2 on w.endnode_localid=s2.localid;
-
--- Add indexes and constraints on worksweden.rn 
-CREATE INDEX indexcountry ON worksweden.rn USING btree (country);
-CREATE INDEX indexidsegmentrrn ON worksweden.rn USING btree (idsegment);
-CREATE INDEX indexnextdownidsegmentrrn ON worksweden.rn USING btree (nextdownidsegment);
-CREATE INDEX indexsourcern ON worksweden.rn USING btree (source);
-CREATE INDEX indextargetrn ON worksweden.rn USING btree (target);
-CREATE INDEX rn_geom_ix ON worksweden.rn USING gist (geom);
-alter table worksweden.rn add constraint c_pk_idsegment primary key(idsegment);
-
 
 ---------------------------
 ---------------------------
@@ -154,9 +33,7 @@ alter table worksweden.rn add constraint c_pk_idsegment primary key(idsegment);
 -- Therefore, we create a network which branches upstreams only. To this end, we create three subtables and merge them:
 -- 1. segments_within_linksequence - segments where both upstream and downstream segments belong to the same sequence. 
 -- 2. segments_connecting_linksequences - selects shortest downstream segment of all possible downstream segments from a given segment that is not part of segments_within_linksequence
--- 3. segments_connected_multiple_hydronode - some downstreamsegments in segments_connecting_linksequences do not have matching startnode and endnodes. 
----   									      For some of these multiple hydronodes are located on the same geographical position. Such occations are here connected through the hydronode_merged table.
-											  					  
+-- 										  					  
 
 --------------------------------------------------
 -- Create subtable segments_within_linksequence --
@@ -239,7 +116,7 @@ select w.centrelinegeometry , w.idsegment, w2.idsegment nextdownidsegment
 from
 watercourselink_altered w 
 left join
-watercourselink_altered w2 on w.endnode_localid = w2.startnode_localid
+watercourselink_altered w2 on w.target_node = w2.source_node
 left join
 join_watercourse_link_sequence jwls on w.idsegment = jwls.idsegment
 left join 
@@ -249,6 +126,12 @@ where jwls.idsequence=jwls2.idsequence;
 -- delete single row with 2 nextdownidsegments
 DELETE FROM segments_within_linksequence 
 where nextdownidsegment ='SW1313717';
+
+select *
+from watercourselink_altered wa 
+where wa.idsegment in (select nextdownidsegment as idsegment
+from segments_within_linksequence
+group by nextdownidsegment having (count(*) >1));
 
 -------------------------------------------------------
 -- Create subtable segments_connecting_linksequences --
@@ -313,43 +196,6 @@ select count(*)
 from segments_within_linksequence s
 where s.nextdownidsegment is not null;
 
------------------------------------------------------------
--- Create subtable segments_connected_multiple_hydronode --
------------------------------------------------------------
-
--- This subtable includes all cases where nextdownidsegment in subtable segments_connecting_linksequences is null. 
--- For some of these cases startnode_localid and endnode_localid belongs to multiple hydronodes that are located 
--- in the same geographical position. Those cases are included in this table.   
-
-/*
-drop table if exists segments_connected_multiple_hydronode;
-create temporary table segments_connected_multiple_hydronode as
-with segm_nodes as -- connect multiple hydronodes to nextdown idsegments from segments_connecting_linksequences that are null
-(select w.idsegment, w.centrelinegeometry,  multiple_nodes.all_localid
-from
-(select idsegment 
-from segments_connecting_linksequences 
-where nextdownidsegment is null) f -- idsegments where nextdownidsegment is null
-left join watercourselink_altered w on f.idsegment=w.idsegment 
-left join (select * from hydronode_altered h where array_length(all_localid,1)>1) multiple_nodes 
-on w.endnode_localid = any(multiple_nodes.all_localid)
-), 
-segm_nodes_nextsegment as ( -- attach nextdownidsegments from watercourse link
-select
-rank() over (partition by segm_nodes.idsegment order by st_length(w2.centrelinegeometry)) as rownb,
-segm_nodes.centrelinegeometry, 
-w2.centrelinegeometry nextgeometry, 
-segm_nodes.idsegment, 
-w2.idsegment nextdownidsegment
-from
-segm_nodes
-left join watercourselink_altered w2 on w2.startnode_localid =any(segm_nodes.all_localid)
-)
-select * -- select the shortest nextdownidsegments
-from segm_nodes_nextsegment
-where rownb=1;
-*/
-
 ----------------------------------------------------------------------------------------
 -- Merge temporary tables and insert nextdownidsegment in worksweden.rn               -- 
 -- Warning!! This code is slow                                                        --
@@ -397,25 +243,14 @@ drop table temp_nextdownidsegment;
 -------------------------------------------------------
 -- end of massive code for updating nextdownidsegment--
 -------------------------------------------------------
-------------------------------------------------------
-
-
--- update country column
-select 
-case 
-when w."namespace" = 'SE.LM.HY.NVE' then 'NO'
-when w."namespace" = 'SE.LM.HY.SYKE' then 'FI'
-when w."namespace" = 'SE.LM.HY' then 'SW'
-end 
-as country
-from watercourselink w;
+------------------------------------------------------ 
 
 -----------------------
 -- obtain isfrontier --
 -----------------------
 drop table if exists worksweden.frontier;
-create table worksweden.frontier(idsegment text, country text, nextcountry text, isfrontier boolean, centerlinegeometry geometry);
-insert into worksweden.frontier(idsegment, country, nextcountry, isfrontier, centerlinegeometry)
+create table worksweden.frontier as
+--insert into worksweden.frontier(idsegment, country, nextcountry, isfrontier, centerlinegeometry)
 with tt as (select  
 case 
 when w."namespace" = 'SE.LM.HY.NVE' then 'NO'
@@ -431,18 +266,21 @@ w.centrelinegeometry,
 w.idsegment 
 from 
 watercourselink_altered w
-left JOIN  watercourselink_altered w2 on w.endnode_localid =w2.startnode_localid)
-select 
-idsegment,
-country, 
-nextcountry, 
-country <> nextcountry as isfrontier,
-centrelinegeometry
+left JOIN  watercourselink_altered w2 on w.target_node = w2.source_node)
+select wa.idsegment, B.idsegment is not null isfrontier
+from watercourselink_altered wa 
+left join
+(select distinct
+idsegment--,
+--country, 
+--nextcountry, 
+--country <> nextcountry as isfrontier--,
+--centrelinegeometry
 from tt
-where country <> nextcountry;
+where country <> nextcountry) B 
+on wa.idsegment = B.idsegment;
 -----------------------------
 ------------------------------
-
 
 ---------------------
 -- obtain issource --
@@ -451,15 +289,17 @@ where country <> nextcountry;
 -- Use the difference in subsets of sourcenodes and targetnodes to find issource (the sources of the rivernetwork) 
 drop table if exists temp_issource;
 create table temp_issource as 
-select wa3.*
-from
+select wa.idsegment, wa.source_node = unique_source_nodes.source_node is not null issource 
+from watercourselink_altered wa 
+left join 
 (select source_node
 from watercourselink_altered wa 
 except
 select target_node
-from watercourselink_altered wa2) a -- subset of sourcenodes that are not in the targetnode subset.
-left join
-watercourselink_altered wa3 on a.source_node=wa3.source_node;
+from watercourselink_altered wa2) unique_source_nodes on wa.source_node=unique_source_nodes.source_node;
+
+------------------------------
+------------------------------
 
 -------------------------
 -- obtain seaidsegment --
@@ -479,12 +319,11 @@ where objekttyp in ('Strandlinje, hav','Stängning mot hav');
 CREATE INDEX geom_coast_idx ON temp_coastline USING gist (geom);
 
 
-drop table if exists temp_isseasegm; -- table including most downstream segments
-create table temp_isseasegm as
+drop table if exists temp_seasegm; -- table with identifier of most downstream segments
+create table temp_seasegm as
 select
 w2.idsegment,
-w2.centrelinegeometry, 
-isseasegments.idsegment is not null
+isseasegments.idsegment is not null seasegment
 from watercourselink_altered w2
 left join
 (select distinct
@@ -493,8 +332,194 @@ from
 watercourselink_altered w
 inner join temp_coastline tc
 on ST_DWithin(ST_EndPoint(w.centrelinegeometry),tc.geom,0.5)) isseasegments 
-on w2.idsegment = isseasegments.idsegment
-where isseasegments.idsegment is not null;
+on w2.idsegment = isseasegments.idsegment;
 
+-- add a couple of segments that are not connected to the coastline (+ three segments with outlet in Norway and one segment in Finland)
+UPDATE temp_seasegm 
+set seasegment=TRUE
+where idsegment in ('NO295503','NO594799','NO303497', 'SW281783', 'SW104625', 'SW55909', 
+                    'SW1470756', 'SW1433168', 'SW1327170', 'SW1287247', 'SW1259769', 
+                    'SW1261581', 'SW899227', 'SW494318', 'SW493639', 'FI53463')
+
+---------------------------------------------
+---------------------------------------------
+
+------------------------------
+-- create schema worksweden --
+------------------------------                   
+create schema worksweden;
+DROP TABLE IF EXISTS worksweden.rn;
+CREATE TABLE worksweden.rn (fictitious boolean,
+innetwork int4,
+CONSTRAINT c_pk_rnidsegment PRIMARY KEY (idsegment),
+UNIQUE (gid)
+)
+INHERITS (dbeel_rivers.rn);
+
+-------------------------------
+-------------------------------
+
+----------------------------------
+-- populate worksweden.rn table --
+----------------------------------
+
+insert into worksweden.rn (
+fictitious,
+innetwork,
+gid,
+idsegment,
+"source", 
+target, 
+lengthm,
+nextdownidsegment, 
+--"path", 
+isfrontier, 
+issource, 
+seaidsegment, 
+issea, 
+geom, 
+isendoreic, 
+isinternational, 
+country
+)
+select  
+w.fictitious,
+w.innetwork,
+w.ogc_fid,
+w.idsegment,
+w.source_node,
+w.target_node,
+w."length",
+tn.nextdownidsegment,
+--w."path",
+wsf.isfrontier,
+ti.issource,
+ts.seasegment, -- this is the id of the segment that is closest to sea
+ts.seasegment,
+st_multi(st_transform(w.centrelinegeometry,3035)), 
+w.innetwork=1,
+null as isinternational,
+case 
+when w."namespace" = 'SE.LM.HY.NVE' then 'NO'
+when w."namespace" = 'SE.LM.HY.SYKE' then 'FI'
+when w."namespace" = 'SE.LM.HY' then 'SW'
+end 
+as country
+from 
+watercourselink_altered w
+left join temp_nextdownidsegment tn on w.idsegment=tn.idsegment
+left join worksweden.frontier wsf on w.idsegment=wsf.idsegment
+left join temp_issource ti on w.idsegment =ti.idsegment 
+left join temp_seasegm ts on w.idsegment = ts.idsegment;
+
+-- Add indexes and constraints on worksweden.rn 
+CREATE INDEX indexcountry ON worksweden.rn USING btree (country);
+CREATE INDEX indexidsegmentrrn ON worksweden.rn USING btree (idsegment);
+CREATE INDEX indexnextdownidsegmentrrn ON worksweden.rn USING btree (nextdownidsegment);
+CREATE INDEX indexsourcern ON worksweden.rn USING btree (source);
+CREATE INDEX indextargetrn ON worksweden.rn USING btree (target);
+CREATE INDEX rn_geom_ix ON worksweden.rn USING gist (geom);
+--alter table worksweden.rn add constraint c_pk_idsegment primary key(idsegment);
+
+
+
+                    
+---------------------------------------------
+-- Make corrections to worksweden.rn table --                    
+---------------------------------------------
+UPDATE worksweden.rn 
+set nextdownidsegment='SW1427948', target=109925, "source"=738556
+where idsegment='SW1427968';
+
+UPDATE worksweden.rn 
+set nextdownidsegment='SW1428344'
+where idsegment ='SW1428627';
+
+update worksweden.rn
+set nextdownidsegment='SW1428344', issource =FALSE
+where idsegment='SW1428628';
+
+update worksweden.rn 
+set nextdownidsegment ='SW1428752', target= 1388762,"source"= 383636
+where idsegment='SW1428344';
+
+update worksweden.rn 
+set nextdownidsegment ='SW1428752', target= 1388762,"source"= 383636
+where idsegment='SW1428344';
+
+update worksweden.rn 
+set issource =false 
+where idsegment ='SW1430784';
+
+update worksweden.rn
+set nextdownidsegment ='SW1430784', target=749043, "source"=1315449
+where idsegment = 'SW1365662';
+
+update worksweden.rn
+set nextdownidsegment ='SW73173', target= 174562
+where idsegment = 'SW73215';
+
+update worksweden.rn
+set issource = FALSE
+where idsegment = 'SW73173';
+
+delete from worksweden.rn 
+where idsegment in ('SW59162', 'SW70394');
+
+update worksweden.rn 
+set nextdownidsegment ='SW58220';
+
+update worksweden.rn 
+set nextdownidsegment = 'SW1286686', target=1252912
+where idsegment ='SW1319904';
+
+update worksweden.rn 
+set nextdownidsegment ='SW1292319', target = 717053
+where idsegment='SW1290543';
+
+update worksweden.rn
+set nextdownidsegment='SW1287157', "source"=813749, target = 473488
+where idsegment='SW1280991';
+
+update worksweden.rn
+set target=404171, nextdownidsegment='SW1268433'
+where idsegment='SW1268611';
+
+update worksweden.rn 
+set issource=FALSE
+where idsegment ='SW1268433';
+
+update worksweden.rn 
+set nextdownidsegment = 'SW1222197', target = 683859, "source"=716701
+where idsegment='SW1221484';
+
+update worksweden.rn 
+set nextdownidsegment ='SW1221484', issource=FALSE
+where idsegment='SW1219998';
+
+
+--------------------------
+-- obtain seaidsegment  --
+--------------------------
+-- warning!! this is superslow 7-8 hours
+-- This code-snippet also needs worksweden.rn
+--
+
+drop table if exists temp_seaidsegment;
+create table temp_seaidsegment as
+select worksweden.upstream_segments_rn(isseaidsegment.idsegment) idsegment, isseaidsegment.idsegment isseaidsegment
+from (select idsegment  
+from worksweden.rn rn0
+where issea) isseaidsegment;
+
+-- insert seaidsegment in worksweden.rn 
+UPDATE worksweden.rn wsrn
+SET seaidsegment  = ts.isseaidsegment
+FROM temp_seaidsegment ts 
+WHERE wsrn.idsegment = ts.idsegment;
+
+-----------------
+-- obtain path --
+-----------------
 
 

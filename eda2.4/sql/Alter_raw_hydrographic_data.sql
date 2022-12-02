@@ -33,7 +33,6 @@ t.startnode_localid, t.endnode_localid, t.idsegment
 from temp_startpoint_wcl t, (select geom from mark where objekttyp='Hav') a 
 where ST_DWithin(geom_startpoint, a.geom, 0.5);
 
-
 --
 -- add columns to watercourselink_altered 
 --
@@ -75,8 +74,9 @@ create index idx_snode on watercourselink_altered(startnode);
 create index idx_enode on watercourselink_altered(endnode);
 create index idx_geom_wcl_altered ON watercourselink_altered USING GIST (centrelinegeometry);
 
--- Manually remove one row that is at sea (on the norwegian side)
-DELETE FROM watercourselink_altered  WHERE idsegment='NO295117';
+-- Manually remove some rows that are at sea 
+DELETE FROM watercourselink_altered  WHERE idsegment in ('NO295117', 'SW279271', 
+'SW1432722', 'SW1432740', 'SW1432647', 'SW1284157', 'SW488013', 'SW83260', 'SW1206419', 'SW1213036', 'SW1209260', 'SW1213038')
 
 ------------------------------------
 -- End of watercourselink_altered --
@@ -95,23 +95,24 @@ inner join watercourselink_altered wa on ST_DWithin(h.geometry, wa.centrelinegeo
 
 -- Update temporary table with indices 
 create index idx_localid on temp_hydronode_altered(localid);
-create index idx_node_id on temp_hydronode_altered(node_id);
 CREATE INDEX geom_idx ON temp_hydronode_altered USING GIST (geometry);
 
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 -- Create merged table (including an array with all localids of from the original hydronode table based on hydroned as multiple nodes are located on approximately the exact same place. --
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+drop table if exists merged_localids;
 create temporary table merged_localids as 
 (select array(select unnest(a.temp_localid) order by 1) as all_localid, row_number() over() node_id
 from
 (select
 array_agg(h2.localid) temp_localid
 FROM temp_hydronode_altered h
-join temp_hydronode_altered h2 on ST_Intersects(h.geometry,h2.geometry)
+join temp_hydronode_altered h2 on ST_Intersects(h.geometry, h2.geometry)
 group by h.localid) a
 group by all_localid)
 
 -- create hydronode_altered table 
+drop table if exists hydronode_altered;
 create table hydronode_altered as
 select distinct on (merged_localids.node_id) * 
 from 
@@ -129,7 +130,7 @@ CREATE INDEX geom_id ON hydronode_altered USING GIST (geometry);
 -- Create a connection between hydronode_altered and watercourselink_altered --
 -------------------------------------------------------------------------------
 
--- first add new columns with node_ids for sourcer and target nodes to watercourselink_altered 
+-- first add new columns with node_ids for source and target nodes to watercourselink_altered 
 ALTER TABLE watercourselink_altered ADD column source_node integer;
 ALTER TABLE watercourselink_altered ADD column target_node integer;
 
@@ -152,5 +153,4 @@ where wa.idsegment=t.idsegment;
 -- add foreign key(connection between hydronode altered and start and endnodes in watercourselink_altered)
 ALTER TABLE watercourselink_altered add CONSTRAINT c_fk_startnode_id FOREIGN KEY (source_node) REFERENCES hydronode_altered(node_id);
 ALTER TABLE watercourselink_altered add CONSTRAINT c_fk_endnode_id FOREIGN KEY (target_node) REFERENCES hydronode_altered(node_id);
-
 
