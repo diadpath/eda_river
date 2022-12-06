@@ -1,5 +1,6 @@
 
-
+select count(*) from 
+lst_obstacles lo 
 
 
 
@@ -52,16 +53,30 @@ from
 segments_connecting_linksequences scl
 group by(streaming_rank)
 
-select count(*)  
-from (
-select 
-w3.idsegment
-from
-watercourselink w3
-except 
-select idsegment
-from
-segments_within_linksequence) a 
+select objekttyp, count(*)
+from 
+markkantlinje m
+group by objekttyp;
+/*
+|objekttyp|count|
+|---------|-----|
+|Bebyggelseområdesgräns|143100|
+|Begränsningslinje, ej karterat område|2754|
+|Glaciärgräns|434|
+|Industri- och handelsbebyggelsegräns|29782|
+|Odlingsmarksgräns|2483267|
+|Skogsmarksgräns|120504|
+|Strandlinje, anlagt vatten|1845|
+|Strandlinje, hav|186891|
+|Strandlinje, sjö|1305815|
+|Strandlinje, vattendragsyta|333503|
+|Stängning|27828|
+|Stängning mot hav|388|
+|Öppen markgräns|3815408|
+*/
+
+
+
 
 select * from
 nextsegment_not_in_seq
@@ -110,7 +125,54 @@ select *
 from groups
 where rownb=1;
 
+select *
+from
+mark
+where objekttyp='Hav'
+
+select count(*), max(node_id)
+from hydronode_altered ha 
+
+
 select count(*)
 from
-worksweden.rn w
-where w.idsegment 
+(select source_node
+from watercourselink_altered wa 
+except
+select target_node
+from watercourselink_altered wa2) a -- subset of sourcenodes that are not in the targetnode subset.
+left join
+watercourselink_altered wa3 on a.source_node=wa3.source_node;
+
+select wa.idsegment, wa.source_node = unique_source_nodes.source_node is not null issource 
+from watercourselink_altered wa 
+left join 
+(select source_node
+from watercourselink_altered wa 
+except
+select target_node
+from watercourselink_altered wa2) unique_source_nodes on wa.source_node=unique_source_nodes.source_node;
+
+
+select
+w2.idsegment,
+isseasegments.idsegment is not null
+from watercourselink_altered w2
+left join
+(select distinct
+w.idsegment 
+from
+watercourselink_altered w
+inner join temp_coastline tc
+on ST_DWithin(ST_EndPoint(w.centrelinegeometry),tc.geom,0.5)) isseasegments 
+on w2.idsegment = isseasegments.idsegment
+
+
+select w.innetwork=1 
+from watercourselink w
+group by innetwo 
+
+
+select distinct objekttyp
+from sankmark;
+
