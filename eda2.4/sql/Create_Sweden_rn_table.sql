@@ -421,8 +421,6 @@ CREATE INDEX indextargetrn ON worksweden.rn USING btree (target);
 CREATE INDEX rn_geom_ix ON worksweden.rn USING gist (geom);
 --alter table worksweden.rn add constraint c_pk_idsegment primary key(idsegment);
 
-
-
                     
 ---------------------------------------------
 -- Make corrections to worksweden.rn table --                    

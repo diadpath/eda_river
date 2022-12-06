@@ -85,3 +85,10 @@ $function$
 
 
 
+SELECT idsegment FROM pgr_dijkstra(                                                                                        
+    'SELECT gid as id, source, target, ST_length(geom) as cost FROM worksweden.rn ',     
+	785458,
+	1302735,                                                                                                                       
+   TRUE                                                                                                                          
+ )  pt                                                                                                                            
+ JOIN worksweden.rn r ON pt.edge = r.gid order by seq
