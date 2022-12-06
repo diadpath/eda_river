@@ -50,12 +50,14 @@ geom = ST_SetSRID(ST_MakePoint("Long","Lat"),4326);
  Creation of the sweden.rn table 
  */
 
-drop table if exists worksweden.rna;
-CREATE TABLE worksweden.rna (fictitious boolean,
+drop table if exists sweden.rna;
+CREATE TABLE sweden.rna (fictitious boolean,
 innetwork int4,
 	CONSTRAINT c_pk_rnidsegment PRIMARY KEY (idsegment)
 )
 INHERITS (dbeel_rivers.rna);
+CREATE INDEX indexidsegmentrna ON sweden.rna USING btree (idsegment);
+/* TODO CREATE INDEXES ON TABLE rna
 CREATE INDEX indexcountry ON sweden.rn USING btree (country);
 CREATE INDEX indexidsegmentrrn ON sweden.rn USING btree (idsegment);
 CREATE INDEX indexnextdownidsegmentrrn ON sweden.rn USING btree (nextdownidsegment);

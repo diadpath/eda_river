@@ -520,4 +520,8 @@ WHERE wsrn.idsegment = ts.idsegment;
 -- obtain path --
 -----------------
 
+---------------
+-- change schema name
+------------------
 
+ALTER SCHEMA worksweden RENAME TO sweden;
