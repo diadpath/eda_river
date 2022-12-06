@@ -71,3 +71,4 @@ CREATE INDEX rn_geom_ix ON sweden.rn USING gist (geom);
 
 
 INSERT INTO sweden.rna(idsegment) SELECT idsegment FROM sweden.rn;
+-- Updated Rows 1458830
