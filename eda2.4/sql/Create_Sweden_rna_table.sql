@@ -72,3 +72,15 @@ CREATE INDEX rn_geom_ix ON sweden.rn USING gist (geom);
 
 INSERT INTO sweden.rna(idsegment) SELECT idsegment FROM sweden.rn;
 -- Updated Rows 1458830
+
+
+SELECT count(*) FROM  sweden.rn; 
+UPDATE sweden.rn SET seaidsegment =NULL;
+UPDATE sweden.rn SET seaidsegment= idsegment WHERE issea ; --4957
+UPDATE sweden.rn SET path= text2ltree(idsegment) WHERE issea ; --4957
+
+
+
+
+
+
