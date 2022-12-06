@@ -75,9 +75,13 @@ INSERT INTO sweden.rna(idsegment) SELECT idsegment FROM sweden.rn;
 
 
 SELECT count(*) FROM  sweden.rn; 
-UPDATE sweden.rn SET seaidsegment =NULL;
-UPDATE sweden.rn SET seaidsegment= idsegment WHERE issea ; --4957
+UPDATE sweden.rn SET seaidsegment = NULL;
+UPDATE sweden.rn SET seaidsegment = idsegment WHERE issea ; --4957
 UPDATE sweden.rn SET path= text2ltree(idsegment) WHERE issea ; --4957
+SELECT path FROM  sweden.rn WHERE path  IS NOT NULL;
+SELECT path FROM  sweden.rn WHERE issea
+
+
 
 
 
