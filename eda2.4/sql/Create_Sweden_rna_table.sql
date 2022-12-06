@@ -53,10 +53,12 @@ geom = ST_SetSRID(ST_MakePoint("Long","Lat"),4326);
 drop table if exists sweden.rna;
 CREATE TABLE sweden.rna (fictitious boolean,
 innetwork int4,
-	CONSTRAINT c_pk_rnidsegment PRIMARY KEY (idsegment)
+	CONSTRAINT c_pk_rnaidsegment PRIMARY KEY (idsegment)
 )
 INHERITS (dbeel_rivers.rna);
 CREATE INDEX indexidsegmentrna ON sweden.rna USING btree (idsegment);
+ALTER TABLE sweden.rna ADD CONSTRAINT c_fk_idsegment FOREIGN KEY (idsegment)
+REFERENCES sweden.rn(idsegment) ON UPDATE CASCADE ON DELETE CASCADE;
 /* TODO CREATE INDEXES ON TABLE rna
 CREATE INDEX indexcountry ON sweden.rn USING btree (country);
 CREATE INDEX indexidsegmentrrn ON sweden.rn USING btree (idsegment);
@@ -64,5 +66,8 @@ CREATE INDEX indexnextdownidsegmentrrn ON sweden.rn USING btree (nextdownidsegme
 CREATE INDEX indexsourcern ON sweden.rn USING btree (source);
 CREATE INDEX indextargetrn ON sweden.rn USING btree (target);
 CREATE INDEX rn_geom_ix ON sweden.rn USING gist (geom);
+*/
+-- Insert values of idsegments from table rn to table rna
 
 
+INSERT INTO sweden.rna(idsegment) SELECT idsegment FROM sweden.rn;
