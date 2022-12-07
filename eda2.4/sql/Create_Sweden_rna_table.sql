@@ -83,7 +83,64 @@ SELECT path FROM  sweden.rn WHERE issea
 
 
 
+-- update from the table created in R for path and distancesea
+CREATE INDEX ON sweden.temp_rna_distance USING btree(idsegment);
+UPDATE sweden.rn set path=temp_rna_distance.path::ltree FROM
+sweden.temp_rna_distance WHERE temp_rna_distance.idsegment=rn.idsegment; --Updated Rows 1353009
 
+UPDATE sweden.rna set distanceseam=temp_rna_distance.distanceseam::numeric FROM 
+sweden.temp_rna_distance WHERE temp_rna_distance.idsegment=rna.idsegment; --Updated Rows  1353009
+
+
+
+
+CREATE OR REPLACE VIEW sweden.rn_rna
+AS SELECT rn.idsegment,
+    rn.source,
+    rn.target,
+    rn.lengthm,
+    rn.nextdownidsegment,
+    rn.path,
+    rn.isfrontier,
+    rn.issource,
+    rn.seaidsegment,
+    rn.issea,
+    rn.geom,
+    rn.isendoreic,
+    rn.isinternational,
+    rn.country,
+    rna.altitudem,
+    rna.distanceseam,
+    rna.distancesourcem,
+    rna.cumnbdam,
+    rna.medianflowm3ps,
+    rna.surfaceunitbvm2,
+    rna.surfacebvm2,
+    rna.strahler,
+    rna.shreeve,
+    rna.codesea,
+    rna.name,
+    rna.pfafriver,
+    rna.pfafsegment,
+    rna.basin,
+    rna.riverwidthm,
+    rna.riverwidthmsource,
+    rna.temperature,
+    rna.temperaturejan,
+    rna.temperaturejul,
+    rna.wettedsurfacem2,
+    rna.wettedsurfaceotherm2,
+    rna.lengthriverm,
+    rna.emu,
+    rna.cumheightdam,
+    rna.slope,
+    rna.dis_m3_pyr_riveratlas,
+    rna.dis_m3_pmn_riveratlas,
+    rna.dis_m3_pmx_riveratlas,
+    rna.drought,
+    rna.drought_type_calc
+   FROM sweden.rn
+     JOIN sweden.rna ON rna.idsegment = rn.idsegment;
 
 
 
