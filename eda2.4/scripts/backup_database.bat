@@ -15,7 +15,7 @@
    SET PGPASSWORD=postgres
    echo on
    
-pg_dump -U postgres -f L:\EDA_database\%BACKUP_FILE_WORK% -Fc --schema worksweden eda2.4
-pg_dump -U postgres -f C:\Torbjorn_R\Projects\EDA\eda_rivers\eda2.4\database_backup\%BACKUP_FILE_WORK% -Fc --schema worksweden eda2.4
+pg_dump -U postgres -f L:\EDA_database\%BACKUP_FILE_WORK% -Fc --schema sweden eda2.4
+pg_dump -U postgres -f C:\Torbjorn_R\Projects\EDA\eda_rivers\eda2.4\database_backup\%BACKUP_FILE_WORK% -Fc --schema sweden eda2.4
 pg_dump -U postgres -f L:\EDA_database\%BACKUP_FILE_RAWDATA% -Fc --schema rawdata eda2.4
 pg_dump -U postgres -f C:\Torbjorn_R\Projects\EDA\eda_rivers\eda2.4\database_backup\%BACKUP_FILE_RAWDATA% -Fc --schema rawdata eda2.4

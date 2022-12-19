@@ -176,3 +176,55 @@ group by innetwo
 select distinct objekttyp
 from sankmark;
 
+
+create schema eda_gerem;
+select count(*)
+from sweden.rn r
+where isfrontier;
+
+select count(*)
+from sweden.rn
+where path is not null;
+
+select issea, path, seaidsegment 
+from sweden.rn 
+
+select count(*)
+from sweden.rn
+where "path" is null;
+
+vacuum analyse sweden.rn;
+
+select count(*) from sweden.rn
+where "path"is not null;
+
+select count(*) from sweden.temp_rna_distance trd where path is not null
+
+select nextdownidsegment, count(*)
+from sweden.rn r 
+group by nextdownidsegment 
+
+CREATE VIEW sweden.distancesea AS
+    SELECT s.geom, trd.distanceseam 
+    FROM sweden.rn s
+    left join sweden.temp_rna_distance trd
+    on s.idsegment =trd.idsegment; 
+
+select *
+from worksweden.rn
+
+select kategori, count(*)
+from rawdata."LST_AtgarderIVatten_fiskvagar" laif  
+group by kategori
+
+drop view if exists sweden.temp_isendoreic;
+create view sweden.temp_isendoreic as
+(select *
+from sweden.rn
+where path is null);
+
+select * 
+from 
+prota_inv_str_punkt pisp
+where undid =477;
+
