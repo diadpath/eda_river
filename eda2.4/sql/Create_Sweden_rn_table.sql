@@ -531,12 +531,39 @@ set isendoreic = false;
 update sweden.rn
 set isendoreic = "path" is null;
 
+---------------------------------
+-- make correction to issource --
+---------------------------------
+-- 
+-- Correcting issource in order to make strahler and shreeve order calculations in R.
+-- As the river network has been restructured to not include loops (only one nextdownidsegment)
+-- we also need to change the issource column. Segments that are connected to the network and do 
+-- not have any nextdownidsegments are considered issource segments.    
+
+with sourcesegment as ( -- new issourcesegments
+select idsegment
+from 
+sweden.rn r1
+where nextdownidsegment is not null -- segments that are connected to other segments
+except 
+select nextdownidsegment 
+from 
+sweden.rn r2 
+where nextdownidsegment is not null)
+UPDATE sweden.rn srn
+SET issource  = true
+FROM sourcesegment ss 
+WHERE srn.idsegment = ss.idsegment;
+
+/*
+select r.idsegment, 
+from 
+sweden.rn r, sourcesegment s
+where r.idsegment in (s.idsegment);
+*/
 -----------------------
 -- change schema name -
 -----------------------
 
 ALTER SCHEMA worksweden RENAME TO sweden;
 
-
-select count(*)
-from sweden.rn r where path is not null

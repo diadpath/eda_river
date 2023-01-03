@@ -228,3 +228,103 @@ from
 prota_inv_str_punkt pisp
 where undid =477;
 
+
+
+WITH raw_width as(
+SELECT srn.idsegment, srn.geom, srna.shreeve, srna.strahler,
+       CASE 
+       WHEN rs.Lokalbre <> -9 THEN rs.Lokalbre
+       WHEN rs.Lokalbre = -9 AND rs.Bredd <>-9 THEN rs.Bredd
+       END width_ef, 
+       pisp.breddmedel width_bk 
+       FROM sweden.rn srn 
+       LEFT JOIN sweden.rna srna 
+       ON srn.idsegment=srna.idsegment
+       LEFT JOIN rawdata.sers rs
+       ON srn.idsegment=rs.idsegment
+       LEFT JOIN rawdata.prota_inv_str_punkt pisp
+       ON srn.idsegment=pisp.idsegment)
+select   width_bk is not null, width_ef is not null, count(*) 
+from raw_width rw
+group by(width_bk is not null, width_ef is not null)
+;
+      
+-- Full join query
+WITH raw_width as(
+SELECT srn.idsegment, srn.geom, srna.shreeve, srna.strahler,
+       CASE 
+       WHEN rs.Lokalbre <> -9 THEN rs.Lokalbre
+       WHEN rs.Lokalbre = -9 AND rs.Bredd <>-9 THEN rs.Bredd
+       END width_ef, 
+       pisp.breddmedel width_bk 
+       FROM sweden.rn srn 
+       LEFT JOIN sweden.rna srna 
+       ON srn.idsegment=srna.idsegment
+       LEFT JOIN rawdata.sers rs
+       ON srn.idsegment=rs.idsegment
+       LEFT JOIN rawdata.prota_inv_str_punkt pisp
+       ON srn.idsegment=pisp.idsegment),
+     avg_width as(
+SELECT idsegment, AVG(width_ef) width_ef, AVG(width_bk) width_bk
+       FROM raw_width
+       GROUP BY idsegment),
+     width as (
+select distinct on (rw.idsegment) rw.idsegment, rw.geom, rw.shreeve, aw.width_ef, aw. width_bk 
+from 
+raw_width rw
+left join avg_width aw
+on rw.idsegment=aw.idsegment)
+select *
+from width;
+
+
+WITH raw_width as(
+SELECT srn.idsegment, srn.geom, srna.shreeve, srna.strahler,
+       CASE 
+       WHEN rs.Lokalbre <> -9 THEN rs.Lokalbre
+       WHEN rs.Lokalbre = -9 AND rs.Bredd <>-9 THEN rs.Bredd
+       END width_ef, 
+       pisp.breddmedel width_bk 
+       FROM sweden.rn srn 
+       LEFT JOIN sweden.rna srna 
+       ON srn.idsegment=srna.idsegment
+       LEFT JOIN rawdata.sers rs
+       ON srn.idsegment=rs.idsegment
+       LEFT JOIN rawdata.prota_inv_str_punkt pisp
+       ON srn.idsegment=pisp.idsegment),
+     avg_width as(
+SELECT idsegment, AVG(width_ef) width_ef, AVG(width_bk) width_bk
+       FROM raw_width
+       GROUP BY idsegment),
+     width as (
+select distinct on (rw.idsegment) rw.idsegment, rw.geom, rw.shreeve, aw.width_ef, aw. width_bk 
+from 
+raw_width rw
+left join avg_width aw
+on rw.idsegment=aw.idsegment)
+
+
+select count(*)
+from sweden.rn r
+where nextdownidsegment is not null
+
+
+select count(*) -- 326430
+from
+sweden.rn r 
+where issource
+
+
+select count(*) -- 1176
+from
+sweden.rn r 
+where nextdownidsegment is null and issource
+
+select count(*) -- 325148
+from 
+issourcesegments
+where issource
+
+select count(*)
+from 
+issourcesegments
