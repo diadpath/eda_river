@@ -531,6 +531,14 @@ set isendoreic = false;
 update sweden.rn
 set isendoreic = "path" is null;
 
+-- Routing algorithm in R uses frontiersegment when calculating path. 
+-- Therefore, path is null for non swedish riversegments. Those are however part of the network. Thus, include those as
+-- part of network 
+update sweden.rn 
+set isendoreic = false
+where country in ('NO','FI');
+
+
 ---------------------------------
 -- make correction to issource --
 ---------------------------------

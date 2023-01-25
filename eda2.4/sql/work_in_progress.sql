@@ -318,6 +318,7 @@ where issource
 select count(*) -- 1176
 from
 sweden.rn r 
+group by country; 
 where nextdownidsegment is null and issource
 
 select count(*) -- 325148
@@ -328,3 +329,149 @@ where issource
 select count(*)
 from 
 issourcesegments
+
+select count(*)
+from
+sweden.rna 
+where strahler=0;
+
+select count(*)
+from 
+sweden.rna r 
+where shreeve =0;
+
+select count(*) --18010
+from 
+(select * 
+from 
+rawdata.watercourse w 
+where geometrytype(w.geometry)='POLYGON') as wc, rawdata.sers rs
+where ST_Intersects(st_transform(rs.snapped_geom,3006),wc.geometry);
+
+select count(*) --37096
+from 
+(select * 
+from 
+rawdata.watercourse w 
+where geometrytype(w.geometry)='POLYGON') as wc, rawdata.prota_inv_str_punkt rs
+where ST_Intersects(st_transform(rs.merged_geom,3006),wc.geometry);
+
+select count(*) -- 52199
+from
+rawdata.sers;
+
+select count(*) -- 101764
+from rawdata.prota_inv_str_punkt pisp 
+
+create table temp_table as 
+WITH 
+raw_width as(
+SELECT srn.idsegment, srn.geom, srna.shreeve, srna.strahler, srna.basin,
+       CASE 
+       WHEN rs1.Lokalbre <> -9 THEN rs1.Lokalbre
+       WHEN rs1.Lokalbre = -9 AND rs1.Bredd <>-9 THEN rs1.Bredd
+       END width_ef, 
+       rs2.breddmedel width_bk 
+       FROM sweden.rn srn
+       LEFT JOIN sweden.rna srna 
+       ON srn.idsegment=srna.idsegment
+       LEFT JOIN 
+       (select *
+       from 
+       rawdata.sers
+       except
+       select rs.* 
+		from 
+		(select *
+		from
+		rawdata.watercourse w 
+		where geometrytype(w.geometry)='POLYGON') as wc, rawdata.sers rs
+		where ST_Intersects(st_transform(rs.snapped_geom,3006),wc.geometry)) as rs1
+       on srn.idsegment=rs1.idsegment  
+       left join
+       (select *
+       from 
+       rawdata.prota_inv_str_punkt
+       except
+       select rs.* 
+		from 
+		(select *
+		from
+		rawdata.watercourse w 
+		where geometrytype(w.geometry)='POLYGON') as wc, rawdata.prota_inv_str_punkt rs
+		where ST_Intersects(st_transform(rs.merged_geom,3006),wc.geometry)) as rs2 
+       ON srn.idsegment=rs2.idsegment), 
+avg_width as(
+SELECT idsegment, AVG(width_ef) width_ef, AVG(width_bk) width_bk
+       FROM raw_width
+       GROUP BY idsegment),
+"width" as(
+SELECT DISTINCT ON (rw.idsegment) rw.idsegment, rw.geom, rw.shreeve, rw.strahler, rw.basin, aw.width_ef, aw. width_bk 
+FROM 
+raw_width rw
+LEFT JOIN avg_width aw
+ON rw.idsegment=aw.idsegment)
+SELECT *
+FROM 
+width;
+
+drop table if exists rawdata.temp_width;
+create table rawdata.temp_width as
+WITH 
+raw_width as(
+SELECT srn.idsegment, srn.geom, srna.shreeve, srna.strahler, srna.basin,
+       CASE 
+       WHEN rs1.Lokalbre <> -9 THEN rs1.Lokalbre
+       WHEN rs1.Lokalbre = -9 AND rs1.Bredd <>-9 THEN rs1.Bredd
+       END width_ef, 
+       rs2.breddmedel width_bk 
+       FROM sweden.rn srn
+       LEFT JOIN sweden.rna srna 
+       ON srn.idsegment=srna.idsegment
+       LEFT JOIN 
+       (select *
+       from 
+       rawdata.sers
+       except -- exclude Electrofishing points where we already have polygons
+       select rs.* 
+		from 
+		(select *
+		from
+		rawdata.watercourse w 
+		where geometrytype(w.geometry)='POLYGON') as wc, rawdata.sers rs
+		where ST_Intersects(st_transform(rs.snapped_geom,3006),wc.geometry)) as rs1 -- points from electrofishing data were we do not have polygon data
+       on srn.idsegment=rs1.idsegment -- OK  
+       left join
+       (select *
+       from 
+       rawdata.prota_inv_str_punkt
+       except -- exclude river inventory points where we already have polygons
+       select rs.* 
+		from 
+		(select *
+		from
+		rawdata.watercourse w 
+		where geometrytype(w.geometry)='POLYGON') as wc, rawdata.prota_inv_str_punkt rs
+		where ST_Intersects(st_transform(rs.merged_geom,3006),wc.geometry)) as rs2 
+       ON srn.idsegment=rs2.idsegment), --OK
+avg_width as(
+SELECT idsegment, AVG(width_ef) width_ef, AVG(width_bk) width_bk
+       FROM raw_width
+       GROUP BY idsegment), -- NOT OK
+"width" as(
+SELECT DISTINCT ON (rw.idsegment) rw.idsegment, rw.geom, ST_X(ST_centroid(rw.geom)) X,
+ST_Y(ST_centroid(rw.geom)) Y, rw.shreeve, rw.strahler, rw.basin, aw.width_ef, aw. width_bk 
+FROM 
+raw_width rw
+LEFT JOIN avg_width aw
+ON rw.idsegment=aw.idsegment)
+SELECT w.*
+FROM 
+width w
+left join sweden.rn srn
+on w.idsegment=srn.idsegment 
+where w.width_ef is not null or w.width_bk is not null and srn.fictitious is not true; -- filter data where we have width data
+
+select * from AquaDW_prod.mart.SERS_ELFANGST
+
+       
