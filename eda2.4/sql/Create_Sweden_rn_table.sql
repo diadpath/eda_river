@@ -421,10 +421,29 @@ CREATE INDEX indextargetrn ON worksweden.rn USING btree (target);
 CREATE INDEX rn_geom_ix ON worksweden.rn USING gist (geom);
 --alter table worksweden.rn add constraint c_pk_idsegment primary key(idsegment);
 
-                    
----------------------------------------------
+--------------------------
+-- obtain seaidsegment  --
+--------------------------
+-- warning!! this is superslow 7-8 hours
+-- This code-snippet also needs worksweden.rn
+--
+
+drop table if exists temp_seaidsegment;
+create table temp_seaidsegment as
+select sweden.upstream_segments_rn(isseaidsegment.idsegment) idsegment, isseaidsegment.idsegment isseaidsegment
+from (select idsegment  
+from sweden.rn rn0
+where issea) isseaidsegment;
+
+-- insert seaidsegment in worksweden.rn 
+UPDATE worksweden.rn wsrn
+SET seaidsegment  = ts.isseaidsegment
+FROM temp_seaidsegment ts 
+WHERE wsrn.idsegment = ts.idsegment;
+
+-----------------------------------------
 -- Make corrections to worksweden.rn table --                    
----------------------------------------------
+-----------------------------------------
 UPDATE worksweden.rn 
 set nextdownidsegment='SW1427948', target=109925, "source"=738556
 where idsegment='SW1427968';
@@ -465,7 +484,8 @@ delete from worksweden.rn
 where idsegment in ('SW59162', 'SW70394');
 
 update worksweden.rn 
-set nextdownidsegment ='SW58220';
+set nextdownidsegment ='SW58220'
+where idsegment='SW63741';
 
 update worksweden.rn 
 set nextdownidsegment = 'SW1286686', target=1252912
@@ -495,33 +515,63 @@ update worksweden.rn
 set nextdownidsegment ='SW1221484', issource=FALSE
 where idsegment='SW1219998';
 
-
---------------------------
--- obtain seaidsegment  --
---------------------------
--- warning!! this is superslow 7-8 hours
--- This code-snippet also needs worksweden.rn
---
-
-drop table if exists temp_seaidsegment;
-create table temp_seaidsegment as
-select worksweden.upstream_segments_rn(isseaidsegment.idsegment) idsegment, isseaidsegment.idsegment isseaidsegment
-from (select idsegment  
-from worksweden.rn rn0
-where issea) isseaidsegment;
-
--- insert seaidsegment in worksweden.rn 
-UPDATE worksweden.rn wsrn
-SET seaidsegment  = ts.isseaidsegment
-FROM temp_seaidsegment ts 
-WHERE wsrn.idsegment = ts.idsegment;
-
 -----------------
 -- obtain path --
 -----------------
 
----------------
--- change schema name
-------------------
+-- This is done in R
+
+-----------------------
+-- obtain isendoreic --
+-----------------------
+
+-- insert isendoreic in worksweden.rn
+update sweden.rn 
+set isendoreic = false;
+update sweden.rn
+set isendoreic = "path" is null;
+
+-- Routing algorithm in R uses frontiersegment when calculating path. 
+-- Therefore, path is null for non swedish riversegments. Those are however part of the network. Thus, include those as
+-- part of network 
+update sweden.rn 
+set isendoreic = false
+where country in ('NO','FI');
+
+
+---------------------------------
+-- make correction to issource --
+---------------------------------
+-- 
+-- Correcting issource in order to make strahler and shreeve order calculations in R.
+-- As the river network has been restructured to not include loops (only one nextdownidsegment)
+-- we also need to change the issource column. Segments that are connected to the network and do 
+-- not have any nextdownidsegments are considered issource segments.    
+
+with sourcesegment as ( -- new issourcesegments
+select idsegment
+from 
+sweden.rn r1
+where nextdownidsegment is not null -- segments that are connected to other segments
+except 
+select nextdownidsegment 
+from 
+sweden.rn r2 
+where nextdownidsegment is not null)
+UPDATE sweden.rn srn
+SET issource  = true
+FROM sourcesegment ss 
+WHERE srn.idsegment = ss.idsegment;
+
+/*
+select r.idsegment, 
+from 
+sweden.rn r, sourcesegment s
+where r.idsegment in (s.idsegment);
+*/
+-----------------------
+-- change schema name -
+-----------------------
 
 ALTER SCHEMA worksweden RENAME TO sweden;
+
