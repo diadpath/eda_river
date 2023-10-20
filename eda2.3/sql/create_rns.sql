@@ -1,62 +1,29 @@
 DROP TABLE IF EXISTS dbeel_rivers.rns CASCADE;
 CREATE TABLE dbeel_rivers.rns (
-idsegment TEXT,
-surfaceunitbvm2 NUMERIC,
-surfacebvm2 NUMERIC,
-delta NUMERIC,
-gamma NUMERIC,
-density NUMERIC,
-nyellow NUMERIC,
-byellow NUMERIC, -- rne_annual
-pyellow150 NUMERIC,
-pyellow150300 NUMERIC,
-pyellow300450 NUMERIC,
-pyellow450600 NUMERIC,
-pyellow600750 NUMERIC,
-pyellow750 NUMERIC,
-nsilver NUMERIC,
-bsilver NUMERIC, -- rne_annual
-psilver150300 NUMERIC,
-psilver300450 NUMERIC,
-psilver450600 NUMERIC,
-psilver600750 NUMERIC,
-psilver750 NUMERIC,
-psilver NUMERIC,
-pmale150300 NUMERIC,
-pmale300450 NUMERIC,
-pmale450600 NUMERIC,
-pfemale300450 NUMERIC,
-pfemale450600 NUMERIC,
-pfemale600750 NUMERIC,
-pfemale750 NUMERIC,
-pmale NUMERIC,
-sex_ratio NUMERIC,  -- rne_annual
-cnfemale300450 NUMERIC, -- dbeel_rivers.rn_rna_cumul_silver
-cnfemale450600 NUMERIC,-- dbeel_rivers.rn_rna_cumul_silver
-cnfemale600750 NUMERIC,-- dbeel_rivers.rn_rna_cumul_silver
-cnfemale750 NUMERIC,-- dbeel_rivers.rn_rna_cumul_silver
-cnmale150300 NUMERIC,-- dbeel_rivers.rn_rna_cumul_silver
-cnmale300450 NUMERIC,-- dbeel_rivers.rn_rna_cumul_si
-cnmale450600 NUMERIC,-- dbeel_rivers.rn_rna_cumul_silver
-cnsilver150300 NUMERIC,-- dbeel_rivers.rn_rna_cumul_silver
-cnsilver300450 NUMERIC,-- dbeel_rivers.rn_rna_cumul_silver
-cnsilver450600 NUMERIC,-- dbeel_rivers.rn_rna_cumul_silver
-cnsilver600750 NUMERIC,-- dbeel_rivers.rn_rna_cumul_silver
-cnsilver750 NUMERIC,-- dbeel_rivers.rn_rna_cumul_silver
-cnsilver NUMERIC,-- dbeel_rivers.rn_rna_cumul_silver
-delta_tr NUMERIC, --dbeel_rivers.rn_rna_model_transport_fit(deltatransport)
-gamma_tr NUMERIC, --dbeel_rivers.rn_rna_model_transport_fit(gammatransport)
-type_fit_delta_tr TEXT, --dbeel_rivers.rn_rna_model_transport_fit(type_fit_delta)
-type_fit_gamma_tr TEXT, --dbeel_rivers.rn_rna_model_transport_fit(type_fit_gamma)
-density_tr NUMERIC, --dbeel_rivers.rn_rna_model_transport_fit(densitytransport)
-density_pmax_tr NUMERIC, -- dbeel_rivers.rn_rna_model_transport_fit(density2)
-nyellow_pmax_tr NUMERIC, -- dbeel_rivers.rn_rna_model_transport(nyellow)
-nsilver_pmax_tr NUMERIC, -- dbeel_rivers.rn_rna_model_transport(nsilver)
-density_wd NUMERIC,  --TODO
-nyellow_wd NUMERIC,  --TODO
-byellow_wd NUMERIC,  --TODO
-nsilver_wd NUMERIC,  --TODO
-bsilver_wd NUMERIC,  --TODO
+	idsegment text NULL,
+	ratio float8 NULL,
+	region text NULL,
+	presencesaumon int4 NULL,
+	surfaceerr float8 NULL,
+	geol text NULL,
+	intensite_etiage float8 NULL,
+	idbvia text NULL,
+	pred float8 NULL,
+	s_err_mod float8 NULL,
+	s_err_obs float8 NULL,
+	"date" text NULL,
+	preddensactu float8 NULL,
+	preddenspristine float8 NULL,
+	preddens float8 NULL,
+	eff_sat float8 NULL,
+	"IC-5\%" float8 NULL,
+	"Moy" float8 NULL,
+	"IC-95\%" float8 NULL,
+	prod_mod_hist float8 NULL,
+	prod_mod_actu float8 NULL,
+	prod_obs float8 NULL,
+	prod_obs_5 float8 NULL,
+	prod_obs_95 float8 null,
 CONSTRAINT c_pk_rns_idsegment PRIMARY KEY (idsegment)
 );
 
@@ -66,16 +33,211 @@ CREATE TABLE france.rns (
       CONSTRAINT c_pk_rns_idsegment PRIMARY KEY (idsegment),
       CONSTRAINT c_fk_rns_idsegment FOREIGN KEY (idsegment) REFERENCES france.rn(idsegment))
       INHERITS (dbeel_rivers.rns); 
-DROP TABLE IF EXISTS portugal.rns;
-CREATE TABLE portugal.rns (
-      CONSTRAINT c_pk_rns_idsegment PRIMARY KEY (idsegment),
-      CONSTRAINT c_fk_rns_idsegment FOREIGN KEY (idsegment) REFERENCES portugal.rn(idsegment))
-      INHERITS (dbeel_rivers.rns); 
+
       
 -- Updates from rna
 
-INSERT INTO france.rns (
-  idsegment
-, 
-FROM temp_table_rns
-; -- 325399
+INSERT INTO france.rns
+select *
+FROM france.temp_rns
+; -- 34198
+
+DROP TABLE IF EXISTS france.temp_rns;
+
+--create france.rn_rna_rne_rns
+DROP VIEW IF exists france.rn_rna_rne_rns;
+CREATE OR REPLACE VIEW france.rn_rna_rne_rns AS(
+	SELECT row_number() OVER () AS _uid_,
+	    rne.idsegment,
+	    rne.delta,
+	    rne.gamma,
+	    rne.density,
+	    rne.neel,
+	    rne.beel,
+	    rne.p150,
+	    rne.p150300,
+	    rne.p300450,
+	    rne.p450600,
+	    rne.p600750,
+	    rne.p750,
+	    rne.nsilver,
+	    rne.bsilver,
+	    rne.psilver150300,
+	    rne.psilver300450,
+	    rne.psilver450600,
+	    rne.psilver600750,
+	    rne.psilver750,
+	    rne.psilver,
+	    rne.pmale150300,
+	    rne.pmale300450,
+	    rne.pmale450600,
+	    rne.pfemale300450,
+	    rne.pfemale450600,
+	    rne.pfemale600750,
+	    rne.pfemale750,
+	    rne.pmale,
+	    rne.sex_ratio,
+	    rne.cnfemale300450,
+	    rne.cnfemale450600,
+	    rne.cnfemale600750,
+	    rne.cnfemale750,
+	    rne.cnmale150300,
+	    rne.cnmale300450,
+	    rne.cnmale450600,
+	    rne.cnsilver150300,
+	    rne.cnsilver300450,
+	    rne.cnsilver450600,
+	    rne.cnsilver600750,
+	    rne.cnsilver750,
+	    rne.cnsilver,
+	    rne.delta_tr,
+	    rne.gamma_tr,
+	    rne.type_fit_delta_tr,
+	    rne.type_fit_gamma_tr,
+	    rne.density_tr,
+	    rne.density_pmax_tr,
+	    rne.neel_pmax_tr,
+	    rne.nsilver_pmax_tr,
+	    rne.density_wd,
+	    rne.neel_wd,
+	    rne.beel_wd,
+	    rne.nsilver_wd,
+	    rne.bsilver_wd,
+	    rne.sector_tr,
+	    rne.year_tr,
+	    rne.is_current_distribution_area,
+	    rne.is_pristine_distribution_area_1985,
+	    rne.cnsilver_wd,
+	    rna.codesea,
+	    rna.name,
+	    rna.basin,
+	    rna.emu,
+	    rn.geom,
+	    rn.country,
+	    rns.ratio, 
+	    rns.region, 
+	    rns.presencesaumon, 
+	    rns.surfaceerr, 
+	    rns.geol, 
+	    rns.intensite_etiage, 
+	    rns.idbvia, 
+	    rns.pred, 
+	    rns.s_err_mod, 
+	    rns.s_err_obs, 
+	    rns."date", 
+	    rns.preddensactu, 
+	    rns.preddenspristine, 
+	    rns.preddens, 
+	    rns.eff_sat, 
+	    rns."IC-5\%", 
+	    rns."Moy", 
+	    rns."IC-95\%", 
+	    rns.prod_mod_hist, 
+	    rns.prod_mod_actu, 
+	    rns.prod_obs, 
+	    rns.prod_obs_5, 
+	    rns.prod_obs_95
+	   FROM france.rn
+	     JOIN france.rne ON rn.idsegment = rne.idsegment
+	     JOIN france.rna ON rn.idsegment = rna.idsegment
+	     left JOIN france.rns ON rn.idsegment = rns.idsegment
+);
+
+--create dbeel_rivers.rn_rna_rne_rns
+DROP VIEW IF exists dbeel_rivers.rn_rna_rne_rns;
+CREATE OR REPLACE VIEW dbeel_rivers.rn_rna_rne_rns AS(
+	SELECT row_number() OVER () AS _uid_,
+	    rne.idsegment,
+	    rne.delta,
+	    rne.gamma,
+	    rne.density,
+	    rne.neel,
+	    rne.beel,
+	    rne.p150,
+	    rne.p150300,
+	    rne.p300450,
+	    rne.p450600,
+	    rne.p600750,
+	    rne.p750,
+	    rne.nsilver,
+	    rne.bsilver,
+	    rne.psilver150300,
+	    rne.psilver300450,
+	    rne.psilver450600,
+	    rne.psilver600750,
+	    rne.psilver750,
+	    rne.psilver,
+	    rne.pmale150300,
+	    rne.pmale300450,
+	    rne.pmale450600,
+	    rne.pfemale300450,
+	    rne.pfemale450600,
+	    rne.pfemale600750,
+	    rne.pfemale750,
+	    rne.pmale,
+	    rne.sex_ratio,
+	    rne.cnfemale300450,
+	    rne.cnfemale450600,
+	    rne.cnfemale600750,
+	    rne.cnfemale750,
+	    rne.cnmale150300,
+	    rne.cnmale300450,
+	    rne.cnmale450600,
+	    rne.cnsilver150300,
+	    rne.cnsilver300450,
+	    rne.cnsilver450600,
+	    rne.cnsilver600750,
+	    rne.cnsilver750,
+	    rne.cnsilver,
+	    rne.delta_tr,
+	    rne.gamma_tr,
+	    rne.type_fit_delta_tr,
+	    rne.type_fit_gamma_tr,
+	    rne.density_tr,
+	    rne.density_pmax_tr,
+	    rne.neel_pmax_tr,
+	    rne.nsilver_pmax_tr,
+	    rne.density_wd,
+	    rne.neel_wd,
+	    rne.beel_wd,
+	    rne.nsilver_wd,
+	    rne.bsilver_wd,
+	    rne.sector_tr,
+	    rne.year_tr,
+	    rne.is_current_distribution_area,
+	    rne.is_pristine_distribution_area_1985,
+	    rne.cnsilver_wd,
+	    rna.codesea,
+	    rna.name,
+	    rna.basin,
+	    rna.emu,
+	    rn.geom,
+	    rn.country,
+	    rns.ratio, 
+	    rns.region, 
+	    rns.presencesaumon, 
+	    rns.surfaceerr, 
+	    rns.geol, 
+	    rns.intensite_etiage, 
+	    rns.idbvia, 
+	    rns.pred, 
+	    rns.s_err_mod, 
+	    rns.s_err_obs, 
+	    rns."date", 
+	    rns.preddensactu, 
+	    rns.preddenspristine, 
+	    rns.preddens, 
+	    rns.eff_sat, 
+	    rns."IC-5\%", 
+	    rns."Moy", 
+	    rns."IC-95\%", 
+	    rns.prod_mod_hist, 
+	    rns.prod_mod_actu, 
+	    rns.prod_obs, 
+	    rns.prod_obs_5, 
+	    rns.prod_obs_95
+	   FROM dbeel_rivers.rn
+	     JOIN dbeel_rivers.rne ON rn.idsegment = rne.idsegment
+	     JOIN dbeel_rivers.rna ON rn.idsegment = rna.idsegment
+	     left JOIN dbeel_rivers.rns ON rn.idsegment = rns.idsegment
+);
