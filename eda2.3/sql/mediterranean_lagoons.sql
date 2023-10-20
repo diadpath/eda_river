@@ -762,3 +762,11 @@ JOIN france.rne ON wu.ubv_idsegment = rne.idsegment)
 SELECT  lag_complexepeche, round(sum(neel)) neel, round(sum(beel)) beel, round(sum(nsilver)) nsilver, round(sum(bsilver)) bsilver 
 FROM jj
 GROUP BY lag_complexepeche;
+
+
+-- Elsa me demande le périmètres des lagunes 
+SELECT lag_nom,lag_prudhomie,st_perimeter(lag_polygone), lag_zif_nom FROM france.tr_lagunes AS tl 
+SELECT lag_nom,lag_prudhomie,st_perimeter(st_transform(lag_polygone, 3035)), lag_zif_nom FROM france.tr_lagunes AS tl ORDER BY lag_nom
+
+SELECT lag_nom,lag_prudhomie, lag_zif_nom,  st_perimeter(st_union(lag_polygone)) FROM france.tr_lagunes AS tl GROUP BY lag_nom,lag_prudhomie, lag_zif_nom;
+SELECT lag_nom,lag_prudhomie, lag_zif_nom,  st_perimeter(st_dump(lag_polygone).geom) FROM france.tr_lagunes AS tl GROUP BY lag_nom,lag_prudhomie, lag_zif_nom;
