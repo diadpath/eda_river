@@ -44,11 +44,11 @@ CREATE INDEX rn_geom_ix ON sweden.rn USING gist (geom);
 -- using a spatial join (ST_Intersection). Geometries are therefore rounded as a first step. 
 create temporary table temp_watercourselink as
 select w.*, ST_ReducePrecision(centrelinegeometry, 0.1) round_geom
-from watercourselink_altered w;
+from rawdata.watercourselink_altered w;
 
 create temporary table temp_watercourselinksequence as
 select w.*, ST_ReducePrecision(wkb_geometry, 0.1) round_geom
-from watercourselinksequence  w;
+from rawdata.watercourselinksequence  w;
 
 -- Create spatial indexes on temporary tables
 CREATE INDEX round_geom_WL_idx ON temp_watercourselink USING gist (round_geom);
@@ -78,12 +78,17 @@ join_watercourse_link_sequence
 where idsequence =304949
 returning *;
 
+SELECT 
+*
+FROM 
+join_watercourse_link_sequence;
+
 -- investigate segments where idsequences are null
 drop table if exists tempor;
 create temporary table tempor as
 select centrelinegeometry, w.idsegment 
 from 
-watercourselink_altered w 
+rawdata.watercourselink_altered w 
 left join
 join_watercourse_link_sequence jwls
 on w.idsegment = jwls.idsegment
@@ -97,7 +102,7 @@ select *, st_length(st_intersection(t.centrelinegeometry,w.wkb_geometry)) L
 from
 tempor t
 join
-watercourselinksequence w on 
+rawdata.watercourselinksequence w on 
 ST_DWithin(t.centrelinegeometry,w.wkb_geometry,0.1)
 order by t.idsegment, L desc)
 select distinct on (idsegment) idsegment, ogc_fid 
@@ -114,21 +119,22 @@ drop table if exists segments_within_linksequence;
 create table segments_within_linksequence as
 select w.centrelinegeometry , w.idsegment, w2.idsegment nextdownidsegment 
 from
-watercourselink_altered w 
+rawdata.watercourselink_altered w 
 left join
-watercourselink_altered w2 on w.target_node = w2.source_node
+rawdata.watercourselink_altered w2 on w.target_node = w2.source_node
 left join
 join_watercourse_link_sequence jwls on w.idsegment = jwls.idsegment
 left join 
 join_watercourse_link_sequence jwls2 on w2.idsegment = jwls2.idsegment
 where jwls.idsequence=jwls2.idsequence;
 
+
 -- delete single row with 2 nextdownidsegments
 DELETE FROM segments_within_linksequence 
 where nextdownidsegment ='SW1313717';
 
 select *
-from watercourselink_altered wa 
+from rawdata.watercourselink_altered wa 
 where wa.idsegment in (select nextdownidsegment as idsegment
 from segments_within_linksequence
 group by nextdownidsegment having (count(*) >1));
@@ -147,7 +153,7 @@ from (
 select 
 w3.idsegment
 from
-watercourselink_altered w3
+rawdata.watercourselink_altered w3
 except 
 select idsegment
 from
@@ -166,13 +172,13 @@ w6.centrelinegeometry nextdowngeometry,
 w6."length" 
 from
 nextsegment_not_in_seq
-left join watercourselink_altered w5 on nextsegment_not_in_seq.idsegment = w5.idsegment
-left join watercourselink_altered w6 on w5.target_node = w6.source_node;
+left join rawdata.watercourselink_altered w5 on nextsegment_not_in_seq.idsegment = w5.idsegment
+left join rawdata.watercourselink_altered w6 on w5.target_node = w6.source_node;
 
 create index idx_idsegment_jd on joined_data(idsegment); -- add index to speed up data base
 create index idx_nextdownidsegment on joined_data(nextdownidsegment); -- add index to speed up data base
  
--- Find segments where segments don´t belong to the same sequence (choose the shortest downstream segment)
+-- Find segments where segments donï¿½t belong to the same sequence (choose the shortest downstream segment)
 drop table if exists segments_connecting_linksequences;
 create temporary table segments_connecting_linksequences as
 WITH groups AS (
@@ -282,6 +288,12 @@ on wa.idsegment = B.idsegment;
 -----------------------------
 ------------------------------
 
+------------------------
+-- TO DO(check this)
+------------------------
+-- Bug in issource(or actually in the river network). Difference in the set of source nodes 
+-- and target nodes does not necessarily imply that these links are sources. 
+
 ---------------------
 -- obtain issource --
 ---------------------
@@ -290,13 +302,13 @@ on wa.idsegment = B.idsegment;
 drop table if exists temp_issource;
 create table temp_issource as 
 select wa.idsegment, wa.source_node = unique_source_nodes.source_node is not null issource 
-from watercourselink_altered wa 
+from rawdata.watercourselink_altered wa 
 left join 
 (select source_node
-from watercourselink_altered wa 
+from rawdata.watercourselink_altered wa 
 except
 select target_node
-from watercourselink_altered wa2) unique_source_nodes on wa.source_node=unique_source_nodes.source_node;
+from rawdata.watercourselink_altered wa2) unique_source_nodes on wa.source_node=unique_source_nodes.source_node;
 
 ------------------------------
 ------------------------------
@@ -306,7 +318,7 @@ from watercourselink_altered wa2) unique_source_nodes on wa.source_node=unique_s
 -------------------------
 --
 -- Find segments connected to the sea. 
--- These segments are found by connecting coastlines from Topografi 10(Lantmäteriet) spatially
+-- These segments are found by connecting coastlines from Topografi 10(Lantmï¿½teriet) spatially
 -- with segments in watercourse link. First create temporary table temp_coastline. Second,
 -- make a spatial join between endnodes of segments from watercourselink and linestrings from 
 -- temp_coastline.  
@@ -315,7 +327,7 @@ create table temp_coastline as
 select *
 from 
 markkantlinje m
-where objekttyp in ('Strandlinje, hav','Stängning mot hav');
+where objekttyp in ('Strandlinje, hav','Stï¿½ngning mot hav');
 CREATE INDEX geom_coast_idx ON temp_coastline USING gist (geom);
 
 
@@ -547,7 +559,7 @@ where country in ('NO','FI');
 -- As the river network has been restructured to not include loops (only one nextdownidsegment)
 -- we also need to change the issource column. Segments that are connected to the network and do 
 -- not have any nextdownidsegments are considered issource segments.    
-
+/*
 with sourcesegment as ( -- new issourcesegments
 select idsegment
 from 
@@ -562,13 +574,25 @@ UPDATE sweden.rn srn
 SET issource  = true
 FROM sourcesegment ss 
 WHERE srn.idsegment = ss.idsegment;
-
-/*
-select r.idsegment, 
-from 
-sweden.rn r, sourcesegment s
-where r.idsegment in (s.idsegment);
 */
+
+
+---------------------------------------
+-- Work on fork segments
+-- 
+CREATE VIEW rawdata.temp_fork AS (
+SELECT 
+srn.geom 
+FROM
+sweden.rn srn
+WHERE 
+"source" IN
+(SELECT "source"
+FROM 
+sweden.rn
+GROUP BY "source" HAVING COUNT(*) > 1)
+)
+
 -----------------------
 -- change schema name -
 -----------------------
