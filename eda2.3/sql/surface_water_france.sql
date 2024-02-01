@@ -709,9 +709,24 @@ DROP TABLE IF EXISTS france.temp_waterbody_unitbv_rn_rna_rne;
 CREATE TABLE france.temp_waterbody_unitbv_rn_rna_rne AS (
 SELECT 
 row_number() over() AS _uid_,
-w.*,
+w.ubv_idwu,
+w.ubv_idw,
+w.ubv_idsegment as idsegment,
+w.ubv_code,
+w.ubv_name,
+w.ubv_sudoang_category,
+w.ubv_country,
+w.geom,
+w.nature,
+w.persistance,
+w.salinite,
+w.commentaire,
+w.id_p_eau,
+w.id_c_eau,
+w.id_ent_tr,
+w.lag_id,
 st_area(w.geom) AS surface,
-st_area(w.geom) / wettedsurfaceotherm2 AS perc_surface_with_unitbv,
+wettedsurfaceotherm2 /st_area(w.geom) AS perc_surface_with_unitbv,
 rn.seaidsegment,
 codesea,
 basin,
@@ -737,9 +752,9 @@ neel_wd,
 beel_wd,
 drought
 FROM france.waterbody_unitbv w 
-JOIN france.rn ON rn.idsegment=w.idsegment 
-JOIN france.rne ON rne.idsegment=w.idsegment 
-JOIN france.rna ON rna.idsegment=w.idsegment
+JOIN france.rn ON rn.idsegment=w.ubv_idsegment  
+JOIN france.rne ON rne.idsegment=w.ubv_idsegment 
+JOIN france.rna ON rna.idsegment=w.ubv_idsegment
 LEFT JOIN eda_gerem.assoc_dbeel_rivers aa ON rn.seaidsegment= aa.seaidsegment);--722036
 CREATE INDEX ON france.temp_waterbody_unitbv_rn_rna_rne USING gist(geom);
 CREATE INDEX ON france.temp_waterbody_unitbv_rn_rna_rne USING btree(idsegment);
