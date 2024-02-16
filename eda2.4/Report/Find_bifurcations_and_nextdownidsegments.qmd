@@ -1,0 +1,135 @@
+---
+  title: "Find_bifurcations_and_nextdownidsegments"
+format: html
+editor: visual
+author: "Torbjörn Säterberg (torbjorn.saterberg@slu.se)"
+---
+
+## Load packages
+
+```{r init}
+require("RPostgres", quietly = TRUE)
+require("sqldf", quietly = TRUE)
+library("sp", quietly = TRUE)
+library("rgdal", quietly = TRUE)
+library("sf", quietly = TRUE)
+library("tmap", quietly=TRUE)
+library(hydroloom) # working with river networks(bifurcations etc.)
+library(tidyverse)
+```
+
+# Load rawdata(inspire hydrographic network) 
+
+```{r}
+
+# Connect to EDA database
+EDA_con <- dbConnect(drv = Postgres(), 
+                     dbname = "eda2.4",
+                     user="postgres",
+                     password="postgres")
+```
+
+##Extract data from inspire network
+```{sql, connection="EDA_con", output.var = "rn"}
+#| engine: knitr
+
+WITH swe AS 
+(SELECT * -- network excluding segments in the sea
+FROM 
+alt_insp.watercourselink w
+WHERE NOT isinsea),
+snode_not_in_endnode AS
+(SELECT s1.startnode
+FROM swe s1
+EXCEPT 
+SELECT s2.endnode
+FROM swe s2),
+issource_ids AS(
+SELECT gml_id
+FROM
+alt_insp.watercourselink w2 
+WHERE w2.startnode IN (SELECT * FROM snode_not_in_endnode))
+SELECT s.*, 
+CASE 
+WHEN i.gml_id IS NULL THEN FALSE
+ELSE TRUE END issource 
+FROM swe s
+LEFT JOIN issource_ids i
+ON s.gml_id=i.gml_id
+WHERE maincatchment = 92000;
+```
+
+# Use hydroloom 
+```{r}
+
+# Create an sf-object(spatial feature object)
+rn_sf <- rn %>% mutate(geom=st_as_sfc(wkb_geometry))
+rn_sf <- st_as_sf(rn_sf)
+
+# Create hydroloom-object
+hnames <- c(gml_id="id",length="lengthm") # hydroloom need to define names for ids etc.
+hydroloom_names(hnames,clear=FALSE)
+rn_hy <- hy(rn_sf)
+
+#flow_net <- temp_rn |>
+#             sf::st_transform(5070)        
+
+flow_net <- rn_hy |>
+  make_attribute_topology(min_distance = 5) |> # maximum distance between end and startnodes
+  make_node_topology(add_div = TRUE) |>
+  left_join(rn_hy, by = "id")
+
+
+outlets <- filter(flow_net, issea)
+
+non_dendr_netw <- add_divergence(flow_net, 
+               coastal_outlet_ids = outlets$id, 
+               inland_outlet_ids = c(), 
+               name_attr = "fk_gml_id_wcls", 
+               type_attr = "fictitious", 
+               major_types = unique(flow_net$fictitious)) |>
+  add_toids(return_dendritic = FALSE) |>
+  add_return_divergence(status = TRUE)
+
+# exclude non dendritic paths
+dendr_netw <- add_divergence(flow_net, 
+               coastal_outlet_ids = outlets$id, 
+               inland_outlet_ids = c(), 
+               name_attr = "fk_gml_id_wcls", 
+               type_attr = "fictitious", 
+               major_types = unique(flow_net$fictitious)) |>
+  add_toids(return_dendritic = TRUE) 
+
+```
+
+## Plot network
+```{r}
+
+# make spatial object of dendritic and nondendritic networks
+nond_sf <- st_as_sf(non_dendr_netw)
+dend_sf <- st_as_sf(dendr_netw)
+
+# plot nondendritic network with divergences
+tmap_mode("view") 
+tm_basemap(server='https://tile.openstreetmap.org/{z}/{x}/{y}.png') +
+tm_shape(nond_sf) +
+    tm_lines(col="return_divergence",
+               palette = c("white","black"),
+           lwd=3) +
+tm_shape(nond_sf) +
+    tm_lines(col="divergence", 
+           lwd=3,
+           palette=c(palette = c("white","green", "red")),
+           alpha=0.5) +
+  tm_layout(main.title = "Non dendritic network", main.title.position = "center")
+
+# plot
+tmap_mode("view") 
+tm_basemap(server='https://tile.openstreetmap.org/{z}/{x}/{y}.png') +
+tm_shape(nond_sf) + 
+  tm_lines(col="red",lwd=1) +
+tm_shape(dend_sf) +
+  tm_lines(col="green",lwd=1) +
+tm_shape(sub_st_sf) +
+  tm_lines(col="black",lwd=1)
+```
