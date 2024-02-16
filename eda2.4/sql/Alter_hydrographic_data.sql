@@ -941,6 +941,154 @@ ADD CONSTRAINT fk_gml_id_wc
 FOREIGN KEY (fk_gml_id_wc) 
 REFERENCES alt_insp.watercourse (gml_id);
 
+-------------------------
+-- obtain seaidsegment --
+-------------------------
+--
+-- Find segments connected to the sea. 
+-- These segments are found by connecting coastlines from Topografi 10(Lantm�teriet) spatially
+-- with segments in watercourse link. First create temporary table temp_coastline. Second,
+-- make a spatial join between endnodes of segments from watercourselink and linestrings from 
+-- temp_coastline.  
+drop table if exists alt_insp.coastline; -- temporary coastline table
+create table alt_insp.coastline as
+select *
+from 
+rawdata.markkantlinje m
+where objekttyp in ('Strandlinje, hav','Stängning mot hav');
+CREATE INDEX geom_coast_idx ON alt_insp.coastline USING gist (geom);
+
+DROP TABLE IF EXISTS alt_insp.seasegm; -- table with identifier of most downstream segments
+CREATE TABLE alt_insp.seasegm AS
+SELECT
+w2.gml_id,
+isseasegments.gml_id IS NOT NULL seasegment
+FROM alt_insp.watercourselink w2
+LEFT JOIN
+(SELECT DISTINCT
+w.gml_id 
+FROM
+alt_insp.watercourselink w
+INNER JOIN alt_insp.coastline tc
+ON ST_DWithin(ST_EndPoint(w.wkb_geometry),tc.geom,0.5)) isseasegments 
+ON w2.gml_id = isseasegments.gml_id;
+
+-- manually change a few segments that flow out in finland etc.
+/*
+UPDATE alt_insp.seasegm
+SET seasegment = TRUE 
+WHERE gml_id = 'SE.LM.HY.SYKE.d7958dcc-a3db-449d-90e1-d797bde59c45';
+
+UPDATE alt_insp.seasegm
+SET seasegment = TRUE 
+WHERE gml_id = 'SE.LM.HY.SYKE.bf460708-d9f7-42f5-a559-606ab582f8f4';
+
+DELETE FROM alt_insp.watercourselink -- stupid link that starts from the sea and flows to mainland
+WHERE gml_id='SE.LM.HY.895bbdaf-4224-46bd-851b-04ecaf138cf6';
+
+DELETE FROM alt_insp.watercourselink -- stupid link that starts from the sea and flows to mainland
+WHERE gml_id='SE.LM.HY.33f1af56-30e3-426c-ab9b-c2ac2febed2c';
+
+UPDATE alt_insp.seasegm -- treate this segment as if it is in the sea
+SET seasegment = FALSE 
+WHERE gml_id = 'SE.LM.HY.d305c957-f25a-47aa-b43d-f294714c4297';
+
+UPDATE alt_insp.seasegm -- treate this segment as if it is in the sea
+SET seasegment = FALSE 
+WHERE gml_id = 'SE.LM.HY.471fc292-a5c9-445a-a288-10b33c9e8b6d';
+
+UPDATE alt_insp.seasegm 
+SET seasegment = TRUE 
+WHERE gml_id = 'SE.LM.HY.6388b2ac-0952-4da4-909c-8a8cfb8ce08d';
+
+UPDATE alt_insp.seasegm 
+SET seasegment = TRUE 
+WHERE gml_id = 'SE.LM.HY.a0c1ec6f-5cfc-466f-ac37-88074920a58d';
+
+UPDATE alt_insp.seasegm 
+SET seasegment = FALSE 
+WHERE gml_id = 'SE.LM.HY.60e18936-759b-4332-b37a-f5582238a122';
+
+UPDATE alt_insp.seasegm 
+SET seasegment = TRUE 
+WHERE gml_id = 'SE.LM.HY.ed6bebdd-fa00-44de-b1b8-7d468dfb869e';
+
+UPDATE alt_insp.seasegm 
+SET seasegment = FALSE
+WHERE gml_id = 'SE.LM.HY.9d170b81-335e-4cf8-a3aa-398c30d01b15';
+
+UPDATE alt_insp.seasegm 
+SET seasegment = FALSE
+WHERE gml_id = 'SE.LM.HY.00d1dbdc-7f73-40c9-8882-91f66c07c7b0';
+
+UPDATE alt_insp.seasegm 
+SET seasegment = TRUE
+WHERE gml_id = 'SE.LM.HY.NVE.bd2d3e6a-b656-4614-8523-2df47fce647c';
+
+UPDATE alt_insp.seasegm 
+SET seasegment = TRUE
+WHERE gml_id = 'SE.LM.HY.NVE.a042af75-a970-4bf1-bc0c-cba0bfaf6801';
+
+*/
+
+DROP VIEW IF EXISTS alt_insp.view_seasegments;
+CREATE VIEW alt_insp.view_seasegments AS
+SELECT w.*
+FROM alt_insp.watercourselink w 
+JOIN alt_insp.seasegm s 
+ON w.gml_id=s.gml_id
+where s.seasegment;
+
+CREATE TEMPORARY TABLE alt_insp.HAV AS
+SELECT geom, objekttyp
+FROM rawdata.mark
+WHERE objekttyp='Hav';
+
+-- create temporary table with segments that spatially intersect with sea polygons
+DROP TABLE IF EXISTS X;
+CREATE TEMPORARY TABLE X AS
+SELECT w.*
+FROM
+alt_insp.watercourselink w 
+JOIN
+alt_insp.hav h 
+ON ST_Intersects(w.wkb_geometry,h.geom);
+
+-- some of the segments that intersect with sea polygons are seasegments(these segments should be part of the network!!!)
+DROP TABLE IF EXISTS segments_in_sea;
+CREATE TEMPORARY TABLE segments_in_sea AS
+SELECT X.*
+FROM X
+WHERE gml_id NOT IN (SELECT gml_id FROM alt_insp.seasegm s WHERE seasegment);
+
+-- Add isinsea (indicator of whether a segment is in the sea) and
+-- issea (indicator of whether a segment is flowing into the sea)
+ALTER TABLE alt_insp.watercourselink 
+DROP COLUMN IF EXISTS isinsea;
+ALTER TABLE alt_insp.watercourselink 
+DROP COLUMN IF EXISTS issea;
+ALTER TABLE alt_insp.watercourselink 
+ADD COLUMN 
+isinsea BOOLEAN DEFAULT FALSE;
+ALTER TABLE alt_insp.watercourselink 
+ADD COLUMN 
+issea BOOLEAN DEFAULT FALSE; 
+
+-- add true to most downstream segments
+UPDATE alt_insp.watercourselink w
+SET issea=s.seasegment 
+FROM alt_insp.seasegm s
+WHERE w.gml_id =s.gml_id AND s.seasegment;  
+
+-- Add true to segments located in the sea
+UPDATE alt_insp.watercourselink w
+SET isinsea=TRUE 
+WHERE
+w.gml_id IN (
+SELECT gml_id 
+FROM 
+alt_insp.segments_in_sea)
+
 -----------------------------------------------------------------
 -- Find bifurcations (the segment upstream from a bifurcation) --
 -----------------------------------------------------------------
