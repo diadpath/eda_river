@@ -1,61 +1,12 @@
-
-
 -- sweden.rn definition
 
 -- Drop table
-
 DROP TABLE IF EXISTS worksweden.rn;
 
-
-/*
- Creation of the worksweden.rn table 
- */
-
-/*
-DROP SCHEMA IF EXISTS worksweden;
-CREATE SCHEMA worksweden;
-drop table if exists worksweden.rn;
-CREATE TABLE worksweden.rn (fictitious boolean,
-	CONSTRAINT c_pk_rnidsegment PRIMARY KEY (idsegment)
-)
-INHERITS (dbeel_rivers.rn);
-CREATE INDEX indexcountry ON worksweden.rn USING btree (country);
-CREATE INDEX indexidsegmentrrn ON worksweden.rn USING btree (idsegment);
-CREATE INDEX indexnextdownidsegmentrrn ON worksweden.rn USING btree (nextdownidsegment);
-CREATE INDEX indexsourcern ON worksweden.rn USING btree (source);
-CREATE INDEX indextargetrn ON worksweden.rn USING btree (target);
-CREATE INDEX rn_geom_ix ON worksweden.rn USING gist (geom);
-*/
-
----------------------
--- obtain issource --
----------------------
---
--- Use the difference in subsets of sourcenodes and targetnodes to find issource (the sources of the rivernetwork) 
-/*drop table if exists temp_issource;
-create table temp_issource as 
-select wa.idsegment, wa.source_node = unique_source_nodes.source_node is not null issource 
-from rawdata.watercourselink_altered wa 
-left join 
-(select source_node
-from rawdata.watercourselink_altered wa 
-except
-select target_node
-from rawdata.watercourselink_altered wa2) unique_source_nodes on wa.source_node=unique_source_nodes.source_node;
-*/
-
-
-------------------------------
-------------------------------
-
----------------------------------------------
----------------------------------------------
-
-------------------------------
--- create schema worksweden --
-------------------------------   
+-- Create schema worksweden
 create schema worksweden;
-DROP TABLE IF EXISTS worksweden.rn;
+
+-- Create table rn   
 CREATE TABLE worksweden.rn (gml_id VARCHAR,
 fictitious BOOLEAN,
 divergence INT,
@@ -65,35 +16,31 @@ UNIQUE(gid)
 )
 INHERITS (dbeel_rivers.rn);
 
--------------------------------
--------------------------------
 
-----------------------------------
--- populate worksweden.rn table --
-----------------------------------
-
-insert into worksweden.rn (
-gml_id, -- done 
-gid, -- done
-idsegment, -- done
-"source", -- done
-target, --done
-lengthm, -- done
---nextdownidsegment, Will be done using routing algorithm in R
---"path",  Will be done using routing algorithm R
-isfrontier, -- done
-issource, -- done
---seaidsegment, -- Will be found using routing algorithm R
-issea, -- done
-geom, -- done
-isendoreic, -- done
-isinternational, -- done
-country, -- done
-fictitious, -- done
-isinlandoutlet, -- found using routing algorithm in R (these are outlets from one basin to another etc. Keeping if there are issues in path algorithm
-divergence -- indicator whether a segment has bifurcated from upstreams(1 - main path, 2 - subpath, 0 non-branching segment)  
-)
-
+------------------------------------------------
+-- Columns to populate in worksweden.rn table --
+------------------------------------------------
+/*
+gml_id, -- This script
+gid, -- This script
+idsegment, -- This script
+"source", -- This script
+target, -- This script
+lengthm, -- This script
+nextdownidsegment -- Routing algorithm in R finds most of these (Update non existing rows here)
+"path" --  Routing algorithm R
+isfrontier, -- This script
+issource, -- This script
+seaidsegment, -- Routing algorithm R
+issea, -- This script
+geom, -- This script
+isendoreic, -- This script
+isinternational, -- This script
+country, -- This script
+fictitious, -- This script
+isinlandoutlet, -- Routing algorithm in R (these are outlets from one basin to another etc. Keeping if there are issues in path algorithm
+divergence -- Routing algorithm R (Bifurcations; 1 - main path, 2 - subpath, 0 non-branching segment)  
+*/
 
 ----------------------------------------
 -- insert simple data into worksweden --
@@ -182,9 +129,12 @@ wrn.gml_id=tkey.gml_id;
 -----------------------
 -- obtain isfrontier --
 -----------------------
-DROP TABLE IF EXISTS worksweden.frontier CASCADE;
-CREATE TABLE worksweden.frontier AS
---insert into worksweden.frontier(idsegment, country, nextcountry, isfrontier, centerlinegeometry)
+
+-- create temporary table
+DROP TABLE IF EXISTS frontier CASCADE;
+CREATE TEMPORARY TABLE frontier AS
+
+-- Populate temporary table frontier
 WITH tt AS (SELECT  
 CASE
 WHEN w."namespace" = 'SE.LM.HY.NVE' THEN 'NO'
@@ -205,28 +155,24 @@ SELECT wa.gml_id, B.gml_id IS NOT NULL isfrontier
 FROM alt_insp.watercourselink wa 
 LEFT JOIN
 (SELECT DISTINCT
-gml_id--,
---country, 
---nextcountry, 
---country <> nextcountry as isfrontier--,
---centrelinegeometry
+gml_id
 FROM tt
 WHERE country <> nextcountry) B 
 ON wa.gml_id = B.gml_id;
 
-/*
+/* -- USE THIS TO VISUALIZE FRONTIER SEGMENTS
 CREATE VIEW worksweden.frontier_geom AS
 SELECT w.*
 FROM alt_insp.watercourselink w 
 JOIN
-worksweden.frontier f 
+frontier f 
 ON w.gml_id=f.gml_id
 where f.isfrontier;
 */
 
 UPDATE worksweden.rn wrn
 SET isfrontier=f.isfrontier
-FROM worksweden.frontier f
+FROM frontier f
 WHERE wrn.gml_id = f.gml_id; 
 -----------------------------
 ------------------------------
@@ -234,24 +180,8 @@ WHERE wrn.gml_id = f.gml_id;
 ---------------------
 -- obtain issource --
 ---------------------
-/*CREATE MATERIALIZED VIEW worksweden.sourcesegment AS
-WITH swe AS 
-(SELECT * -- network excluding segments in the sea
-FROM 
-alt_insp.watercourselink w
-WHERE NOT isinsea),
-snode_not_in_endnode AS
-(SELECT s1.startnode
-FROM swe s1
-EXCEPT 
-SELECT s2.endnode
-FROM swe s2)
-SELECT gml_id
-FROM
-alt_insp.watercourselink w2 
-WHERE w2.startnode IN (SELECT * FROM snode_not_in_endnode); */
 
--- USE this for sources within basins
+-- Utility function for finding sources within basins
 CREATE OR REPLACE FUNCTION worksweden.find_source_in_basin(b_id integer)
  RETURNS TABLE(gml_id character varying, issource boolean)
  LANGUAGE plpgsql
@@ -278,7 +208,8 @@ END;
 $function$
 ;
 
-CREATE TABLE worksweden.source AS
+DROP TEMPORARY TABLE IF EXISTS source;
+CREATE TEMPORARY TABLE source AS
 WITH A AS
 (SELECT DISTINCT maincatchment FROM alt_insp.watercourselink w)
 SELECT * FROM A,
@@ -286,7 +217,7 @@ LATERAL (select * FROM alt_insp.find_source_in_basin(A.maincatchment)) AS foo;
 
 UPDATE worksweden.rn wrn
 SET issource=s.issource
-FROM worksweden.source s
+FROM source s
 WHERE wrn.gml_id = s.gml_id; 
 
 /*
@@ -298,7 +229,7 @@ ON w.gml_id=s.gml_id
 WHERE s.issource;
 */
 
--- USE THIS CODE IS TO FIND ISSOURCE when basins are not considered
+-- USE THIS CODE IS TO FIND ISSOURCE WHEN BASIN GROUPING IS NOT CONSIDERED
 /* 
 WITH swe AS 
 (SELECT * -- network excluding segments in the sea
@@ -330,7 +261,6 @@ WHERE issource IS NULL;
 -----------------------
 -- obtain isendoreic --
 -----------------------
-
 -- insert isendoreic in worksweden.rn
 UPDATE worksweden.rn 
 SET isendoreic = FALSE; -- the inspire network should not include isolated river networks(i.e. subsystems that are not connected to the sea)
@@ -359,21 +289,70 @@ WHERE wrn.gml_id IN (SELECT * FROM int_basin_segm);
 UPDATE worksweden.rn wrn
 SET isinternational =FALSE 
 WHERE isinternational IS NULL;
-;
 
----------------------------
--- Add divergence column --
----------------------------
+------------------------
+-- obtain divergence  --
+------------------------
+
+-- First run Find_bifurcations_and_nextdownidsegment script, then populate rn table using this script
 
 /*
  This column is filled in R using the hydroloom package to find primary and substreams
  0 - a segment which is not part of a bifurcation
- 1 - primary riversegment from a bifurcation
+ 1 - primary riversegment from a bifurcation(these are found using information from watercourselinksequence)
  2 - secondary riversegment from a bifurcation
  */
 
-/* Visualize data from R 
- *  
+/* CHECK IF THERE ARE ANY EMPTY ROWS IN DIVERGENCE COLUMN
+SELECT COUNT(*) -- 0
+FROM div d 
+WHERE divergence IS NULL;
+*/ 
+
+-- insert data from table div (produced in R) to rn table
+UPDATE worksweden.rn wrn
+SET divergence = d.divergence
+FROM div d
+WHERE wrn.gml_id = d.gml_id; 
+
+------------------------------
+-- obtain nextdownidsegment --
+------------------------------
+
+-- update table div with some nextdowngml_ids for null values
+WITH tt AS 
+(SELECT w.gml_id, w2.gml_id nextdowngml_id 
+FROM alt_insp.watercourselink w 
+JOIN alt_insp.watercourselink w2 
+ON w.endnode=w2.startnode 
+JOIN div d 
+on w.gml_id = d.gml_id 
+WHERE d.isinlandoutlet)
+UPDATE div d
+SET nextdowngml_id = tt.nextdowngml_id
+FROM tt
+WHERE d.gml_id = tt.gml_id;
+ 
+/* -- CHECK SEGMENTS THAT DON´T HAVE A NEXTDOWNIDSEGMENT
+CREATE MATERIALIZED VIEW worksweden.non_nextdownid AS
+SELECT *
+FROM alt_insp.watercourselink w 
+WHERE gml_id IN
+(SELECT gml_id
+FROM
+div d
+WHERE d.isinlandoutlet
+EXCEPT
+SELECT gml_id --218
+FROM
+(SELECT w.gml_id, w2.gml_id nextdowngml_id
+FROM alt_insp.watercourselink w 
+JOIN alt_insp.watercourselink w2 
+ON w.endnode=w2.startnode 
+JOIN div d 
+on w.gml_id = d.gml_id 
+WHERE d.isinlandoutlet) A)
+
  CREATE MATERIALIZED VIEW alt_insp.inland_outlet AS
  SELECT w.*
  FROM alt_insp.watercourselink w 
@@ -390,15 +369,74 @@ div d
 ON w.gml_id=d.gml_id
 WHERE d.divergence IN (1,2);
 
- */
+SELECT COUNT(*)
+FROM 
+worksweden.rn
+
+CREATE MATERIALIZED VIEW alt_insp.non_nextdowngml_id AS 
+SELECT w.*
+FROM
+alt_insp.watercourselink w
+JOIN div d
+ON w.gml_id = d.gml_id
+WHERE d.nextdowngml_id='';
+
+SELECT COUNT(*) --5258
+FROM div 
+WHERE nextdowngml_id=''
+
+SELECT COUNT(*) --5029
+FROM 
+alt_insp.watercourselink w 
+WHERE issea 
+
+SELECT COUNT(*) --229
+FROM div
+WHERE isinlandoutlet; 
+
+SELECT 5258-5029 --229(number of segments with no nextdownidsegments but are not sea outlets)
+*/
+
+
+-- populate rn table
+WITH tt AS
+(SELECT wrn1.idsegment, wrn2.idsegment nextdownidsegment 
+FROM worksweden.rn wrn1
+JOIN div d
+ON wrn1.gml_id = d.gml_id
+JOIN worksweden.rn wrn2
+ON d.nextdowngml_id=wrn2.gml_id)
+UPDATE worksweden.rn wrn 
+SET nextdownidsegment = tt.nextdownidsegment
+FROM tt
+WHERE wrn.idsegment = tt.idsegment; 
+
 ------------------------
 -- Add isinlandoutlet --
 ------------------------
+UPDATE worksweden.rn wrn 
+SET isinlandoutlet = d.isinlandoutlet
+FROM div d
+WHERE wrn.gml_id = d.gml_id; 
 
-/*
- * This boolean is added in R 
- */
+-----------------------------
+-- manually update one row --
+-----------------------------
 
+UPDATE worksweden.rn wrn
+SET issea=TRUE 
+WHERE gml_id='SE.LM.HY.fb6661ad-3ec8-479c-a779-ffbdbb6e098d'
+
+-----------------
+-- Obtain path --
+-----------------
+
+-- This column is found using routing algorithm in R
+
+------------------------
+-- Vacuum clean table --
+------------------------
+VACUUM FULL worksweden.rn;
 --------------------------------------------------
 -- Add indexes and constraints on worksweden.rn --
 --------------------------------------------------

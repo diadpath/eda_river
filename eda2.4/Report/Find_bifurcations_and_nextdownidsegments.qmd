@@ -47,7 +47,8 @@ hydroloom_names(hnames,clear=FALSE)
 # remove basins far upstream
 basins <- basins$maincatchment[!basins$maincatchment %in% c(114000,116000)]
 
-#dbRemoveTable(EDA_con, "div")
+# IMPORTANT!!! remove table div from database before running loop! 
+dbRemoveTable(EDA_con, "div")
 
 for (i in 1:length(basins)) {
 
@@ -102,13 +103,6 @@ dbWriteTable(EDA_con, "div", data.frame(gml_id=dendr_netw$id,
                                         isinlandoutlet= (!dendr_netw$endnode %in% dendr_netw$startnode) & !dendr_netw$issea),
              append=TRUE)
 }
-# WARNING very slow code!!!
-#
-#sql_chunk <- dbExecute(EDA_con, "UPDATE worksweden.rn wrn
-#                          SET divergence=$2
-#                          WHERE wrn.gml_id=$1;",list(dendr_netw$id,dendr_netw$divergence))
-#
-#dbBind(sql_chunk,listdendr_netw$id,dendr_netw$divergence))
 }
 ```
 

@@ -1235,6 +1235,19 @@ WHERE gml_id IN ('SE.LM.HY.a1c934d4-46af-40b3-ac31-cd91eca60b01',
 				 'SE.LM.HY.726f28e7-25dd-4190-91a4-c1c3fecfcb81',
 				 'SE.LM.HY.8f6708f0-d58c-421e-a2ad-8eafadc3eea8')
 				 	
+UPDATE alt_insp.watercourselink
+SET issea=FALSE, isinsea=TRUE
+WHERE gml_id='SE.LM.HY.29398555-58ee-47a2-960c-7f5162b4858e'
+
+UPDATE alt_insp.watercourselink
+SET isinsea=FALSE
+WHERE gml_id='SE.LM.HY.28b2a86f-f82c-4ea6-b238-645c18a66a8a'
+
+UPDATE alt_insp.watercourselink
+SET issea=TRUE
+WHERE gml_id='SE.LM.HY.14d436e4-782c-4fb8-ac0b-b860034ca1a0'
+
+
 				 			
 */
 
@@ -1528,3 +1541,4 @@ VACUUM FULL alt_insp.watercourselink;
 VACUUM FULL alt_insp.watercourselinksequence;
 VACUUM FULL alt_insp.hydronode;
 VACUUM FULL alt_insp.non_ref_sw;
+VACUUM FULL worksweden.rn;
