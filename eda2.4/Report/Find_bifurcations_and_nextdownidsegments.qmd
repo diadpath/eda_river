@@ -18,8 +18,6 @@ library(hydroloom) # working with river networks(bifurcations etc.)
 library(tidyverse)
 ```
 
-# Load rawdata(inspire hydrographic network) 
-
 ```{r}
 
 # Connect to EDA database
@@ -29,107 +27,147 @@ EDA_con <- dbConnect(drv = Postgres(),
                      password="postgres")
 ```
 
-##Extract data from inspire network
-```{sql, connection="EDA_con", output.var = "rn"}
+## Find distinct basins in river network
+```{sql, connection="EDA_con", output.var = "basins"}
 #| engine: knitr
-
-WITH swe AS 
-(SELECT * -- network excluding segments in the sea
-FROM 
-alt_insp.watercourselink w
-WHERE NOT isinsea),
-snode_not_in_endnode AS
-(SELECT s1.startnode
-FROM swe s1
-EXCEPT 
-SELECT s2.endnode
-FROM swe s2),
-issource_ids AS(
-SELECT gml_id
+SELECT DISTINCT maincatchment 
 FROM
-alt_insp.watercourselink w2 
-WHERE w2.startnode IN (SELECT * FROM snode_not_in_endnode))
-SELECT s.*, 
-CASE 
-WHEN i.gml_id IS NULL THEN FALSE
-ELSE TRUE END issource 
-FROM swe s
-LEFT JOIN issource_ids i
-ON s.gml_id=i.gml_id
-WHERE maincatchment = 92000;
+alt_insp.watercourselink
+WHERE NOT isinsea;
+
 ```
 
-# Use hydroloom 
+## Find nextdownidsegment, divergence and isinlandoutlet
 ```{r}
+
+# create hydroloom names
+hnames <- c(gml_id="id",length="lengthm") # hydroloom need to define names for ids etc.
+hydroloom_names(hnames,clear=FALSE)
+
+# remove basins far upstream
+basins <- basins$maincatchment[!basins$maincatchment %in% c(114000,116000)]
+
+#dbRemoveTable(EDA_con, "div")
+
+for (i in 1:length(basins)) {
+
+print(i)
+    
+# Extract data from one basin (from database)  
+sql_chunk <- paste("SELECT * FROM alt_insp.watercourselink w WHERE NOT isinsea AND maincatchment=",basins[i])
+rn <- dbGetQuery(EDA_con,sql_chunk)
 
 # Create an sf-object(spatial feature object)
 rn_sf <- rn %>% mutate(geom=st_as_sfc(wkb_geometry))
 rn_sf <- st_as_sf(rn_sf)
 
-# Create hydroloom-object
-hnames <- c(gml_id="id",length="lengthm") # hydroloom need to define names for ids etc.
-hydroloom_names(hnames,clear=FALSE)
+# make hydroloom object
 rn_hy <- hy(rn_sf)
 
-#flow_net <- temp_rn |>
-#             sf::st_transform(5070)        
-
+# make a flow net based on spatial information
 flow_net <- rn_hy |>
   make_attribute_topology(min_distance = 5) |> # maximum distance between end and startnodes
   make_node_topology(add_div = TRUE) |>
   left_join(rn_hy, by = "id")
 
 
-outlets <- filter(flow_net, issea)
+if (basins[i] == 301000){
 
-non_dendr_netw <- add_divergence(flow_net, 
-               coastal_outlet_ids = outlets$id, 
-               inland_outlet_ids = c(), 
-               name_attr = "fk_gml_id_wcls", 
-               type_attr = "fictitious", 
-               major_types = unique(flow_net$fictitious)) |>
-  add_toids(return_dendritic = FALSE) |>
-  add_return_divergence(status = TRUE)
+dendr_netw <- flow_net |> 
+add_toids(return_dendritic = FALSE)# no divergences in this basin therefore just add toids
 
-# exclude non dendritic paths
+# Write to postgres temporary table
+dbWriteTable(EDA_con, "div", 
+             data.frame(gml_id=dendr_netw$id, 
+                        nextdowngml_id=dendr_netw$toid,
+                        divergence=0, # no divergences in this basin
+                        isinlandoutlet= 
+                        (!dendr_netw$endnode %in% dendr_netw$startnode) & !dendr_netw$issea), append=TRUE)
+
+}else{
+
+# Find divergences(bifurcations)
 dendr_netw <- add_divergence(flow_net, 
-               coastal_outlet_ids = outlets$id, 
-               inland_outlet_ids = c(), 
+               coastal_outlet_ids = flow_net$id[flow_net$issea], 
+               inland_outlet_ids = flow_net$id[(!flow_net$endnode %in% flow_net$startnode) & !flow_net$issea], 
                name_attr = "fk_gml_id_wcls", 
                type_attr = "fictitious", 
                major_types = unique(flow_net$fictitious)) |>
   add_toids(return_dendritic = TRUE) 
 
+# Write to temporary postgres table
+dbWriteTable(EDA_con, "div", data.frame(gml_id=dendr_netw$id, 
+                                        nextdowngml_id=dendr_netw$toid,
+                                        divergence=dendr_netw$divergence,
+                                        isinlandoutlet= (!dendr_netw$endnode %in% dendr_netw$startnode) & !dendr_netw$issea),
+             append=TRUE)
+}
+# WARNING very slow code!!!
+#
+#sql_chunk <- dbExecute(EDA_con, "UPDATE worksweden.rn wrn
+#                          SET divergence=$2
+#                          WHERE wrn.gml_id=$1;",list(dendr_netw$id,dendr_netw$divergence))
+#
+#dbBind(sql_chunk,listdendr_netw$id,dendr_netw$divergence))
+}
 ```
 
-## Plot network
-```{r}
 
-# make spatial object of dendritic and nondendritic networks
-nond_sf <- st_as_sf(non_dendr_netw)
-dend_sf <- st_as_sf(dendr_netw)
+<!-- ## Plot network -->
+<!-- ```{r} -->
 
-# plot nondendritic network with divergences
-tmap_mode("view") 
-tm_basemap(server='https://tile.openstreetmap.org/{z}/{x}/{y}.png') +
-tm_shape(nond_sf) +
-    tm_lines(col="return_divergence",
-               palette = c("white","black"),
-           lwd=3) +
-tm_shape(nond_sf) +
-    tm_lines(col="divergence", 
-           lwd=3,
-           palette=c(palette = c("white","green", "red")),
-           alpha=0.5) +
-  tm_layout(main.title = "Non dendritic network", main.title.position = "center")
+<!-- # make spatial object of dendritic and nondendritic networks -->
+<!-- nond_sf <- st_as_sf(non_dendr_netw) -->
+<!-- dend_sf <- st_as_sf(dendr_netw) -->
 
-# plot
-tmap_mode("view") 
-tm_basemap(server='https://tile.openstreetmap.org/{z}/{x}/{y}.png') +
-tm_shape(nond_sf) + 
-  tm_lines(col="red",lwd=1) +
-tm_shape(dend_sf) +
-  tm_lines(col="green",lwd=1) +
-tm_shape(sub_st_sf) +
-  tm_lines(col="black",lwd=1)
-```
+<!-- # plot nondendritic network with divergences -->
+<!-- tmap_mode("view")  -->
+<!-- tm_basemap(server='https://tile.openstreetmap.org/{z}/{x}/{y}.png') + -->
+<!-- tm_shape(nond_sf) + -->
+<!--     tm_lines(col="return_divergence", -->
+<!--                palette = c("white","black"), -->
+<!--            lwd=3) + -->
+<!-- tm_shape(nond_sf) + -->
+<!--     tm_lines(col="divergence",  -->
+<!--            lwd=3, -->
+<!--            palette=c(palette = c("white","green", "red")), -->
+<!--            alpha=0.5) + -->
+<!--   tm_layout(main.title = "Non dendritic network", main.title.position = "center") -->
+
+<!-- ``` -->
+
+
+
+<!-- # Test network algorithm(hydroloom) -->
+
+<!-- ```{r} -->
+
+<!-- # make a flow net based on spatial information -->
+<!-- flow_net <- rn_hy |> -->
+<!--   make_attribute_topology(min_distance = 5) |> # maximum distance between end and startnodes -->
+<!--   make_node_topology(add_div = TRUE) |> -->
+<!--   left_join(rn_hy, by = "id") -->
+
+<!-- # Outlets -->
+<!-- outlets <- filter(flow_net, issea) -->
+
+<!-- #  -->
+<!-- x <- flow_net |> -->
+<!--   add_toids(return_dendritic = FALSE) |> -->
+<!--   make_index_ids() -->
+
+<!-- # secondary path -->
+<!-- A <- x |> navigate_network_dfs('SE.LM.HY.574748f0-8150-49f5-a430-625747e01e2d',direction="down",reset=TRUE) -->
+
+<!-- # primary path -->
+<!-- B <- x |> navigate_network_dfs('SE.LM.HY.937b1c28-59d1-486b-bb30-ed1b2b43d994',direction="down",reset=TRUE) -->
+
+<!-- C <- x |> navigate_network_dfs('SE.LM.HY.d1abd80d-e48d-4618-bb9c-60fec9d8cb20',direction="down",reset=TRUE) -->
+
+<!-- D <- x |> navigate_network_dfs('SE.LM.HY.f0525a16-1ec5-42e0-9c8c-0f660c261e6e',direction="down",reset=TRUE) -->
+
+
+<!-- ``` -->
+
+
+

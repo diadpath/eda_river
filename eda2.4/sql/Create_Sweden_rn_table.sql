@@ -27,19 +27,12 @@ CREATE INDEX indextargetrn ON worksweden.rn USING btree (target);
 CREATE INDEX rn_geom_ix ON worksweden.rn USING gist (geom);
 */
 
-
-------------------------
--- TO DO(check this)
-------------------------
--- Bug in issource(or actually in the river network). Difference in the set of source nodes 
--- and target nodes does not necessarily imply that these links are sources. 
-
 ---------------------
 -- obtain issource --
 ---------------------
 --
 -- Use the difference in subsets of sourcenodes and targetnodes to find issource (the sources of the rivernetwork) 
-drop table if exists temp_issource;
+/*drop table if exists temp_issource;
 create table temp_issource as 
 select wa.idsegment, wa.source_node = unique_source_nodes.source_node is not null issource 
 from rawdata.watercourselink_altered wa 
@@ -49,6 +42,8 @@ from rawdata.watercourselink_altered wa
 except
 select target_node
 from rawdata.watercourselink_altered wa2) unique_source_nodes on wa.source_node=unique_source_nodes.source_node;
+*/
+
 
 ------------------------------
 ------------------------------
@@ -62,7 +57,9 @@ from rawdata.watercourselink_altered wa2) unique_source_nodes on wa.source_node=
 create schema worksweden;
 DROP TABLE IF EXISTS worksweden.rn;
 CREATE TABLE worksweden.rn (gml_id VARCHAR,
-fictitious boolean,
+fictitious BOOLEAN,
+divergence INT,
+isinlandoutlet BOOLEAN,
 CONSTRAINT c_pk_rnidsegment PRIMARY KEY (idsegment),
 UNIQUE(gid)
 )
@@ -86,13 +83,15 @@ lengthm, -- done
 --"path",  Will be done using routing algorithm R
 isfrontier, -- done
 issource, -- done
-seaidsegment, -- Will be found using routing algorithm R
+--seaidsegment, -- Will be found using routing algorithm R
 issea, -- done
 geom, -- done
 isendoreic, -- done
 isinternational, -- done
 country, -- done
-fictitious -- done
+fictitious, -- done
+isinlandoutlet, -- found using routing algorithm in R (these are outlets from one basin to another etc. Keeping if there are issues in path algorithm
+divergence -- indicator whether a segment has bifurcated from upstreams(1 - main path, 2 - subpath, 0 non-branching segment)  
 )
 
 
@@ -252,6 +251,55 @@ FROM
 alt_insp.watercourselink w2 
 WHERE w2.startnode IN (SELECT * FROM snode_not_in_endnode); */
 
+-- USE this for sources within basins
+CREATE OR REPLACE FUNCTION worksweden.find_source_in_basin(b_id integer)
+ RETURNS TABLE(gml_id character varying, issource boolean)
+ LANGUAGE plpgsql
+AS $function$ 
+BEGIN 
+	RETURN QUERY
+	WITH b_rn AS (
+	SELECT *
+	FROM alt_insp.watercourselink w
+	WHERE w.maincatchment=b_id
+	AND NOT w.isinsea
+	),
+	snode_not_in_endnode AS (
+	SELECT 
+	rn1.startnode
+	FROM b_rn rn1
+	EXCEPT
+	SELECT
+	rn2.endnode
+	FROM b_rn rn2)
+	SELECT b.gml_id, b.startnode IN (SELECT * FROM snode_not_in_endnode)
+	FROM b_rn b;
+END;
+$function$
+;
+
+CREATE TABLE worksweden.source AS
+WITH A AS
+(SELECT DISTINCT maincatchment FROM alt_insp.watercourselink w)
+SELECT * FROM A,
+LATERAL (select * FROM alt_insp.find_source_in_basin(A.maincatchment)) AS foo;
+
+UPDATE worksweden.rn wrn
+SET issource=s.issource
+FROM worksweden.source s
+WHERE wrn.gml_id = s.gml_id; 
+
+/*
+CREATE MATERIALIZED VIEW alt_insp.source_in_basin AS
+SELECT w.*
+FROM alt_insp.watercourselink w 
+JOIN alt_insp."source" s 
+ON w.gml_id=s.gml_id
+WHERE s.issource;
+*/
+
+-- USE THIS CODE IS TO FIND ISSOURCE when basins are not considered
+/* 
 WITH swe AS 
 (SELECT * -- network excluding segments in the sea
 FROM 
@@ -277,6 +325,7 @@ WHERE wrn.gml_id = i.gml_id;
 UPDATE worksweden.rn
 SET issource=FALSE
 WHERE issource IS NULL;
+*/
 
 -----------------------
 -- obtain isendoreic --
@@ -289,7 +338,7 @@ SET isendoreic = FALSE; -- the inspire network should not include isolated river
 ----------------------------
 -- obtain isinternational --
 ----------------------------
-with 
+WITH 
 int_basin AS
 (SELECT maincatchment
 FROM alt_insp.watercourselink w
@@ -312,8 +361,47 @@ SET isinternational =FALSE
 WHERE isinternational IS NULL;
 ;
 
+---------------------------
+-- Add divergence column --
+---------------------------
 
--- Add indexes and constraints on worksweden.rn 
+/*
+ This column is filled in R using the hydroloom package to find primary and substreams
+ 0 - a segment which is not part of a bifurcation
+ 1 - primary riversegment from a bifurcation
+ 2 - secondary riversegment from a bifurcation
+ */
+
+/* Visualize data from R 
+ *  
+ CREATE MATERIALIZED VIEW alt_insp.inland_outlet AS
+ SELECT w.*
+ FROM alt_insp.watercourselink w 
+ JOIN div d 
+ ON w.gml_id=d.gml_id
+ WHERE d.isinlandoutlet;
+ 
+ CREATE MATERIALIZED VIEW worksweden.divergence AS
+SELECT w.*, d.divergence
+FROM
+alt_insp.watercourselink w 
+JOIN 
+div d 
+ON w.gml_id=d.gml_id
+WHERE d.divergence IN (1,2);
+
+ */
+------------------------
+-- Add isinlandoutlet --
+------------------------
+
+/*
+ * This boolean is added in R 
+ */
+
+--------------------------------------------------
+-- Add indexes and constraints on worksweden.rn --
+--------------------------------------------------
 CREATE INDEX indexcountry ON worksweden.rn USING btree (country);
 CREATE INDEX indexidsegmentrrn ON worksweden.rn USING btree (idsegment);
 CREATE INDEX indexnextdownidsegmentrrn ON worksweden.rn USING btree (nextdownidsegment);

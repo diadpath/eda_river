@@ -453,6 +453,23 @@ localid IN ('2588b758-88ba-414a-923a-599b2e3fa4f7',
 DELETE FROM alt_insp.watercourselink 
 WHERE gml_id='SE.LM.HY.340fed6d-d91f-4872-9bb4-3f8619b26bd3'
 
+DELETE FROM alt_insp.watercourselink 
+WHERE gml_id='SE.LM.HY.e2be4849-ca18-43c5-888a-40cd735d2339'
+
+DELETE FROM alt_insp.watercourselink 
+WHERE maincatchment=115000;
+
+DELETE FROM alt_insp.watercourselink 
+WHERE maincatchment=115116;
+
+DELETE FROM alt_insp.watercourselink
+WHERE gml_id = 'SE.LM.HY.7161b505-ba3a-4115-be21-b757e184c3bd';
+
+DELETE FROM alt_insp.watercourselink
+WHERE gml_id IN ('SE.LM.HY.93f44838-905b-4461-948c-9014ea505b99',
+				 'SE.LM.HY.c4e18fc0-5e76-4569-b256-13d805fbc67d');
+
+
 -- hydronodes to remove
 DELETE FROM alt_insp.hydronode 
 WHERE ogc_fid IN (391721,515549)
@@ -989,6 +1006,118 @@ WHERE gml_id='SE.LM.HY.895bbdaf-4224-46bd-851b-04ecaf138cf6';
 DELETE FROM alt_insp.watercourselink -- stupid link that starts from the sea and flows to mainland
 WHERE gml_id='SE.LM.HY.33f1af56-30e3-426c-ab9b-c2ac2febed2c';
 
+DELETE FROM alt_insp.watercourselink
+WHERE maincatchment=116000; 
+
+
+DELETE FROM alt_insp.watercourselink
+WHERE maincatchment=114000; 
+
+UPDATE alt_insp.watercourselink
+SET startnode=endnode, endnode=startnode, wkb_geometry = ST_Reverse(wkb_geometry)
+WHERE gml_id='SE.LM.HY.7eab68ac-80cc-4c1c-adb2-3e4da20951df';
+
+UPDATE alt_insp.watercourselink
+SET startnode=endnode, endnode=startnode, wkb_geometry = ST_Reverse(wkb_geometry)
+WHERE gml_id='SE.LM.HY.e933008b-74f2-4112-b6c2-ebf1cba4cfaf';
+
+UPDATE alt_insp.watercourselink
+SET startnode=endnode, endnode=startnode, wkb_geometry = ST_Reverse(wkb_geometry)
+WHERE gml_id='SE.LM.HY.9530709a-9095-493c-bb1f-218ac343319e';
+
+UPDATE alt_insp.watercourselink
+SET issea=TRUE
+WHERE gml_id='SE.LM.HY.27b1f1c1-4a7f-4372-8cf9-282f5ff899e6'
+
+UPDATE alt_insp.watercourselink
+SET issea=TRUE, isinsea=FALSE
+WHERE gml_id='SE.LM.HY.9f8b5dcf-8442-47f9-b228-78838c8284e0'
+
+UPDATE alt_insp.watercourselink
+SET issea=TRUE
+WHERE gml_id='SE.LM.HY.674a506b-0032-4ec9-8c8c-2d3a17ad9964'
+
+UPDATE alt_insp.watercourselink
+SET issea=TRUE
+WHERE gml_id='SE.LM.HY.5fa130ba-f41c-4bd9-b2ca-86110280f84a'
+
+UPDATE alt_insp.watercourselink
+SET issea=FALSE, isinsea=TRUE
+WHERE gml_id='SE.LM.HY.c2acb901-6102-481e-8628-5122b32e44a0'
+
+UPDATE alt_insp.watercourselink
+SET issea=TRUE 
+WHERE gml_id='SE.LM.HY.7f84662e-af42-4f01-be5d-01e920c35ed4'
+
+UPDATE alt_insp.watercourselink
+SET issea=FALSE 
+WHERE gml_id='SE.LM.HY.1f7d0700-47b3-43eb-9389-07b07ec69266'
+
+UPDATE alt_insp.watercourselink
+SET isinsea = TRUE
+WHERE gml_id IN 
+('SE.LM.HY.a0a48f39-770d-4945-a30e-09aa3381c389',
+ 'SE.LM.HY.dc36efcd-67de-45d2-ad78-3814ea3ec5c5',
+ 'SE.LM.HY.9c819173-d728-4999-927b-a8a8286d6752',
+ 'SE.LM.HY.587603f1-4889-4885-b1a4-b4f4e086aabc',
+ 'SE.LM.HY.1f7d0700-47b3-43eb-9389-07b07ec69266',
+ 'SE.LM.HY.7fe1995e-3a4f-4f6a-9ef8-d1fea82c24ce')
+
+UPDATE alt_insp.watercourselink
+SET issea= TRUE
+WHERE gml_id='SE.LM.HY.d2b9594c-15e1-4e66-8d5b-eb789ecb1f9c'
+
+UPDATE alt_insp.watercourselink
+SET issea= TRUE
+WHERE gml_id='SE.LM.HY.8b6ec20f-5356-49eb-9f2a-8f4cabf3d6ff'
+
+UPDATE alt_insp.watercourselink
+SET maincatchment= 62000
+WHERE gml_id='SE.LM.HY.37bf8b77-333d-49bc-8368-390c2820579e'
+
+UPDATE alt_insp.watercourselink
+SET maincatchment= 62000
+WHERE gml_id='SE.LM.HY.2df67f17-4bca-4147-a760-cf323c4571a0'
+
+UPDATE alt_insp.watercourselink
+set maincatchment=13000
+WHERE gml_id='SE.LM.HY.39f505b8-65c0-4f2d-8946-1a84a2688e8a'
+
+UPDATE alt_insp.watercourselink
+set maincatchment=101000
+WHERE gml_id='SE.LM.HY.1814aecf-54f3-467d-b9cd-ac7e0ff6c00f'
+
+UPDATE alt_insp.watercourselink
+set maincatchment=101000
+WHERE gml_id='SE.LM.HY.20362dbd-b9da-4815-8150-9446339dafbd'
+
+UPDATE alt_insp.watercourselink
+SET issea=TRUE
+WHERE gml_id='SE.LM.HY.f1eb3f32-090b-4509-b5cf-f9b4f69c0747'
+
+UPDATE alt_insp.watercourselink
+SET maincatchment=59063
+WHERE gml_id='SE.LM.HY.998e77a5-b27b-4dce-b55f-bfac953badbe'
+
+UPDATE alt_insp.watercourselink
+SET maincatchment=59063
+WHERE gml_id='SE.LM.HY.53ceb867-ab1c-4c22-9451-f63ab2d182a9'
+
+
+UPDATE alt_insp.watercourselink
+SET maincatchment=29000
+WHERE gml_id='SE.LM.HY.f725b23f-bce2-485b-a8b7-5355c095159f'
+
+UPDATE alt_insp.watercourselink
+SET issea=TRUE
+WHERE gml_id='SE.LM.HY.14d436e4-782c-4fb8-ac0b-b860034ca1a0'
+
+UPDATE alt_insp.watercourselink
+SET issea=TRUE
+WHERE gml_id='SE.LM.HY.26d56311-f2a6-4bc7-bc31-4680c6a9c4f1'
+
+
+
 UPDATE alt_insp.seasegm -- treate this segment as if it is in the sea
 SET seasegment = FALSE 
 WHERE gml_id = 'SE.LM.HY.d305c957-f25a-47aa-b43d-f294714c4297';
@@ -1029,6 +1158,84 @@ UPDATE alt_insp.seasegm
 SET seasegment = TRUE
 WHERE gml_id = 'SE.LM.HY.NVE.a042af75-a970-4bf1-bc0c-cba0bfaf6801';
 
+UPDATE alt_insp.watercourselink
+SET startnode = endnode, endnode=startnode, wkb_geometry = ST_Reverse(wkb_geometry) 
+WHERE gml_id = 'SE.LM.HY.0f226991-c37f-4a8e-b983-c35053ad7a7d';
+
+UPDATE alt_insp.watercourselink
+SET issea=FALSE
+WHERE gml_id='SE.LM.HY.SYKE.bf460708-d9f7-42f5-a559-606ab582f8f4'
+
+UPDATE alt_insp.watercourselink
+SET issea=FALSE
+WHERE gml_id='SE.LM.HY.aa38ab16-e4d2-431a-8f05-5ea02f5d6449'
+
+UPDATE alt_insp.watercourselink
+SET issea=FALSE, isinsea=TRUE
+WHERE gml_id='SE.LM.HY.83171631-bdcc-4904-8f9f-77bd7244e1b0'
+
+UPDATE alt_insp.watercourselink
+SET issea=FALSE, isinsea=TRUE
+WHERE gml_id='SE.LM.HY.ee944ae1-b11d-45ae-b722-2457fb3e7d33'
+
+UPDATE alt_insp.watercourselink
+SET issea=FALSE, isinsea=FALSE
+WHERE gml_id IN ('SE.LM.HY.bc99da1e-ade9-44a0-8e63-1aba464c7980',
+				 'SE.LM.HY.2864c2d4-7e19-489b-af89-25b332151e98',
+				 'SE.LM.HY.6c72abc7-fe83-474d-9737-9fbb69587d12',
+				 'SE.LM.HY.3c32f6f2-c493-483f-bd85-0be72e7ac4ae')
+				 
+UPDATE alt_insp.watercourselink
+SET issea=FALSE, isinsea=FALSE
+WHERE gml_id='SE.LM.HY.397a0e8a-7281-49bc-978d-5b0a8a24a375'				 
+				 
+UPDATE alt_insp.watercourselink
+SET issea=FALSE, isinsea=FALSE
+WHERE gml_id IN ('SE.LM.HY.d136a625-7bc6-47c7-ac33-9d5d5fb2046e',
+				 'SE.LM.HY.68284c87-2426-4775-b510-b2614130ab0d')				 
+			 
+UPDATE alt_insp.watercourselink
+SET issea=FALSE
+WHERE gml_id='SE.LM.HY.6a6b53db-2dbc-4222-9a3c-e6e47fc5c131'				 
+
+UPDATE alt_insp.watercourselink
+SET issea=FALSE, isinsea=FALSE
+WHERE gml_id IN ('SE.LM.HY.45fe0431-ac1a-4b01-a6cb-bddede4af1cf',
+				 'SE.LM.HY.795bdf20-2a6f-447d-ad60-78836940c493')	
+				 
+UPDATE alt_insp.watercourselink
+SET issea=FALSE, isinsea=TRUE
+WHERE gml_id IN ('SE.LM.HY.2a3df338-d560-4615-9ae3-9b7b22d8363e',
+				 'SE.LM.HY.399b8187-f068-46d3-8a83-e3369ef1860f')				 
+
+UPDATE alt_insp.watercourselink
+SET issea=FALSE, isinsea=TRUE
+WHERE gml_id = 'SE.LM.HY.7b5f2315-1dba-4a0c-b6d8-4cc3f666ae63'
+
+UPDATE alt_insp.watercourselink
+SET issea=FALSE, isinsea=TRUE
+WHERE gml_id='SE.LM.HY.366f224d-53bf-433a-93a2-320a9bc545f4'
+
+UPDATE alt_insp.watercourselink
+SET issea=FALSE, isinsea=TRUE
+WHERE gml_id IN ('SE.LM.HY.45957f08-3916-41cf-a0f5-cea475692665',
+				 'SE.LM.HY.456ac98a-a57c-43f5-a006-59b97225bade',
+				 'SE.LM.HY.f0e3c18c-214b-4fb3-88df-8fe31013a014')				 
+
+UPDATE alt_insp.watercourselink
+SET issea=TRUE, isinsea=FALSE
+WHERE gml_id IN ('SE.LM.HY.8a3557d2-63c3-4193-aa4e-2a2de0c5cad9',
+				 'SE.LM.HY.16c49677-1f20-4fcd-a887-cb9ac7117f97')
+				 
+UPDATE alt_insp.watercourselink
+SET issea=FALSE, isinsea=FALSE
+WHERE gml_id IN ('SE.LM.HY.a1c934d4-46af-40b3-ac31-cd91eca60b01',
+				 'SE.LM.HY.0b7cda04-3285-4b15-8282-34fcfb34a574',
+				 'SE.LM.HY.3caf3903-c502-4530-b10e-77ae5ad2991b',
+				 'SE.LM.HY.726f28e7-25dd-4190-91a4-c1c3fecfcb81',
+				 'SE.LM.HY.8f6708f0-d58c-421e-a2ad-8eafadc3eea8')
+				 	
+				 			
 */
 
 DROP VIEW IF EXISTS alt_insp.view_seasegments;
@@ -1100,6 +1307,11 @@ WHERE w3.endnode IN
 FROM 
 alt_insp.watercourselink w 
 GROUP BY w.startnode HAVING COUNT(*)>1 ORDER BY COUNT(*) DESC)
+
+
+-- DROP FUNCTION alt_insp.find_source_in_basin(int4);
+
+
 
 /***********************************************************************
 -- Utility function used to find startnode of watercourselinksequences * 
