@@ -8,7 +8,7 @@
    set datestr=%year%_%month%_%day%
    echo datestr is %datestr%
     
-   set BACKUP_FILE_WORK=worksweden%datestr%.backup
+   set BACKUP_FILE_WORK=sweden%datestr%.backup
    echo backup file name is %BACKUP_FILE_WORK%
    set BACKUP_FILE_RAWDATA=rawdata%datestr%.backup
    echo backup file name is %BACKUP_FILE_RAWDATA%
