@@ -11,6 +11,7 @@ CREATE TABLE worksweden.rn (gml_id VARCHAR,
 fictitious BOOLEAN,
 divergence INT,
 isinlandoutlet BOOLEAN,
+fk_gml_id_wcls VARCHAR,
 CONSTRAINT c_pk_rnidsegment PRIMARY KEY (idsegment),
 UNIQUE(gid)
 )
@@ -40,6 +41,7 @@ country, -- This script
 fictitious, -- This script
 isinlandoutlet, -- Routing algorithm in R (these are outlets from one basin to another etc. Keeping if there are issues in path algorithm
 divergence -- Routing algorithm R (Bifurcations; 1 - main path, 2 - subpath, 0 non-branching segment)  
+fk_gml_id_wcls -- foreign key to watercourselinksequence data
 */
 
 ----------------------------------------
@@ -64,7 +66,8 @@ WHEN w."namespace" = 'SE.LM.HY.NVE' THEN 'NO'
 WHEN w."namespace" = 'SE.LM.HY.SYKE' THEN 'FI'
 WHEN w."namespace" = 'SE.LM.HY' THEN 'SW'
 END AS country,
-fictitious
+fictitious,
+fk_gml_id_wcls
 FROM 
 alt_insp.watercourselink w 
 WHERE NOT w.isinsea)
@@ -76,7 +79,8 @@ lengthm,
 issea,
 geom,
 country,
-fictitious
+fictitious,
+fk_gml_id_wcls
 )
 SELECT 
 gml_id, 
@@ -86,7 +90,8 @@ lengthm,
 issea,
 geom,
 country,
-fictitious 
+fictitious,
+fk_gml_id_wcls
 FROM 
 tt
 ;
@@ -208,7 +213,7 @@ END;
 $function$
 ;
 
-DROP TEMPORARY TABLE IF EXISTS source;
+DROP TABLE IF EXISTS source;
 CREATE TEMPORARY TABLE source AS
 WITH A AS
 (SELECT DISTINCT maincatchment FROM alt_insp.watercourselink w)
@@ -219,6 +224,7 @@ UPDATE worksweden.rn wrn
 SET issource=s.issource
 FROM source s
 WHERE wrn.gml_id = s.gml_id; 
+
 
 /*
 CREATE MATERIALIZED VIEW alt_insp.source_in_basin AS
@@ -294,7 +300,7 @@ WHERE isinternational IS NULL;
 -- obtain divergence  --
 ------------------------
 
--- First run Find_bifurcations_and_nextdownidsegment script, then populate rn table using this script
+-- First run BasEdaRiosRiversegmentsNondendritic script, then populate rn table using this script
 
 /*
  This column is filled in R using the hydroloom package to find primary and substreams
@@ -313,103 +319,20 @@ WHERE divergence IS NULL;
 UPDATE worksweden.rn wrn
 SET divergence = d.divergence
 FROM div d
-WHERE wrn.gml_id = d.gml_id; 
+WHERE wrn.idsegment = d.id; 
 
 ------------------------------
 -- obtain nextdownidsegment --
 ------------------------------
+UPDATE worksweden.rn wrn
+SET nextdownidsegment = d.nextdownidsegment
+FROM div d
+WHERE wrn.idsegment = d.id; 
 
--- update table div with some nextdowngml_ids for null values
-WITH tt AS 
-(SELECT w.gml_id, w2.gml_id nextdowngml_id 
-FROM alt_insp.watercourselink w 
-JOIN alt_insp.watercourselink w2 
-ON w.endnode=w2.startnode 
-JOIN div d 
-on w.gml_id = d.gml_id 
-WHERE d.isinlandoutlet)
-UPDATE div d
-SET nextdowngml_id = tt.nextdowngml_id
-FROM tt
-WHERE d.gml_id = tt.gml_id;
- 
-/* -- CHECK SEGMENTS THAT DON´T HAVE A NEXTDOWNIDSEGMENT
-CREATE MATERIALIZED VIEW worksweden.non_nextdownid AS
-SELECT *
-FROM alt_insp.watercourselink w 
-WHERE gml_id IN
-(SELECT gml_id
-FROM
-div d
-WHERE d.isinlandoutlet
-EXCEPT
-SELECT gml_id --218
-FROM
-(SELECT w.gml_id, w2.gml_id nextdowngml_id
-FROM alt_insp.watercourselink w 
-JOIN alt_insp.watercourselink w2 
-ON w.endnode=w2.startnode 
-JOIN div d 
-on w.gml_id = d.gml_id 
-WHERE d.isinlandoutlet) A)
-
- CREATE MATERIALIZED VIEW alt_insp.inland_outlet AS
- SELECT w.*
- FROM alt_insp.watercourselink w 
- JOIN div d 
- ON w.gml_id=d.gml_id
- WHERE d.isinlandoutlet;
- 
- CREATE MATERIALIZED VIEW worksweden.divergence AS
-SELECT w.*, d.divergence
-FROM
-alt_insp.watercourselink w 
-JOIN 
-div d 
-ON w.gml_id=d.gml_id
-WHERE d.divergence IN (1,2);
-
-SELECT COUNT(*)
-FROM 
-worksweden.rn
-
-CREATE MATERIALIZED VIEW alt_insp.non_nextdowngml_id AS 
-SELECT w.*
-FROM
-alt_insp.watercourselink w
-JOIN div d
-ON w.gml_id = d.gml_id
-WHERE d.nextdowngml_id='';
-
-SELECT COUNT(*) --5258
-FROM div 
-WHERE nextdowngml_id=''
-
-SELECT COUNT(*) --5029
-FROM 
-alt_insp.watercourselink w 
-WHERE issea 
-
-SELECT COUNT(*) --229
-FROM div
-WHERE isinlandoutlet; 
-
-SELECT 5258-5029 --229(number of segments with no nextdownidsegments but are not sea outlets)
-*/
-
-
--- populate rn table
-WITH tt AS
-(SELECT wrn1.idsegment, wrn2.idsegment nextdownidsegment 
-FROM worksweden.rn wrn1
-JOIN div d
-ON wrn1.gml_id = d.gml_id
-JOIN worksweden.rn wrn2
-ON d.nextdowngml_id=wrn2.gml_id)
-UPDATE worksweden.rn wrn 
-SET nextdownidsegment = tt.nextdownidsegment
-FROM tt
-WHERE wrn.idsegment = tt.idsegment; 
+UPDATE sweden.rn wrn
+SET nextdownidsegment = d.nextdownidsegment
+FROM div d
+WHERE wrn.idsegment = d.id; 
 
 ------------------------
 -- Add isinlandoutlet --
@@ -417,15 +340,7 @@ WHERE wrn.idsegment = tt.idsegment;
 UPDATE worksweden.rn wrn 
 SET isinlandoutlet = d.isinlandoutlet
 FROM div d
-WHERE wrn.gml_id = d.gml_id; 
-
------------------------------
--- manually update one row --
------------------------------
-
-UPDATE worksweden.rn wrn
-SET issea=TRUE 
-WHERE gml_id='SE.LM.HY.fb6661ad-3ec8-479c-a779-ffbdbb6e098d'
+WHERE wrn.idsegment = d.id; 
 
 -----------------
 -- Obtain path --
@@ -433,20 +348,19 @@ WHERE gml_id='SE.LM.HY.fb6661ad-3ec8-479c-a779-ffbdbb6e098d'
 
 -- This column is found using routing algorithm in R
 
+
 ------------------------
--- Vacuum clean table --
+-- Obtain seaidsegment -
 ------------------------
-VACUUM FULL worksweden.rn;
---------------------------------------------------
--- Add indexes and constraints on worksweden.rn --
---------------------------------------------------
-CREATE INDEX indexcountry ON worksweden.rn USING btree (country);
-CREATE INDEX indexidsegmentrrn ON worksweden.rn USING btree (idsegment);
-CREATE INDEX indexnextdownidsegmentrrn ON worksweden.rn USING btree (nextdownidsegment);
-CREATE INDEX indexsourcern ON worksweden.rn USING btree (source);
-CREATE INDEX indextargetrn ON worksweden.rn USING btree (target);
-CREATE INDEX rn_geom_ix ON worksweden.rn USING gist (geom);
---alter table worksweden.rn add constraint c_pk_idsegment primary key(idsegment);
+UPDATE sweden.rn srn
+SET seaidsegment = 
+CASE WHEN CAST(path as text) LIKE '%.%' 
+ THEN substring(CAST(path as text),1,STRPOS(CAST(path as text),'.')-1) 
+ ELSE 
+ CAST(path as text) -- seaidsegments don´t include . in paths
+ END
+WHERE 
+path IS NOT NULL;
 
 
 -----------------------
@@ -455,6 +369,21 @@ CREATE INDEX rn_geom_ix ON worksweden.rn USING gist (geom);
 
 ALTER SCHEMA worksweden RENAME TO sweden;
 
+--
+
+------------------------
+-- Vacuum clean table --
+------------------------
+VACUUM FULL sweden.rn;
+--------------------------------------------------
+-- Add indexes and constraints on worksweden.rn --
+--------------------------------------------------
+CREATE INDEX indexcountry ON sweden.rn USING btree (country);
+CREATE INDEX indexidsegmentrn ON sweden.rn USING btree (idsegment);
+CREATE INDEX indexnextdownidsegmentrn ON sweden.rn USING btree (nextdownidsegment);
+CREATE INDEX indexsourcern ON sweden.rn USING btree (source);
+CREATE INDEX indextargetrn ON sweden.rn USING btree (target);
+CREATE INDEX rn_geom_ix ON sweden.rn USING gist (geom);
 ---------------------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------------------
@@ -465,6 +394,9 @@ ALTER SCHEMA worksweden RENAME TO sweden;
 ---------------------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------------------
 
+select path, nlevel(path) from sweden.rn 
+WHERE basin =92000
+ORDER BY nlevel(path);
 
 ---------------------------------------
 -- Work on fork segments
