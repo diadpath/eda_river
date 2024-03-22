@@ -1220,5 +1220,8 @@ CREATE INDEX indexubvgeom
   ON portugal.waterbody_unitbv
   USING gist
   (geom);
+
+
+
   
  
