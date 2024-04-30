@@ -362,6 +362,35 @@ CASE WHEN CAST(path as text) LIKE '%.%'
 WHERE 
 path IS NOT NULL;
 
+-------------------------------
+-- Obtain substream segments --
+-------------------------------
+--
+-- 1. First, find substream segments using divergence (2 means subpath) and watercourselink sequences(i.e. sequences of non-branching segments)
+-- 2. Thereafter, use R method (S4 method) find_sub_stream. This method finds disconnected parts of the network, that are treated as substreams. These segments are saved in a temporary table test_substream.    
+
+-- 1.
+ALTER TABLE sweden.rn
+ADD issubstream BOOLEAN DEFAULT FALSE;
+UPDATE sweden.rn 
+SET issubstream=TRUE 
+WHERE idsegment IN
+(SELECT idsegment
+FROM 
+sweden.rn
+WHERE
+fk_gml_id_wcls IN
+(SELECT fk_gml_id_wcls
+FROM 
+sweden.rn
+WHERE 
+divergence=2));
+
+-- 2.
+UPDATE sweden.rn rn
+SET issubstream=st.issubstream
+FROM substr_temp st
+WHERE rn.idsegment=st.idsegment;
 
 -----------------------
 -- change schema name -
@@ -384,6 +413,23 @@ CREATE INDEX indexnextdownidsegmentrn ON sweden.rn USING btree (nextdownidsegmen
 CREATE INDEX indexsourcern ON sweden.rn USING btree (source);
 CREATE INDEX indextargetrn ON sweden.rn USING btree (target);
 CREATE INDEX rn_geom_ix ON sweden.rn USING gist (geom);
+CREATE INDEX tree_path_idx ON sweden.rn USING GIST (ltree2text(path));
+
+
+----------------------------------
+-- Correct one thing in network --
+----------------------------------
+-- There is no source for vindelälven(one of the large rivers in sweden).
+-- We correct this here such that vindelälven is not to be considered a substream
+/*
+UPDATE sweden.rn 
+SET issource=TRUE, divergence = 0 
+WHERE idsegment='SW480838'; 
+
+UPDATE sweden.rn 
+SET divergence =0
+WHERE idsegment='SW461798';
+*/
 ---------------------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------------------
