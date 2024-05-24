@@ -128,3 +128,26 @@ AND altitudem <1000
 AND rr.nature in ('Ecoulement naturel','Canal','Retenue','Retenue-barrage')
 AND rr.persistance = 'Permanent';
 
+
+
+SELECT sum(COALESCE (wettedsurfacem2,0)) AS wettedsurfacem2, 
+sum(COALESCE (wettedsurfaceotherm2,0)) AS wettedsurfaceotherm2
+FROM france.temp_waterbody_unitbv_rn_rna_rne
+WHERE seaidsegment IN ('FR22333') 
+AND distanceseam <= 159700 and distanceseam >56698 
+AND nature in ('Ecoulement naturel','Canal','Retenue','Retenue-barrage')
+AND persistance = 'Permanent';
+
+
+--surface de la Saône
+
+
+SELECT sum(COALESCE (rr.wettedsurfacem2,0)) AS wettedsurfacem2, 
+sum(COALESCE (rr.wettedsurfaceotherm2,0)) AS wettedsurfaceotherm2
+FROM france.temp_waterbody_unitbv_rn_rna_rne rr
+JOIN france.rn_rna ON rn_rna.idsegment = rr.idsegment
+WHERE rr.seaidsegment IN ('FR22333','FR21724','FR21645') 
+AND  path ~ '*.FR12390.*'
+AND altitudem <1000
+AND rr.nature in ('Ecoulement naturel','Canal','Retenue','Retenue-barrage')
+AND rr.persistance = 'Permanent';

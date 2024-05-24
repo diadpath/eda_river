@@ -1222,6 +1222,79 @@ CREATE INDEX indexubvgeom
   (geom);
 
 
+SELECT 
+sum(st_area(ubv.geom))/10^6 area,
+ubv.ubv_sudoang_category,
+ubv.ubv_country,
+     CASE WHEN gerem_zone_4=1 THEN 'ATL_F'
+          WHEN gerem_zone_4=2 THEN 'MED'
+          WHEN gerem_zone_4=3 THEN 'CANT'
+          WHEN gerem_zone_4=4 THEN 'ATL_IB'
+          WHEN gerem_zone_4=5 THEN 'CHAN'
+          WHEN gerem_zone_4=6 THEN 'RhinMeu' END AS area_sudo
+FROM dbeel_rivers.waterbody_unitbv ubv
+JOIN france.rn ON rn.idsegment=ubv_idsegment
+JOIN france.rna ON rna.idsegment=ubv_idsegment
+LEFT JOIN eda_gerem.assoc_dbeel_rivers  adr ON adr.seaidsegment = rn.seaidsegment 
+WHERE ubv_country = 'FR'
+GROUP BY ubv_country, ubv_sudoang_category, area_sudo
+ORDER BY ubv_country, area_sudo,ubv_sudoang_category
 
   
+SELECT 
+sum(st_area(ubv.geom)) area,
+ubv.ubv_sudoang_category,
+ubv.ubv_country,
+     CASE WHEN gerem_zone_4=1 THEN 'ATL_F'
+          WHEN gerem_zone_4=2 THEN 'MED'
+          WHEN gerem_zone_4=3 THEN 'CANT'
+          WHEN gerem_zone_4=4 THEN 'ATL_IB'
+          WHEN gerem_zone_4=5 THEN 'CHAN'
+          WHEN gerem_zone_4=6 THEN 'RhinMeu' END AS area_sudo
+FROM spain.waterbody_unitbv ubv
+JOIN spain.rn ON rn.idsegment=ubv_idsegment
+JOIN spain.rna ON rna.idsegment=ubv_idsegment
+JOIN eda_gerem.assoc_dbeel_rivers  adr ON adr.seaidsegment = rn.seaidsegment 
+WHERE ubv_country = 'SP'
+GROUP BY ubv_country, ubv_sudoang_category, area_sudo
+
+
+SELECT 
+sum(st_area(ubv.geom))/10^6 area,
+ubv.ubv_sudoang_category,
+ubv.ubv_country,
+codesea
+FROM spain.waterbody_unitbv ubv
+JOIN spain.rn ON rn.idsegment=ubv_idsegment
+JOIN spain.rna ON rna.idsegment=ubv_idsegment
+JOIN eda_gerem.assoc_dbeel_rivers  adr ON adr.seaidsegment = rn.seaidsegment 
+WHERE ubv_country = 'SP'
+GROUP BY ubv_country, ubv_sudoang_category, codesea
+ORDER BY codesea , ubv_sudoang_category
+
+
+SELECT * 
+FROM spain.waterbody_unitbv ubv
+JOIN spain.rn ON rn.idsegment=ubv_idsegment
+JOIN spain.rna ON rna.idsegment=ubv_idsegment
+JOIN eda_gerem.assoc_dbeel_rivers  adr ON adr.seaidsegment = rn.seaidsegment 
+LIMIT 1
+
+
+
+SELECT round(sum(wettedsurfaceotherm2)/10^6) , country, codesea FROM 
+dbeel_rivers.rn  JOIN dbeel_rivers.rna ON rn.idsegment=rna.idsegment
+ GROUP BY country, codesea
  
+SELECT 
+round(sum(st_area(ubv.geom))/10^6) area,
+ubv.ubv_sudoang_category,
+ubv.ubv_country,
+codesea
+FROM portugal.waterbody_unitbv ubv
+JOIN portugal.rn ON rn.idsegment=ubv_idsegment
+JOIN portugal.rna ON rna.idsegment=ubv_idsegment
+JOIN eda_gerem.assoc_dbeel_rivers  adr ON adr.seaidsegment = rn.seaidsegment 
+WHERE ubv_country = 'PT'
+GROUP BY ubv_country, ubv_sudoang_category, codesea
+ORDER BY codesea , ubv_sudoang_category

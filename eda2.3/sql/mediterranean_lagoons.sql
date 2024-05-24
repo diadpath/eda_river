@@ -770,3 +770,21 @@ SELECT lag_nom,lag_prudhomie,st_perimeter(st_transform(lag_polygone, 3035)), lag
 
 SELECT lag_nom,lag_prudhomie, lag_zif_nom,  st_perimeter(st_union(lag_polygone)) FROM france.tr_lagunes AS tl GROUP BY lag_nom,lag_prudhomie, lag_zif_nom;
 SELECT lag_nom,lag_prudhomie, lag_zif_nom,  st_perimeter(st_dump(lag_polygone).geom) FROM france.tr_lagunes AS tl GROUP BY lag_nom,lag_prudhomie, lag_zif_nom;
+
+-- surface des zones qui ne sont pas dans les lagunes (qui vont être rattachées de manière fausse aux lagunes)
+-- calculer le pourcentage de surface par type
+-- convertir canal ecoulement naturel dans les types eda 
+-- surface lagune actuelle,
+-- surface rajoutée
+
+WITH idsegmentlagune AS (
+SELECT DISTINCT ubv_idsegment, lag_id AS lag_id_o FROM 
+france.waterbody_unitbv
+WHERE lag_id IS NOT null)
+
+SELECT sum(st_area(geom))/10^6, lag_id_o, nature, wu.ubv_idsegment FROM france.waterbody_unitbv AS wu 
+JOIN idsegmentlagune ON (wu.ubv_idsegment = idsegmentlagune.ubv_idsegment)
+WHERE lag_id IS null
+GROUP BY lag_id_o, nature, wu.ubv_idsegment
+
+
