@@ -241,3 +241,94 @@ CREATE OR REPLACE VIEW dbeel_rivers.rn_rna_rne_rns AS(
 	     JOIN dbeel_rivers.rna ON rn.idsegment = rna.idsegment
 	     left JOIN dbeel_rivers.rns ON rn.idsegment = rns.idsegment
 );
+
+
+
+
+DROP VIEW IF exists dbeel_rivers.rn_rna_rns;
+CREATE OR REPLACE VIEW dbeel_rivers.rn_rna_rns AS(
+  SELECT row_number() OVER () AS _uid_,
+      rns.idsegment, 
+      rna.codesea,
+      rn.seaidsegment,
+      medianflowm3ps,
+      rna.distanceseam,
+      rna.slope,
+      rna.strahler,
+      rna.name,
+      rna.basin,
+      rna.emu,
+      rn.geom,
+      rn.country,
+      rns.ratio, 
+      rns.region, 
+      rns.presencesaumon, 
+      rns.surfaceerr, 
+      rns.geol, 
+      rns.intensite_etiage, 
+      rns.idbvia, 
+      rns.pred, 
+      rns.s_err_mod, 
+      rns.s_err_obs, 
+      rns."date", 
+      rns.preddensactu, 
+      rns.preddenspristine, 
+      rns.preddens, 
+      rns.eff_sat, 
+      rns."IC-5\%", 
+      rns."Moy", 
+      rns."IC-95\%", 
+      rns.prod_mod_hist, 
+      rns.prod_mod_actu, 
+      rns.prod_obs, 
+      rns.prod_obs_5, 
+      rns.prod_obs_95
+     FROM dbeel_rivers.rn
+       JOIN dbeel_rivers.rna ON rn.idsegment = rna.idsegment
+       LEFT JOIN dbeel_rivers.rns ON rn.idsegment = rns.idsegment
+);
+
+DROP VIEW IF exists france.rn_rna_rns;
+CREATE OR REPLACE VIEW france.rn_rna_rns AS(
+  SELECT row_number() OVER () AS _uid_,
+      rns.idsegment, 
+      rna.codesea,
+      rn.seaidsegment,
+      medianflowm3ps,
+      rna.distanceseam,
+      rna.slope,
+      rna.strahler,
+      rna.name,
+      rna.basin,
+      rna.emu,
+      rn.geom,
+      rn.country,
+      rns.ratio, 
+      rns.region, 
+      rns.presencesaumon, 
+      rns.surfaceerr, 
+      rns.geol, 
+      rns.intensite_etiage, 
+      rns.idbvia, 
+      rns.pred, 
+      rns.s_err_mod, 
+      rns.s_err_obs, 
+      rns."date", 
+      rns.preddensactu, 
+      rns.preddenspristine, 
+      rns.preddens, 
+      rns.eff_sat, 
+      rns."IC-5\%", 
+      rns."Moy", 
+      rns."IC-95\%", 
+      rns.prod_mod_hist, 
+      rns.prod_mod_actu, 
+      rns.prod_obs, 
+      rns.prod_obs_5, 
+      rns.prod_obs_95
+     FROM france.rn
+       JOIN france.rna ON rn.idsegment = rna.idsegment
+       left JOIN france.rns ON rn.idsegment = rns.idsegment
+);
+
+SELECT * FROM france.rn_rna_rns
