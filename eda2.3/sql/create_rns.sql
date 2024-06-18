@@ -301,6 +301,8 @@ CREATE OR REPLACE VIEW france.rn_rna_rns AS(
       rna.name,
       rna.basin,
       rna.emu,
+      rna.wettedsurfacem2,
+      rna.wettedsurfaceotherm2,
       rn.geom,
       rn.country,
       rns.ratio, 
