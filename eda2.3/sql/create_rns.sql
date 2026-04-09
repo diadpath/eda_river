@@ -26,6 +26,11 @@ CREATE TABLE dbeel_rivers.rns (
 	prod_obs_95 float8 null,
 CONSTRAINT c_pk_rns_idsegment PRIMARY KEY (idsegment)
 );
+ALTER TABLE dbeel_rivers.rns DROP COLUMN geol CASCADE;
+
+--09/04/2026 we include "new" predictions in the table
+ALTER TABLE dbeel_rivers.rns DROP CONSTRAINT c_pk_rns_idsegment;
+ALTER TABLE dbeel_rivers.rns ADD CONSTRAINT c_pk_rns_idsegmentdate  PRIMARY KEY (idsegment,date);
 
 
 DROP TABLE IF EXISTS france.rns;    
@@ -34,7 +39,9 @@ CREATE TABLE france.rns (
       CONSTRAINT c_fk_rns_idsegment FOREIGN KEY (idsegment) REFERENCES france.rn(idsegment))
       INHERITS (dbeel_rivers.rns); 
 
-      
+
+ALTER TABLE france.rns DROP CONSTRAINT c_pk_rns_idsegment;
+ALTER TABLE france.rns ADD CONSTRAINT c_pk_rns_idsegmentdate  PRIMARY KEY (idsegment,date);      
 -- Updates from rna
 
 INSERT INTO france.rns
@@ -118,7 +125,6 @@ CREATE OR REPLACE VIEW france.rn_rna_rne_rns AS(
 	    rns.region, 
 	    rns.presencesaumon, 
 	    rns.surfaceerr, 
-	    rns.geol, 
 	    rns.intensite_etiage, 
 	    rns.idbvia, 
 	    rns.pred, 
@@ -136,11 +142,14 @@ CREATE OR REPLACE VIEW france.rn_rna_rne_rns AS(
 	    rns.prod_mod_actu, 
 	    rns.prod_obs, 
 	    rns.prod_obs_5, 
-	    rns.prod_obs_95
+	    rns.prod_obs_95,
+	    geol.geol_type
 	   FROM france.rn
 	     JOIN france.rne ON rn.idsegment = rne.idsegment
-	     JOIN france.rna ON rn.idsegment = rna.idsegment
-	     left JOIN france.rns ON rn.idsegment = rns.idsegment
+	     JOIN france.rna ON rn.idsegment = rna.idsegment	    
+	     LEFT JOIN france.rn_rna_geol geol ON geol.idsegment= rn.idsegment
+	     LEFT JOIN (SELECT * FROM france.rns WHERE date = '2026') rns ON rn.idsegment = rns.idsegment
+	       -- Updated value in france.rns 
 );
 
 --create dbeel_rivers.rn_rna_rne_rns
@@ -217,7 +226,6 @@ CREATE OR REPLACE VIEW dbeel_rivers.rn_rna_rne_rns AS(
 	    rns.region, 
 	    rns.presencesaumon, 
 	    rns.surfaceerr, 
-	    rns.geol, 
 	    rns.intensite_etiage, 
 	    rns.idbvia, 
 	    rns.pred, 
@@ -235,11 +243,13 @@ CREATE OR REPLACE VIEW dbeel_rivers.rn_rna_rne_rns AS(
 	    rns.prod_mod_actu, 
 	    rns.prod_obs, 
 	    rns.prod_obs_5, 
-	    rns.prod_obs_95
+	    rns.prod_obs_95,
+	    geol.geol_type
 	   FROM dbeel_rivers.rn
 	     JOIN dbeel_rivers.rne ON rn.idsegment = rne.idsegment
 	     JOIN dbeel_rivers.rna ON rn.idsegment = rna.idsegment
-	     left JOIN dbeel_rivers.rns ON rn.idsegment = rns.idsegment
+	     LEFT JOIN france.rn_rna_geol geol ON geol.idsegment= rn.idsegment
+	     LEFT JOIN (SELECT * FROM france.rns WHERE date = '2026') rns ON rn.idsegment = rns.idsegment
 );
 
 
@@ -252,20 +262,28 @@ CREATE OR REPLACE VIEW dbeel_rivers.rn_rna_rns AS(
       rna.codesea,
       rn.issea,
       rn.seaidsegment,
-      medianflowm3ps,
+      rna.lengthriverm,
+      rna.medianflowm3ps,
       rna.distanceseam,
+      rna.distancesourcem,
+      rna.altitudem,
       rna.slope,
       rna.strahler,
       rna.name,
       rna.basin,
       rna.emu,
+      rna.wettedsurfacem2,
+      rna.wettedsurfaceotherm2,
+      rna.riverwidthm,
+      rna.temperature,
+      rna.temperaturejan,
+      rna.temperaturejul,
       rn.geom,
       rn.country,
       rns.ratio, 
       rns.region, 
       rns.presencesaumon, 
       rns.surfaceerr, 
-      rns.geol, 
       rns.intensite_etiage, 
       rns.idbvia, 
       rns.pred, 
@@ -283,10 +301,12 @@ CREATE OR REPLACE VIEW dbeel_rivers.rn_rna_rns AS(
       rns.prod_mod_actu, 
       rns.prod_obs, 
       rns.prod_obs_5, 
-      rns.prod_obs_95
+      rns.prod_obs_95,
+      geol.geol_type
      FROM dbeel_rivers.rn
        JOIN dbeel_rivers.rna ON rn.idsegment = rna.idsegment
-       LEFT JOIN dbeel_rivers.rns ON rn.idsegment = rns.idsegment
+       LEFT JOIN france.rn_rna_geol geol ON geol.idsegment= rn.idsegment
+       LEFT JOIN (SELECT * FROM dbeel_rivers.rns WHERE date = '2026') rns ON rn.idsegment = rns.idsegment
 );
 
 DROP VIEW IF exists france.rn_rna_rns;
@@ -296,8 +316,11 @@ CREATE OR REPLACE VIEW france.rn_rna_rns AS(
       rna.codesea,
       rn.issea,
       rn.seaidsegment,
-      medianflowm3ps,
+      rna.lengthriverm,
+      rna.medianflowm3ps,
       rna.distanceseam,
+      rna.distancesourcem,
+      rna.altitudem,
       rna.slope,
       rna.strahler,
       rna.name,
@@ -305,13 +328,16 @@ CREATE OR REPLACE VIEW france.rn_rna_rns AS(
       rna.emu,
       rna.wettedsurfacem2,
       rna.wettedsurfaceotherm2,
+      rna.riverwidthm,
+      rna.temperature,
+      rna.temperaturejan,
+      rna.temperaturejul,
       rn.geom,
       rn.country,
       rns.ratio, 
       rns.region, 
       rns.presencesaumon, 
       rns.surfaceerr, 
-      rns.geol, 
       rns.intensite_etiage, 
       rns.idbvia, 
       rns.pred, 
@@ -329,10 +355,12 @@ CREATE OR REPLACE VIEW france.rn_rna_rns AS(
       rns.prod_mod_actu, 
       rns.prod_obs, 
       rns.prod_obs_5, 
-      rns.prod_obs_95
+      rns.prod_obs_95,
+      geol.geol_type
      FROM france.rn
        JOIN france.rna ON rn.idsegment = rna.idsegment
-       left JOIN france.rns ON rn.idsegment = rns.idsegment
+       LEFT JOIN france.rn_rna_geol geol ON geol.idsegment= rn.idsegment
+       LEFT JOIN (SELECT * FROM france.rns WHERE date = '2026') rns ON rn.idsegment = rns.idsegment
 );
 
 SELECT * FROM france.rn_rna_rns
