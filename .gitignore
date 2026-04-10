@@ -68,3 +68,14 @@ vignettes/*.pdf
 /.project
 /.metadata/
 /.dbeaver/
+
+
+#latex fields
+
+*.log
+*.lof
+
+*.pdf*
+*.fls
+*.fdb_latexmk
+

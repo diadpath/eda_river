@@ -511,7 +511,7 @@ Identifier of the river segment
 \begin{minipage}[c]{\textwidth}
 \begin{tabular}{p{3cm}p{12cm}}
 \toprule  
-Description & Identifier of the river segment (primary key), starts with letter \textbf{PT} in Portugal, \textbf{SP} in Spain, and \textbf{FR} in France. In Portugal the identifier corresponds to PT + gid of \href{https://sniambgeoportal.apambiente.pt/geoportal/catalog/search/resource/details.page?uuid={613E780E-052A-4183-99E5-6100D5663081}}{Rede hidrografica GeoCodificada}. In Spain the identifier corresponds to SP + gid of "Tramos de ríos de España clasificados según Pfafstetter modificado" layer: \href{http://www.mapama.gob.es/ide/metadatos/index.html?srv=metadata.show&uuid=588501d1-d5bf-450b-a67e-29b0c3973dba}{metadata}, \href{http://www.mapama.gob.es/app/descargas/descargafichero.aspx?f=RiosPfafs.zip}{download}. Note that in Spain, the identifiers for \textit{pfafrio} and \textit{pfafsegment} are stored in the \textbf{rna table} in fields \textit{pfafriver} and \textit{pfasegment} respectively. In France the identifier corresponds to FR + $id\_drain$ in the Theoretical Hidrographic Network (RHT) (Pella \textit{et al.}, 2012). 
+Description & Identifier of the river segment (primary key), starts with letter \textbf{PT} in Portugal, \textbf{SP} in Spain, and \textbf{FR} in France. In Portugal the identifier corresponds to PT + gid of \href{https://sniambgeoportal.apambiente.pt/geoportal/catalog/search/resource/details.page?uuid={613E780E-052A-4183-99E5-6100D5663081}}{Rede hidrografica GeoCodificada}. In Spain the identifier corresponds to SP + gid of "Tramos de ríos de España clasificados según Pfafstetter modificado" layer: \href{http://www.mapama.gob.es/ide/metadatos/index.html?srv=metadata.show&uuid=588501d1-d5bf-450b-a67e-29b0c3973dba}{metadata}, \href{http://www.mapama.gob.es/app/descargas/descargafichero.aspx?f=RiosPfafs.zip}{download}. Note that in Spain, the identifiers for \textit{pfafrio} and \textit{pfafsegment} are stored in the \textbf{rna table} in fields \textit{pfafriver} and \textit{pfasegment} respectively. In France the identifier corresponds to FR + $id\_drain$ in the Theoretical Hidrographic Network (RHT) (Pella \textit{et al.}, 2012). 
 \\
 \midrule  
 Reference & Mateo M., Beaulaton L., Drouineau H., Díaz E., and Briand C. (2021).  Eel density analysis (EDA 2.3). Escapement of silver eels (\textit{Anguilla anguilla}) from French, Spanish and Portugese rivers. GT4 - deliverable E4.1.1.\\
@@ -602,7 +602,7 @@ Length of the river segment (\si{\metre})
 \begin{minipage}[c]{\textwidth}
 \begin{tabular}{p{3cm}p{12cm}}
 \toprule  
-Description & Length of the river segment (from  node to node) in meters. In France the length of the river segment comes from the Theoretical Hidrographic Network (RHT) developed by
+Description & Length of the river segment (from  node to node) in meters. In France the length of the river segment comes from the Theoretical Hidrographic Network (RHT) developed by
 Pella \textit{et al.} (2012). In Portugal the source is "Rede hidrografica GeoCodificada" \href{https://sniambgeoportal.apambiente.pt/geoportal/catalog/search/resource/details.page?uuid={613E780E-052A-4183-99E5-6100D5663081}}{(layer metadata)}. In Spain the source is "Tramos de ríos de España clasificados según Pfafstetter modificado" \href{http://www.mapama.gob.es/ide/metadatos/index.html?srv=metadata.show&uuid=588501d1-d5bf-450b-a67e-29b0c3973dba}{(layer metadata)}.\\
 \midrule  
 Reference & Pella H., Lejot J., Lamouroux N., and Snelder T. 2012. Le réseau hydrographique théorique (RHT) français et ses attributs environnementaux (The theoretical hydrographical network (RHT) for France and its environmental attributes).  Géomorphologie : rélief, processus, environnement. 18(3): 317-336 pp.\\
@@ -903,15 +903,15 @@ Geometry of the river segment (PostGIS)
 \begin{minipage}[c]{\textwidth}
 \begin{tabular}{p{3cm}p{12cm}}
 \toprule  
-Description & The geometry (PostGIS spatial data type) of the river segment, using the coordinate system ESPG:3035, type MULTILINESTRING. If you use the PostgreSQL format then you will have a column named \textit{geom} with the geometry. This column will not appear when the table is exported as a shapefile. Beware, we use the european coordinate system, you most likely will want to project this layer into your national preferred reference system: \hfill
-France: \hfill
-RGF93 Lambert 93 (EPSG:2154), \hfill 
-Lambert-II (EPSG:27572). \hfill
-Spain: \hfill 
-ETRS89 UTM zone 30N (EPSG:25830), \hfill 
-ED50 UTM zone 30N (EPSG:23030). \hfill
-Portugal: \hfill 
-ETRS89 Portugal TM06 (EPSG:3763). \hfill
+Description & The geometry (PostGIS spatial data type) of the river segment, using the coordinate system ESPG:3035, type MULTILINESTRING. If you use the PostgreSQL format then you will have a column named \textit{geom} with the geometry. This column will not appear when the table is exported as a shapefile. Beware, we use the european coordinate system, you most likely will want to project this layer into your national preferred reference system: \hfill
+France: \hfill
+RGF93 Lambert 93 (EPSG:2154), \hfill 
+Lambert-II (EPSG:27572). \hfill
+Spain: \hfill 
+ETRS89 UTM zone 30N (EPSG:25830), \hfill 
+ED50 UTM zone 30N (EPSG:23030). \hfill
+Portugal: \hfill 
+ETRS89 Portugal TM06 (EPSG:3763). \hfill
 Other: WGS84 (EPSG:4326), google (EPSG:900913).\\
 \midrule  
 Reference & http://postgis.net/workshops/postgis-intro/geometries.html\\
@@ -1536,8 +1536,8 @@ River width (si{\meter})
 \begin{minipage}[c]{\textwidth}
 \begin{tabular}{p{3cm}p{12cm}}
 \toprule  
-Description & In France, the river width corresponds to the width of the stream in natural conditions (Morel \textit{et al.}, 2019)\footnote{ The updated French width is lower than the width in previous RHT data, this is compensated by considering the water surface of the rivers and joining them to the segments, but the predicted numbers on rivers alone have dminished as the theoretical river width (from Theoretical Hidrographic Network, RHT) are smaller than previous values used in Briand \textit{et al.}, 2018}. In Spain and Portugal, the river width is derived from two sources:
-For the largest streams and reservoirs the \href{http://hydro.iis.u-tokyo.ac.jp/~yamadai/MERIT_Hydro/index.html}{MERIT Hydro}\footnote{MERIT Hydro database licence CC-BY-NC 4.0.} wordwide river width computation has been used (Yamazaki \textit{et al.}, 2019)\footnote{The raster was joined with segments using the average width projected at 10 points along the river segment. This projection excluded the segments with Strahler 1 to 3 in Spain and Strahler 1 in Portugal to only join reservoirs to the main stream. MERIT Hydro database licence CC-BY-NC 4.0.}.
+Description & In France, the river width corresponds to the width of the stream in natural conditions (Morel \textit{et al.}, 2019)\footnote{ The updated French width is lower than the width in previous RHT data, this is compensated by considering the water surface of the rivers and joining them to the segments, but the predicted numbers on rivers alone have dminished as the theoretical river width (from Theoretical Hidrographic Network, RHT) are smaller than previous values used in Briand \textit{et al.}, 2018}. In Spain and Portugal, the river width is derived from two sources:
+For the largest streams and reservoirs the \href{http://hydro.iis.u-tokyo.ac.jp/~yamadai/MERIT_Hydro/index.html}{MERIT Hydro}\footnote{MERIT Hydro database licence CC-BY-NC 4.0.} wordwide river width computation has been used (Yamazaki \textit{et al.}, 2019)\footnote{The raster was joined with segments using the average width projected at 10 points along the river segment. This projection excluded the segments with Strahler 1 to 3 in Spain and Strahler 1 in Portugal to only join reservoirs to the main stream. MERIT Hydro database licence CC-BY-NC 4.0.}.
 For other segments, the width has been calculated using a model based on drainage area, basins grouped by runoff categories, and calibrated on data comprising both randomly collected width and electrofishing data (Briand \textit{et al.}, \textit{in prep}).\\
 \midrule  
 Reference & Morel M., Booker D.J., Gob F., and Lamourou N. 2019. Intercontinental predictions of river hydraulic geometry from catchment physical characteristics. Journal of Hydrology. 124292.\\
@@ -1672,7 +1672,7 @@ Wetted surface of other waterbodies (\si{\square\meter})
 \begin{minipage}[c]{\textwidth}
 \begin{tabular}{p{3cm}p{12cm}}
 \toprule  
-Description & Wetted surface (\si{\square\meter}) of the waterbodies within the unit basin (simple basin that surrounds a river segment). The different waterbodies such as canal, rivers, lakes, reservoirs, lagoons have been split per unit basins\footnote{France: the source is the \href{https://geoservices.ign.fr/documentation/diffusion/telechargement-donnees-libres.html}{BD TOPO \textcopyright Hydrographie}, the type of water surface considered are permanent surfaces with type corresponding to lagoon, estuary, natural flow, channel, reservoir-dam, reservoir-bassin, marsh, lake, reservoir.\\ Spain: the source is \href{https://www.mapama.gob.es/ide/metadatos/index.html?srv=metadata.show&uuid=bb612c55-2729-4f31-bf4f-b5e190d74b46}{"Masas de agua superficial (polígonos) PHC 2015-2021"}, the waterbodies correspond to estuaries, reservoirs, temporary lakes, rivers, lakes, lagoons and coastal waters. \\Portugal: three layers, water surface, transitional waterbodies and lake/lagoons have been used from the \href{https://webgis.dgrm.mm.gov.pt/arcgis/rest/services/DA/PAqAT/MapServer}{APA layers portal}}. They correspond to estuaries, rivers, reservoirs, lagoons and lakes. The proportion of the length of each river segment free of waterbodies polygon has been computed in each river segment. This watersurface corresponding to the rivers (and contained in $wettedsurfacem2$) has been removed from $wettedsurfaceotherm2$. So that the wettedsurface that might be accessible to eels corresponds to $wettedsurfaceotherm2 + wettedsurfacem2$.
+Description & Wetted surface (\si{\square\meter}) of the waterbodies within the unit basin (simple basin that surrounds a river segment). The different waterbodies such as canal, rivers, lakes, reservoirs, lagoons have been split per unit basins\footnote{France: the source is the \href{https://geoservices.ign.fr/documentation/diffusion/telechargement-donnees-libres.html}{BD TOPO \textcopyright Hydrographie}, the type of water surface considered are permanent surfaces with type corresponding to lagoon, estuary, natural flow, channel, reservoir-dam, reservoir-bassin, marsh, lake, reservoir.\\ Spain: the source is \href{https://www.mapama.gob.es/ide/metadatos/index.html?srv=metadata.show&uuid=bb612c55-2729-4f31-bf4f-b5e190d74b46}{"Masas de agua superficial (polígonos) PHC 2015-2021"}, the waterbodies correspond to estuaries, reservoirs, temporary lakes, rivers, lakes, lagoons and coastal waters. \\Portugal: three layers, water surface, transitional waterbodies and lake/lagoons have been used from the \href{https://webgis.dgrm.mm.gov.pt/arcgis/rest/services/DA/PAqAT/MapServer}{APA layers portal}}. They correspond to estuaries, rivers, reservoirs, lagoons and lakes. The proportion of the length of each river segment free of waterbodies polygon has been computed in each river segment. This watersurface corresponding to the rivers (and contained in $wettedsurfacem2$) has been removed from $wettedsurfaceotherm2$. So that the wettedsurface that might be accessible to eels corresponds to $wettedsurfaceotherm2 + wettedsurfacem2$.
 \\
 \midrule  
 Reference & Briand C., Drouineau H., Beaulaton L., Díaz E., and Mateo M. \textit{(in prep)}. A reference hydrological system to build migratory fishes stock assessment in the south of Europe.\\
@@ -1759,7 +1759,7 @@ Reference & \href{https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:5200
 \end{minipage} 
 \begin{minipage}{.45\linewidth} 
 \begin{flushright} 
-Slope of the river segment (\si[per-mode = fraction]{\metre\per\metre})
+Slope of the river segment (\si[per-mode = fraction]{\metre\per\metre})
 
 \end{flushright} 
 \end{minipage} \\ 
@@ -1942,12 +1942,12 @@ Risk of drought
 \begin{minipage}[c]{\textwidth}
 \begin{tabular}{p{3cm}p{12cm}}
 \toprule  
-Description & The Spanish Water Information System for Europe (WISE) layer is based on a digital elevation model used for calculating the river network. Most small rivers in the South of Spain are ephemeral but to date no dataset exist. The stream classification is:
-1 Permanent stream.
-2 Temporal stream. 
-3 Intermitent stream. 
-4 Ephemeral stream. 
-5 No data (by default this means flowing).
+Description & The Spanish Water Information System for Europe (WISE) layer is based on a digital elevation model used for calculating the river network. Most small rivers in the South of Spain are ephemeral but to date no dataset exist. The stream classification is:
+1 Permanent stream.
+2 Temporal stream. 
+3 Intermitent stream. 
+4 Ephemeral stream. 
+5 No data (by default this means flowing).
 In practise we assume that 3 and 4 have no eels in the predictions. The habitat for eel in the mediterranean  basin have been expertised rivers by rivers by the University of Cordoba. The upstream limit of streams remains unclear in most cases.\\
 \midrule  
 Reference & Briand C., Drouineau H., Beaulaton L., Díaz E., and Mateo M. \textit{(in prep)}. A reference hydrological system to build migratory fishes stock assessment in the south of Europe.\\
@@ -2234,8 +2234,8 @@ Proportion of eel of size < 150 mm
 \begin{minipage}[c]{\textwidth}
 \begin{tabular}{p{3cm}p{12cm}}
 \toprule  
-Description & Percentage of eels in < 150 mm size class in a river segment. Eels correspond to the eel standing stock and therefore include both yellow and silver eels that will depart during the year.
-$p_{<150} + p_{150-300} + p_{300-450} + p_{450-600} +p_{600-750}+ p_{>750} = 1$
+Description & Percentage of eels in < 150 mm size class in a river segment. Eels correspond to the eel standing stock and therefore include both yellow and silver eels that will depart during the year.
+$p_{<150} + p_{150-300} + p_{300-450} + p_{450-600} +p_{600-750}+ p_{>750} = 1$
 The eels of class <150 mm and 150-300 mm are those that colonize the basin. The migration of larger eel is less important but they might continue to colonize the basin.\\
 \midrule  
 Reference & Mateo M., Beaulaton L., Drouineau H., Díaz E., and Briand C. (2021).  Eel density analysis (EDA 2.3). Escapement of silver eels (\textit{Anguilla anguilla}) from French, Spanish and Portugese rivers. GT4 - deliverable E4.1.1.\\
@@ -2267,8 +2267,8 @@ Proportion of eel \\ of size class 150-300 mm
 \begin{minipage}[c]{\textwidth}
 \begin{tabular}{p{3cm}p{12cm}}
 \toprule  
-Description & Percentage of eels in 150-300 mm size class in a river segment. Eels correspond to the eel standing stock and therefore includes both yellow eel and silver eels that will depart during the year.
-$p_{<150} + p_{150-300} + p_{300-450} + p_{450-600} +p_{600-750}+ p_{>750} = 1$
+Description & Percentage of eels in 150-300 mm size class in a river segment. Eels correspond to the eel standing stock and therefore includes both yellow eel and silver eels that will depart during the year.
+$p_{<150} + p_{150-300} + p_{300-450} + p_{450-600} +p_{600-750}+ p_{>750} = 1$
 The eels of class <150 mm and 150-300 mm are those that colonize the basin. The migration of larger eel is less important but they might continue to colonize the basin.\\
 \midrule  
 Reference & Mateo M., Beaulaton L., Drouineau H., Díaz E., and Briand C. (2021).  Eel density analysis (EDA 2.3). Escapement of silver eels (\textit{Anguilla anguilla}) from French, Spanish and Portugese rivers. GT4 - deliverable E4.1.1.\\
@@ -2300,8 +2300,8 @@ Proportion of eel \\ of size class 300-450 mm
 \begin{minipage}[c]{\textwidth}
 \begin{tabular}{p{3cm}p{12cm}}
 \toprule  
-Description & Percentage of yellow eels in 300-450 mm size class in a river segment. Eels correspond to the eel standing stock and therefore includes silver eels that will depart during the year.
-$p_{<150} + p_{150-300} + p_{300-450} + p_{450-600} +p_{600-750}+ p_{>750} = 1$
+Description & Percentage of yellow eels in 300-450 mm size class in a river segment. Eels correspond to the eel standing stock and therefore includes silver eels that will depart during the year.
+$p_{<150} + p_{150-300} + p_{300-450} + p_{450-600} +p_{600-750}+ p_{>750} = 1$
 The eel of class 300-450 mm are the most numerous, they may mature both as male or female silver eels.\\
 \midrule  
 Reference & Mateo M., Beaulaton L., Drouineau H., Díaz E., and Briand C. (2021).  Eel density analysis (EDA 2.3). Escapement of silver eels (\textit{Anguilla anguilla}) from French, Spanish and Portugese rivers. GT4 - deliverable E4.1.1.\\
@@ -2333,8 +2333,8 @@ Proportion of eel \\ of size class 450-600 mm
 \begin{minipage}[c]{\textwidth}
 \begin{tabular}{p{3cm}p{12cm}}
 \toprule  
-Description & Percentage of eels in 450-600 mm size class in a river segment. Eels correspond to the eel standing stock and therefore include both yellow and silver eels that will depart during the year.
-$p_{<150} + p_{150-300} + p_{300-450} + p_{450-600} +p_{600-750}+ p_{>750} = 1$
+Description & Percentage of eels in 450-600 mm size class in a river segment. Eels correspond to the eel standing stock and therefore include both yellow and silver eels that will depart during the year.
+$p_{<150} + p_{150-300} + p_{300-450} + p_{450-600} +p_{600-750}+ p_{>750} = 1$
 This is the first class of eel that will produce mostly females.\\
 \midrule  
 Reference & Mateo M., Beaulaton L., Drouineau H., Díaz E., and Briand C. (2021).  Eel density analysis (EDA 2.3). Escapement of silver eels (\textit{Anguilla anguilla}) from French, Spanish and Portugese rivers. GT4 - deliverable E4.1.1.\\
@@ -2366,8 +2366,8 @@ Proportion of eel \\ of size class 600-750 mm
 \begin{minipage}[c]{\textwidth}
 \begin{tabular}{p{3cm}p{12cm}}
 \toprule  
-Description & Percentage of eels in 600-750 mm size class in a river segment. Eels correspond to the eel standing stock and therefore include both yellow and silver eels that will depart during the year.
-$p_{<150} + p_{150-300} + p_{300-450} + p_{450-600} +p_{600-750}+ p{>750} = 1$
+Description & Percentage of eels in 600-750 mm size class in a river segment. Eels correspond to the eel standing stock and therefore include both yellow and silver eels that will depart during the year.
+$p_{<150} + p_{150-300} + p_{300-450} + p_{450-600} +p_{600-750}+ p{>750} = 1$
 Eels larger than 600mm are large eel producing large female silver eels.\\
 \midrule  
 Reference & Mateo M., Beaulaton L., Drouineau H., Díaz E., and Briand C. (2021).  Eel density analysis (EDA 2.3). Escapement of silver eels (\textit{Anguilla anguilla}) from French, Spanish and Portugese rivers. GT4 - deliverable E4.1.1.\\
@@ -2399,8 +2399,8 @@ Proportion of eel of size > 750 mm
 \begin{minipage}[c]{\textwidth}
 \begin{tabular}{p{3cm}p{12cm}}
 \toprule  
-Description & Percentage of eel in > 750 mm size class in a river segment. Eels correspond to the eel standing stock and therefore include both yellow and silver eels that will depart during the year.
-$p_{<150} + p_{150-300} + p_{300-450} + p_{450-600} +p_{600-750}+ p_{>750} = 1$
+Description & Percentage of eel in > 750 mm size class in a river segment. Eels correspond to the eel standing stock and therefore include both yellow and silver eels that will depart during the year.
+$p_{<150} + p_{150-300} + p_{300-450} + p_{450-600} +p_{600-750}+ p_{>750} = 1$
 The eels of class >750 mm are the largest. They have a high probability to mature as silver eel, and have the largest contribution in term of eeg deposition.\\
 \midrule  
 Reference & Mateo M., Beaulaton L., Drouineau H., Díaz E., and Briand C. (2021).  Eel density analysis (EDA 2.3). Escapement of silver eels (\textit{Anguilla anguilla}) from French, Spanish and Portugese rivers. GT4 - deliverable E4.1.1.\\
@@ -2525,7 +2525,7 @@ Proportion of silver eel \\ of size class 300-450 mm
 \begin{minipage}[c]{\textwidth}
 \begin{tabular}{p{3cm}p{12cm}}
 \toprule  
-Description & Percentage of silver eels produced from the 300-450 mm class in a river segment . These are mostly males.
+Description & Percentage of silver eels produced from the 300-450 mm class in a river segment . These are mostly males.
 $psilver_{300-450}=pmale_{300-450}+pfemale_{300-450}$\\
 \midrule  
 Reference & Mateo M., Beaulaton L., Drouineau H., Díaz E., and Briand C. (2021).  Eel density analysis (EDA 2.3). Escapement of silver eels (\textit{Anguilla anguilla}) from French, Spanish and Portugese rivers. GT4 - deliverable E4.1.1.\\
@@ -2557,7 +2557,7 @@ Proportion of silver eel \\ of size class 450-600 mm
 \begin{minipage}[c]{\textwidth}
 \begin{tabular}{p{3cm}p{12cm}}
 \toprule  
-Description & Percentage of silver eels produced from the 450-600 mm class in a river segment. These are mostly females. 
+Description & Percentage of silver eels produced from the 450-600 mm class in a river segment. These are mostly females. 
 $psilver_{450-600}=pmale_{450-600}+pfemale_{450-600}$\\
 \midrule  
 Reference & Mateo M., Beaulaton L., Drouineau H., Díaz E., and Briand C. (2021).  Eel density analysis (EDA 2.3). Escapement of silver eels (\textit{Anguilla anguilla}) from French, Spanish and Portugese rivers. GT4 - deliverable E4.1.1.\\
@@ -2979,8 +2979,8 @@ Reference & Mateo M., Beaulaton L., Drouineau H., Díaz E., and Briand C. (2021)
 \end{minipage} 
 \begin{minipage}{.45\linewidth} 
 \begin{flushright} 
-$\sum_{upstream}male_{150-300}$
-\\$\sum_{upstream}male_{300-450}$ 
+$\sum_{upstream}male_{150-300}$
+\\$\sum_{upstream}male_{300-450}$ 
 \\$\sum_{upstream}male_{300-450}$
 \end{flushright} 
 \end{minipage} \\ 
@@ -3012,10 +3012,10 @@ Reference & Mateo M., Beaulaton L., Drouineau H., Díaz E., and Briand C. (2021)
 \end{minipage} 
 \begin{minipage}{.45\linewidth} 
 \begin{flushright} 
-$\sum_{upstream}silver_{150-300}$ 
-\\$\sum_{upstream}silver_{300-450}$
-\\$\sum_{upstream}silver_{450-600}$
-\\$\sum_{upstream}silver_{600-750}$
+$\sum_{upstream}silver_{150-300}$ 
+\\$\sum_{upstream}silver_{300-450}$
+\\$\sum_{upstream}silver_{450-600}$
+\\$\sum_{upstream}silver_{600-750}$
 \\$\sum_{upstream}silver_{>750}$
 \end{flushright} 
 \end{minipage} \\ 
@@ -3060,11 +3060,11 @@ $\sum_{upstream}\sum_{\tau}silver_{\tau}$
 \begin{minipage}[c]{\textwidth}
 \begin{tabular}{p{3cm}p{12cm}}
 \toprule  
-Description & Cumulated number of silver eels produced in the basin located upstream from the current river segment. Columns: \hfill 
-$cnsilver150300=cnmale150300$, \hfill 
-$cnsilver300450=cnmale300450$ + cnfemale300450$, \hfill 
-$cnsilver450600= cnmale450600 + cnfemale450600$, \hfill 
-$cnsilver600750=cnfemale600750$, \hfill 
+Description & Cumulated number of silver eels produced in the basin located upstream from the current river segment. Columns: \hfill 
+$cnsilver150300=cnmale150300$, \hfill 
+$cnsilver300450=cnmale300450$ + cnfemale300450$, \hfill 
+$cnsilver450600= cnmale450600 + cnfemale450600$, \hfill 
+$cnsilver600750=cnfemale600750$, \hfill 
 $cnsilver750=cnfemale750$.\\
 \midrule  
 Reference & Mateo M., Beaulaton L., Drouineau H., Díaz E., and Briand C. (2021).  Eel density analysis (EDA 2.3). Escapement of silver eels (\textit{Anguilla anguilla}) from French, Spanish and Portugese rivers. GT4 - deliverable E4.1.1.\\
@@ -3096,7 +3096,7 @@ Probability of presence \\ of eels ($\widehat{\Delta}$) transported
 \begin{minipage}[c]{\textwidth}
 \begin{tabular}{p{3cm}p{12cm}}
 \toprule  
-Description & Prediction of the delta model for the presence of eels transported from other basins or river segments. Presence probability fitted by the mixed model delta for transport: \hfill
+Description & Prediction of the delta model for the presence of eels transported from other basins or river segments. Presence probability fitted by the mixed model delta for transport: \hfill
 $d>0 \sim ef\_wetted\_area + ef\_fishingmethod + (1|sec tor)$.\\
 \midrule  
 Reference & Mateo M., Beaulaton L., Drouineau H., Díaz E., and Briand C. (2021).  Eel density analysis (EDA 2.3). Escapement of silver eels (\textit{Anguilla anguilla}) from French, Spanish and Portugese rivers. GT4 - deliverable E4.1.1.\\
@@ -3128,7 +3128,7 @@ Density when eel is present $\Gamma$ transported (\si{\ind\per\square\meter})
 \begin{minipage}[c]{\textwidth}
 \begin{tabular}{p{3cm}p{12cm}}
 \toprule  
-Description & Prediction of the gamma model for the density of eels transported when present (\si{\ind\per\square\meter}) from other basins or river segments. Positive presence values fitted with a mixed model for transported areas: \hfill
+Description & Prediction of the gamma model for the density of eels transported when present (\si{\ind\per\square\meter}) from other basins or river segments. Positive presence values fitted with a mixed model for transported areas: \hfill
 $d \sim ef\_wetted\_area + (1|sec tor)$.\\
 \midrule  
 Reference & Mateo M., Beaulaton L., Drouineau H., Díaz E., and Briand C. (2021).  Eel density analysis (EDA 2.3). Escapement of silver eels (\textit{Anguilla anguilla}) from French, Spanish and Portugese rivers. GT4 - deliverable E4.1.1.\\
@@ -3315,9 +3315,9 @@ Number of eels \\ prediction without dam
 \begin{minipage}[c]{\textwidth}
 \begin{tabular}{p{3cm}p{12cm}}
 \toprule  
-Description & Number of eels predicted by the EDA model assuming that: \hfill
-1) there would have been no dam (without dam-wd) and \hfill 
-2) the year of prediction is the same as other predictions (2015). \hfill
+Description & Number of eels predicted by the EDA model assuming that: \hfill
+1) there would have been no dam (without dam-wd) and \hfill 
+2) the year of prediction is the same as other predictions (2015). \hfill
 Eels correspond to the eel standing stock and therefore include both yellow and silver eels.\\
 \midrule  
 Reference & Mateo M., Beaulaton L., Drouineau H., Díaz E., and Briand C. (2021).  Eel density analysis (EDA 2.3). Escapement of silver eels (\textit{Anguilla anguilla}) from French, Spanish and Portugese rivers. GT4 - deliverable E4.1.1.\\
@@ -3349,9 +3349,9 @@ Biomass of eels \\ prediction without dam (\si{\kilogram})
 \begin{minipage}[c]{\textwidth}
 \begin{tabular}{p{3cm}p{12cm}}
 \toprule  
-Description & Biomass of eels (\si{\kilogram}) predicted by the EDA model assuming that: \hfill 
-1) there would have been no dam (without dam - wd) and \hfill 
-2) that stock would have been at its maximum (1985). \hfill
+Description & Biomass of eels (\si{\kilogram}) predicted by the EDA model assuming that: \hfill 
+1) there would have been no dam (without dam - wd) and \hfill 
+2) that stock would have been at its maximum (1985). \hfill
 Eels correspond to the eel standing stock and therefore include both yellow and silver eels.\\
 \midrule  
 Reference & Mateo M., Beaulaton L., Drouineau H., Díaz E., and Briand C. (2021).  Eel density analysis (EDA 2.3). Escapement of silver eels (\textit{Anguilla anguilla}) from French, Spanish and Portugese rivers. GT4 - deliverable E4.1.1.\\
@@ -3414,8 +3414,8 @@ Biomass of silver eels \\ prediction without dams (\si{\kilogram})
 \begin{minipage}[c]{\textwidth}
 \begin{tabular}{p{3cm}p{12cm}}
 \toprule  
-Description & Biomass of silver eels (\si{\kilogram})predicted by the EDA model assuming that: \hfill
-1) there would have been no dam (without dam - wd) and \hfill
+Description & Biomass of silver eels (\si{\kilogram})predicted by the EDA model assuming that: \hfill
+1) there would have been no dam (without dam - wd) and \hfill
 2) that stock would have been at its maximum (1985).\\
 \midrule  
 Reference & Mateo M., Beaulaton L., Drouineau H., Díaz E., and Briand C. (2021).  Eel density analysis (EDA 2.3). Escapement of silver eels (\textit{Anguilla anguilla}) from French, Spanish and Portugese rivers. GT4 - deliverable E4.1.1.\\
